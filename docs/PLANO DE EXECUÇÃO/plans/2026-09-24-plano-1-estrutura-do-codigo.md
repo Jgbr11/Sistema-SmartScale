@@ -32,8 +32,8 @@ Atualizado ao fim de cada tarefa. Os detalhes de cada uma ficam na nota **"Execu
 | 4 — DTOs com Bean Validation | ✅ Concluída (25/09/2026) | `b274fe7` | 43/43 | 10 records em `adapters/web/dto`, `@Valid` em 6 controllers, nenhum `@RequestBody Map` restante; smoke test de API 18/18 |
 | 5 — `PoliticaDeDescanso` | ✅ Concluída (25/09/2026) | `c8011bc` | 49/49 | Regra RN06 e 1x1 num lugar só; default `7` e janelas manuais removidos dos 3 services; teste de caracterização da realocação |
 | 6 — Geração sem N+1 | ✅ Concluída (25/09/2026) | `98e2821` | 49/49 | Pré-carga de requisitos/regras/afastamentos; `findBySituacao`; `exists` de afastamento; geração ~2,5–3x mais rápida |
-| 7 — Frontend: formatadores + Vitest | ✅ Concluída (25/09/2026) | _aguardando commit_ | 49/49 (front 9/9) | `utils/formatadores.ts`; 24 cópias locais removidas de 14 arquivos; Vitest 5 com 3 arquivos de teste |
-| 8 — Configuração por ambiente | ⬜ Pendente | — | — | — |
+| 7 — Frontend: formatadores + Vitest | ✅ Concluída (25/09/2026) | `a401dda` | 49/49 (front 9/9) | `utils/formatadores.ts`; 24 cópias locais removidas de 14 arquivos; Vitest 5 com 3 arquivos de teste |
+| 8 — Configuração por ambiente | ✅ Concluída (25/09/2026) | _aguardando commit_ | 51/51 (front 9/9) | API no mesmo domínio (proxy Vite + nginx), CORS por propriedade, senhas do Compose em `.env`; Docker não testado (daemon desligado) |
 | 9 — Flyway | ⬜ Pendente | — | — | — |
 | 10 — Documentação | ⬜ Pendente | — | — | — |
 
@@ -1757,7 +1757,7 @@ Expected: 3 arquivos de teste PASS; lint sem erros novos; build OK.
 
 - [x] **Step 9: Checkpoint** — diff, sugerir a mensagem `refactor(front): formatadores compartilhados e testes com vitest` e aguardar o usuário commitar.
 
-> **Execução (25/09/2026, commit: _aguardando o usuário_)**
+> **Execução (25/09/2026, commit `a401dda`)**
 > - Step 1: instalado o `vitest@5.0.2`, sem conflito de dependência com o `vite@8.2.2`.
 > - Step 2: `formatadores.test.ts` falhou porque o módulo ainda não existia. `mascaras.test.ts` e `ordemTipos.test.ts` já passaram, porque testam código existente e ficam como proteção.
 > - Step 4: as cópias locais foram removidas por script, com import inserido depois do último `import` de cada arquivo:
@@ -1784,7 +1784,7 @@ Expected: 3 arquivos de teste PASS; lint sem erros novos; build OK.
 **Interfaces:**
 - Produces: propriedade `milscale.cors.origens` (lista separada por vírgula, padrão `http://localhost:*`); variável de build `VITE_API_URL` (padrão vazio = mesmo domínio).
 
-- [ ] **Step 1: Teste de CORS (deve passar antes e depois — protege a mudança)**
+- [x] **Step 1: Teste de CORS (deve passar antes e depois — protege a mudança)**
 
 ```java
 package br.com.milscale.milscale.adapters.config;
@@ -1828,7 +1828,7 @@ class CorsIntegrationTest {
 
 Run: `cd backend && mvn -q test -Dtest=CorsIntegrationTest` → PASS (caracteriza o atual).
 
-- [ ] **Step 2: CORS configurável no `SecurityConfig`**
+- [x] **Step 2: CORS configurável no `SecurityConfig`**
 
 Adicionar o campo e o construtor:
 ```java
@@ -1853,7 +1853,7 @@ milscale.cors.origens=${MILSCALE_CORS_ORIGENS:http://localhost:*}
 
 Run: `mvn -q test -Dtest=CorsIntegrationTest` → PASS.
 
-- [ ] **Step 3: Frontend chama a API no mesmo domínio**
+- [x] **Step 3: Frontend chama a API no mesmo domínio**
 
 `src/api/client.ts`, primeira linha:
 ```ts
@@ -1902,7 +1902,7 @@ VITE_API_URL=
     }
 ```
 
-- [ ] **Step 4: Segredos do Compose em `.env`**
+- [x] **Step 4: Segredos do Compose em `.env`**
 
 `.env.example` (raiz):
 ```bash
@@ -1951,14 +1951,32 @@ MYSQL_ROOT_PASSWORD=troque-esta-senha-root
 ```
 (o bloco `frontend` e `volumes` ficam iguais; manter o comentário explicativo do healthcheck.)
 
-- [ ] **Step 5: Verificar**
+- [x] **Step 5: Verificar**
 
 - `cd backend && mvn -q test` → PASS.
 - `cd frontend && npm run build` → PASS.
 - Dev: `mvn spring-boot:run` + `npm run dev`, abrir `http://localhost:5173`, logar com `000.000.000-01` e navegar (DevTools → Network: chamadas vão para `localhost:5173/api/...`).
 - Docker (se disponível): `cp .env.example .env`, ajustar senhas, `docker compose up --build`, abrir `http://localhost:5173`, logar e gerar uma escala. Sem Docker disponível, registrar no resumo que este passo não foi executado.
 
-- [ ] **Step 6: Checkpoint** — diff, sugerir a mensagem `chore: configuracao por ambiente (proxy, CORS, .env)` e aguardar o usuário commitar.
+- [x] **Step 6: Checkpoint** — diff, sugerir a mensagem `chore: configuracao por ambiente (proxy, CORS, .env)` e aguardar o usuário commitar.
+
+> **Execução (25/09/2026, commit: _aguardando o usuário_)**
+> - **Local dos planos:** o usuário moveu os planos para `docs/PLANO DE EXECUÇÃO/plans/` no commit `a401dda`. As atualizações seguem nesse caminho.
+> - Step 1: `CorsIntegrationTest` passou no código antigo e continuou passando depois da mudança (o valor padrão é o mesmo `http://localhost:*`).
+> - Seguido como planejado: `milscale.cors.origens` / `MILSCALE_CORS_ORIGENS`, `VITE_API_URL` (vazio = mesmo domínio), proxy `/api` no Vite e no nginx, e `.env.example` na raiz e no frontend.
+> - Healthcheck do MySQL no Compose: passou a ler usuário e senha das variáveis do container (`$$MYSQL_USER`), em vez de ter `milscale`/`milscale` escritos no arquivo.
+> - **Verificação do proxy de desenvolvimento, feita de verdade:** backend na 8080 (H2 em memória) e `vite` na 5173. Tudo pela porta **5173**:
+>   - login 200;
+>   - `/api/auth/me` devolveu o Sargenteante;
+>   - `/api/escalas` 200;
+>   - `/militares` serviu a SPA com título "MilScale";
+>   - `/api/auth/me` sem sessão deu 401.
+> - **Docker: não executado.** O Docker Desktop estava desligado (`dockerDesktopLinuxEngine` indisponível). Validado só o arquivo com `docker compose config`:
+>   - sem `.env`, falha com "defina MYSQL_PASSWORD no .env";
+>   - com as variáveis do `.env.example`, monta a configuração certa.
+>
+>   **Pendente para o usuário:** `cp .env.example .env` e `docker compose up --build` com o Docker Desktop ligado.
+> - Resultado: backend 51/51 (+2 do `CorsIntegrationTest`), frontend 9/9, `npm run build` OK.
 
 ---
 

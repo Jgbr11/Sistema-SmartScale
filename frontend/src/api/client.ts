@@ -1,4 +1,6 @@
-const BASE_URL = "http://localhost:8080";
+// Vazio = mesmo domínio (proxy do Vite em dev, proxy do nginx no Docker).
+// Defina VITE_API_URL só se o backend morar em outro endereço.
+const BASE_URL = import.meta.env.VITE_API_URL ?? "";
 
 export class ApiError extends Error {
   status: number;
