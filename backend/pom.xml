@@ -29,6 +29,10 @@
   <properties>
     <java.version>21</java.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <!-- A partir do JDK 23 o javac nao roda processadores de anotacao
+         sozinho - sem isto o Lombok nao gera getters/builders e o build
+         quebra. Nao muda nada no JDK 21 (imagem Docker). -->
+    <maven.compiler.proc>full</maven.compiler.proc>
   </properties>
 
   <dependencies>
@@ -76,6 +80,11 @@
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-test</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.security</groupId>
+      <artifactId>spring-security-test</artifactId>
       <scope>test</scope>
     </dependency>
   </dependencies>
