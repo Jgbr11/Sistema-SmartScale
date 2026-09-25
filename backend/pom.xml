@@ -57,6 +57,16 @@
       <artifactId>spring-boot-starter-validation</artifactId>
     </dependency>
 
+    <!-- Schema versionado: migrations em src/main/resources/db/migration. -->
+    <dependency>
+      <groupId>org.flywaydb</groupId>
+      <artifactId>flyway-core</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.flywaydb</groupId>
+      <artifactId>flyway-mysql</artifactId>
+    </dependency>
+
     <!-- Banco para desenvolvimento local: H2 em modo de compatibilidade MySQL.
          Permite rodar sem Docker/MySQL instalado, usando praticamente o mesmo SQL.
          O driver do MySQL real ja fica pronto para quando o docker-compose entrar. -->

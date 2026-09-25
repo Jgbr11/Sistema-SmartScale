@@ -33,8 +33,8 @@ Atualizado ao fim de cada tarefa. Os detalhes de cada uma ficam na nota **"Execu
 | 5 — `PoliticaDeDescanso` | ✅ Concluída (25/09/2026) | `c8011bc` | 49/49 | Regra RN06 e 1x1 num lugar só; default `7` e janelas manuais removidos dos 3 services; teste de caracterização da realocação |
 | 6 — Geração sem N+1 | ✅ Concluída (25/09/2026) | `98e2821` | 49/49 | Pré-carga de requisitos/regras/afastamentos; `findBySituacao`; `exists` de afastamento; geração ~2,5–3x mais rápida |
 | 7 — Frontend: formatadores + Vitest | ✅ Concluída (25/09/2026) | `a401dda` | 49/49 (front 9/9) | `utils/formatadores.ts`; 24 cópias locais removidas de 14 arquivos; Vitest 5 com 3 arquivos de teste |
-| 8 — Configuração por ambiente | ✅ Concluída (25/09/2026) | _aguardando commit_ | 51/51 (front 9/9) | API no mesmo domínio (proxy Vite + nginx), CORS por propriedade, senhas do Compose em `.env`; Docker não testado (daemon desligado) |
-| 9 — Flyway | ⬜ Pendente | — | — | — |
+| 8 — Configuração por ambiente | ✅ Concluída (25/09/2026) | `88ec21a` | 51/51 (front 9/9) | API no mesmo domínio (proxy Vite + nginx), CORS por propriedade, senhas do Compose em `.env`; Docker não testado (daemon desligado) |
+| 9 — Flyway | ✅ Concluída (25/09/2026) | _aguardando commit_ | 51/51 | V1 com 19 tabelas; `ddl-auto=none`; baseline em banco antigo; corrige `tinytext` de foto/boletim; MySQL não testado (Docker desligado) |
 | 10 — Documentação | ⬜ Pendente | — | — | — |
 
 ---
@@ -1960,7 +1960,7 @@ MYSQL_ROOT_PASSWORD=troque-esta-senha-root
 
 - [x] **Step 6: Checkpoint** — diff, sugerir a mensagem `chore: configuracao por ambiente (proxy, CORS, .env)` e aguardar o usuário commitar.
 
-> **Execução (25/09/2026, commit: _aguardando o usuário_)**
+> **Execução (25/09/2026, commit `88ec21a`)**
 > - **Local dos planos:** o usuário moveu os planos para `docs/PLANO DE EXECUÇÃO/plans/` no commit `a401dda`. As atualizações seguem nesse caminho.
 > - Step 1: `CorsIntegrationTest` passou no código antigo e continuou passando depois da mudança (o valor padrão é o mesmo `http://localhost:*`).
 > - Seguido como planejado: `milscale.cors.origens` / `MILSCALE_CORS_ORIGENS`, `VITE_API_URL` (vazio = mesmo domínio), proxy `/api` no Vite e no nginx, e `.env.example` na raiz e no frontend.
@@ -1991,7 +1991,7 @@ Hoje o banco é criado/alterado por `spring.jpa.hibernate.ddl-auto=update`, que 
 **Interfaces:**
 - Produces: convenção `backend/src/main/resources/db/migration/V<n>__<descricao>.sql` — o Plano 2 começa em `V2`.
 
-- [ ] **Step 1: Gerar o DDL a partir das entidades atuais (com os enums da Tarefa 2)**
+- [x] **Step 1: Gerar o DDL a partir das entidades atuais (com os enums da Tarefa 2)**
 
 ```bash
 cd backend
@@ -2006,7 +2006,7 @@ mvn -q spring-boot:run -Dspring-boot.run.arguments="\
 ```
 Quando aparecer `Started MilScaleApplication`, encerrar com Ctrl+C. Conferir que `target/ddl-mysql.sql` existe e contém `create table` para as 19 tabelas: `afastamento, boletim, escala, feriado, log_auditoria, militar, militar_qualificacao, notificacao, perfil_acesso, posto_graduacao, qualificacao, regra_escala, requisito_qualificacao_excluida, requisito_servico, servico_escalado, solicitacao, subunidade, tipo_servico, usuario`.
 
-- [ ] **Step 2: Normalizar o script para rodar igual em H2 (modo MySQL) e MySQL**
+- [x] **Step 2: Normalizar o script para rodar igual em H2 (modo MySQL) e MySQL**
 
 Copiar `target/ddl-mysql.sql` para `src/main/resources/db/migration/V1__schema_inicial.sql` e aplicar **exatamente** estas edições:
 1. Toda coluna `enum ('A','B',...)` vira `varchar(N)` com o `length` da anotação `@Column` correspondente: `escala.situacao` → `varchar(15)`; `servico_escalado.situacao` → `varchar(15)`; `solicitacao.situacao` → `varchar(25)`; `solicitacao.tipo_troca` → `varchar(20)`; `afastamento.tipo` → `varchar(15)`; `militar.situacao` → `varchar(15)`. (Motivo: bancos existentes já têm `varchar` nessas colunas; manter um tipo só nos dois caminhos.)
@@ -2019,7 +2019,7 @@ Copiar `target/ddl-mysql.sql` para `src/main/resources/db/migration/V1__schema_i
 -- versao (spring.flyway.baseline-on-migrate) e nao executam este script.
 ```
 
-- [ ] **Step 3: Adicionar as dependências** em `pom.xml` (versões gerenciadas pelo Spring Boot):
+- [x] **Step 3: Adicionar as dependências** em `pom.xml` (versões gerenciadas pelo Spring Boot):
 
 ```xml
     <dependency>
@@ -2032,7 +2032,7 @@ Copiar `target/ddl-mysql.sql` para `src/main/resources/db/migration/V1__schema_i
     </dependency>
 ```
 
-- [ ] **Step 4: Configurar o Flyway e desligar o `ddl-auto`**
+- [x] **Step 4: Configurar o Flyway e desligar o `ddl-auto`**
 
 `application.properties` — trocar `spring.jpa.hibernate.ddl-auto=update` por:
 ```properties
@@ -2051,18 +2051,36 @@ spring.flyway.baseline-version=1
 spring.jpa.hibernate.ddl-auto=none
 ```
 
-- [ ] **Step 5: Rodar os testes (banco de teste agora nasce do V1)**
+- [x] **Step 5: Rodar os testes (banco de teste agora nasce do V1)**
 
 Run: `cd backend && mvn -q test`
 Expected: PASS. Se falhar com erro de SQL do H2 ao aplicar o V1, a mensagem aponta a linha; corrigir **só a sintaxe** no V1 (sem mudar tipos/colunas) e registrar o ajuste no resumo.
 
-- [ ] **Step 6: Verificar os três cenários de banco**
+- [x] **Step 6: Verificar os três cenários de banco**
 
 1. **Banco novo H2:** `rm -rf backend/data && cd backend && mvn spring-boot:run` → log mostra `Migrating schema ... to version "1 - schema inicial"`; logar e gerar escala.
 2. **Banco H2 existente:** restaurar uma cópia de `backend/data/` feita **antes** desta tarefa (fazer a cópia no Step 1: `cp -r backend/data /tmp/milscale-data-backup` se existir), subir → log mostra `Creating baseline` e nenhuma migration aplicada; dados intactos.
 3. **MySQL (Docker, se disponível):** `docker compose down -v && docker compose up --build` → V1 aplicado no MySQL; logar e gerar escala. Sem Docker, registrar que não foi executado.
 
-- [ ] **Step 7: Checkpoint** — diff, sugerir a mensagem `build: schema versionado com Flyway` e aguardar o usuário commitar.
+- [x] **Step 7: Checkpoint** — diff, sugerir a mensagem `build: schema versionado com Flyway` e aguardar o usuário commitar.
+
+> **Execução (25/09/2026, commit: _aguardando o usuário_)**
+> - Step 1: o DDL foi gerado pelo comando do plano (porta 8091) em `target/ddl-mysql.sql`, com as 19 tabelas.
+> - **Achado fora do plano, com correção no V1:**
+>   - **Problema:** os campos `@Lob String` (`militar.foto_base64`, `boletim.conteudo_html`) saem como **`tinytext`** no dialeto MySQL do Hibernate 6.5, e `tinytext` guarda **no máximo 255 bytes**. Uma foto em base64 ou um boletim com imagem colada estouraria no MySQL. O README afirmava que o Hibernate escolhia `LONGTEXT` sozinho, mas não é o que acontece nesta versão.
+>   - **Correção:** no V1 as duas colunas foram declaradas como `longtext`.
+>   - **Pendente:** bancos MySQL que já existem com `tinytext` continuam com a coluna pequena. Se houver algum em uso, é preciso uma migration `V2` com `alter table ... modify ... longtext`. Não foi criada porque não se sabe se existe banco MySQL em uso; fica registrado para o Plano 2.
+> - Step 2: as outras normalizações seguiram o plano (6 `enum` → `varchar(n)`, sem `engine=InnoDB`), com comentário explicando cada ajuste no topo do V1. As colunas `bit` e `datetime(6)` foram aceitas pelo H2 em `MODE=MySQL` sem mudança.
+> - Flyway gerenciado pelo Spring Boot: **10.10.0**.
+> - Step 5: a suíte inteira passou a criar o banco de teste pelo V1. O log confirma "Migrating schema … to version 1 - schema inicial" e "Successfully applied 1 migration". Resultado: 51/51.
+> - **Step 6, cenários de banco:**
+>   - **Banco H2 existente:** não havia `backend/data`, então um banco pré-Flyway foi criado de propósito numa pasta temporária, com o código **antes** desta tarefa (`ddl-auto=update` + seed). Ao subir com o Flyway:
+>     - "Creating Schema History table … with baseline", "Schema is up to date. No migration necessary", ou seja, o V1 **não** rodou;
+>     - dados intactos, 201 militares;
+>     - login OK, geração de 3 dias (75 serviços, 0 vaga aberta) OK, boletim de 300 KB OK.
+>   - **Banco H2 novo:** "Migrating schema … to version 1", depois seed de 201 militares, escala e boletim de 300 KB OK.
+>   - **MySQL (Docker): não executado.** O Docker Desktop estava desligado. **Pendente para o usuário:** `cp .env.example .env` e `docker compose down -v && docker compose up --build`; conferir no log do backend "Migrating schema … version 1", logar, gerar escala e salvar um boletim com imagem.
+> - Os bancos temporários de teste foram apagados no fim.
 
 ---
 
