@@ -30,19 +30,19 @@ import java.util.Optional;
 public class AfastamentoService {
 
     private final AfastamentoRepository afastamentoRepository;
-    private final UsuarioRepository usuarioRepository;
+    private final UsuarioLogadoService usuarioLogadoService;
     private final ServicoEscaladoRepository servicoEscaladoRepository;
     private final MilitarRepository militarRepository;
     private final RequisitoServicoRepository requisitoServicoRepository;
     private final RegraEscalaRepository regraEscalaRepository;
     private final ElegibilidadeService elegibilidadeService;
 
-    public AfastamentoService(AfastamentoRepository afastamentoRepository, UsuarioRepository usuarioRepository,
+    public AfastamentoService(AfastamentoRepository afastamentoRepository, UsuarioLogadoService usuarioLogadoService,
                                ServicoEscaladoRepository servicoEscaladoRepository, MilitarRepository militarRepository,
                                RequisitoServicoRepository requisitoServicoRepository, RegraEscalaRepository regraEscalaRepository,
                                ElegibilidadeService elegibilidadeService) {
         this.afastamentoRepository = afastamentoRepository;
-        this.usuarioRepository = usuarioRepository;
+        this.usuarioLogadoService = usuarioLogadoService;
         this.servicoEscaladoRepository = servicoEscaladoRepository;
         this.militarRepository = militarRepository;
         this.requisitoServicoRepository = requisitoServicoRepository;
@@ -64,7 +64,7 @@ public class AfastamentoService {
         if (militarIds == null || militarIds.isEmpty()) {
             throw new IllegalArgumentException("Selecione ao menos um militar");
         }
-        var usuario = usuarioRepository.findByLogin(loginUsuarioRegistro).orElseThrow();
+        var usuario = usuarioLogadoService.usuario(loginUsuarioRegistro);
         // Um lote agrupa os N afastamentos (um por militar) que vieram do
         // mesmo cadastro - assim a tela de Avisos consegue mostrar "Missão X:
         // fulano, beltrano, sicrano" como um evento só, não N linhas soltas.

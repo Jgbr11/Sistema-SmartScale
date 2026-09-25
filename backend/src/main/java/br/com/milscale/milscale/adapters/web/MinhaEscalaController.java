@@ -1,6 +1,6 @@
 package br.com.milscale.milscale.adapters.web;
 
-import br.com.milscale.milscale.adapters.persistence.UsuarioRepository;
+import br.com.milscale.milscale.application.UsuarioLogadoService;
 import br.com.milscale.milscale.application.MinhaEscalaService;
 import br.com.milscale.milscale.domain.ServicoEscalado;
 import org.springframework.security.core.Authentication;
@@ -15,17 +15,17 @@ import java.util.List;
 public class MinhaEscalaController {
 
     private final MinhaEscalaService minhaEscalaService;
-    private final UsuarioRepository usuarioRepository;
+    private final UsuarioLogadoService usuarioLogadoService;
 
-    public MinhaEscalaController(MinhaEscalaService minhaEscalaService, UsuarioRepository usuarioRepository) {
+    public MinhaEscalaController(MinhaEscalaService minhaEscalaService, UsuarioLogadoService usuarioLogadoService) {
         this.minhaEscalaService = minhaEscalaService;
-        this.usuarioRepository = usuarioRepository;
+        this.usuarioLogadoService = usuarioLogadoService;
     }
 
     @GetMapping
     public List<ServicoEscalado> doMes(@RequestParam(required = false) String mes, Authentication auth) {
         YearMonth alvo = mes != null ? YearMonth.parse(mes) : YearMonth.now();
-        Long militarId = usuarioRepository.findByLogin(auth.getName()).orElseThrow().getMilitar().getId();
+        Long militarId = usuarioLogadoService.militar(auth.getName()).getId();
         return minhaEscalaService.doMes(militarId, alvo);
     }
 }

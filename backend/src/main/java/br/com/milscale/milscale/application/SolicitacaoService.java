@@ -41,6 +41,7 @@ public class SolicitacaoService {
     private final RegraEscalaRepository regraEscalaRepository;
     private final ElegibilidadeService elegibilidadeService;
     private final NotificacaoService notificacaoService;
+    private final UsuarioLogadoService usuarioLogadoService;
 
     public SolicitacaoService(SolicitacaoRepository solicitacaoRepository,
                                ServicoEscaladoRepository servicoEscaladoRepository,
@@ -49,7 +50,8 @@ public class SolicitacaoService {
                                RequisitoServicoRepository requisitoServicoRepository,
                                RegraEscalaRepository regraEscalaRepository,
                                ElegibilidadeService elegibilidadeService,
-                               NotificacaoService notificacaoService) {
+                               NotificacaoService notificacaoService,
+                               UsuarioLogadoService usuarioLogadoService) {
         this.solicitacaoRepository = solicitacaoRepository;
         this.servicoEscaladoRepository = servicoEscaladoRepository;
         this.militarRepository = militarRepository;
@@ -58,16 +60,17 @@ public class SolicitacaoService {
         this.regraEscalaRepository = regraEscalaRepository;
         this.elegibilidadeService = elegibilidadeService;
         this.notificacaoService = notificacaoService;
+        this.usuarioLogadoService = usuarioLogadoService;
     }
 
     public List<Solicitacao> minhas(String loginSolicitante) {
-        Long militarId = usuarioRepository.findByLogin(loginSolicitante).orElseThrow().getMilitar().getId();
+        Long militarId = usuarioLogadoService.militar(loginSolicitante).getId();
         return solicitacaoRepository.findBySolicitante_IdOrderByDataSolicitacaoDesc(militarId);
     }
 
     /** RF15 - pedidos onde EU sou o substituto sugerido e ainda preciso aceitar ou recusar. */
     public List<Solicitacao> aguardandoMinhaConfirmacao(String loginUsuario) {
-        Long militarId = usuarioRepository.findByLogin(loginUsuario).orElseThrow().getMilitar().getId();
+        Long militarId = usuarioLogadoService.militar(loginUsuario).getId();
         return solicitacaoRepository.findBySubstituto_IdAndSituacaoOrderByDataSolicitacaoAsc(militarId, SituacaoSolicitacao.AGUARDANDO_SUBSTITUTO);
     }
 
@@ -84,7 +87,7 @@ public class SolicitacaoService {
     public Solicitacao criar(Long servicoOrigemId, Long substitutoId, String justificativa, String loginSolicitante) {
         ServicoEscalado servico = servicoEscaladoRepository.findById(servicoOrigemId)
                 .orElseThrow(() -> new NoSuchElementException("Serviço não encontrado"));
-        Militar solicitante = usuarioRepository.findByLogin(loginSolicitante).orElseThrow().getMilitar();
+        Militar solicitante = usuarioLogadoService.militar(loginSolicitante);
 
         if (servico.getMilitar() == null || !servico.getMilitar().getId().equals(solicitante.getId())) {
             throw new IllegalArgumentException("Esse serviço não é seu — só quem está escalado pode pedir a troca");
@@ -140,7 +143,7 @@ public class SolicitacaoService {
                 .orElseThrow(() -> new NoSuchElementException("Serviço não encontrado"));
         ServicoEscalado servicoDestino = servicoEscaladoRepository.findById(servicoDestinoId)
                 .orElseThrow(() -> new NoSuchElementException("Serviço do outro militar não encontrado"));
-        Militar solicitante = usuarioRepository.findByLogin(loginSolicitante).orElseThrow().getMilitar();
+        Militar solicitante = usuarioLogadoService.militar(loginSolicitante);
 
         if (servicoOrigem.getMilitar() == null || !servicoOrigem.getMilitar().getId().equals(solicitante.getId())) {
             throw new IllegalArgumentException("Esse serviço não é seu — só quem está escalado pode pedir a troca");
@@ -195,7 +198,7 @@ public class SolicitacaoService {
     public Solicitacao confirmarSubstituto(Long id, boolean aceito, String comentario, String loginUsuario) {
         Solicitacao s = buscar(id);
         exigirSituacao(s, SituacaoSolicitacao.AGUARDANDO_SUBSTITUTO);
-        Militar quemConfirma = usuarioRepository.findByLogin(loginUsuario).orElseThrow().getMilitar();
+        Militar quemConfirma = usuarioLogadoService.militar(loginUsuario);
         if (!s.getSubstituto().getId().equals(quemConfirma.getId())) {
             throw new IllegalArgumentException("Só a pessoa sugerida como substituta pode confirmar esse pedido");
         }
@@ -269,7 +272,7 @@ public class SolicitacaoService {
     @Transactional
     public Solicitacao cancelar(Long id, String loginSolicitante) {
         Solicitacao s = buscar(id);
-        Militar quemPediu = usuarioRepository.findByLogin(loginSolicitante).orElseThrow().getMilitar();
+        Militar quemPediu = usuarioLogadoService.militar(loginSolicitante);
         if (!s.getSolicitante().getId().equals(quemPediu.getId())) {
             throw new IllegalArgumentException("Só quem pediu a troca pode cancelá-la");
         }

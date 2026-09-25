@@ -1,7 +1,6 @@
 package br.com.milscale.milscale.application;
 
 import br.com.milscale.milscale.adapters.persistence.BoletimRepository;
-import br.com.milscale.milscale.adapters.persistence.UsuarioRepository;
 import br.com.milscale.milscale.domain.Boletim;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -15,11 +14,11 @@ import java.util.NoSuchElementException;
 public class BoletimService {
 
     private final BoletimRepository boletimRepository;
-    private final UsuarioRepository usuarioRepository;
+    private final UsuarioLogadoService usuarioLogadoService;
 
-    public BoletimService(BoletimRepository boletimRepository, UsuarioRepository usuarioRepository) {
+    public BoletimService(BoletimRepository boletimRepository, UsuarioLogadoService usuarioLogadoService) {
         this.boletimRepository = boletimRepository;
-        this.usuarioRepository = usuarioRepository;
+        this.usuarioLogadoService = usuarioLogadoService;
     }
 
     public List<Boletim> listar() {
@@ -39,7 +38,7 @@ public class BoletimService {
         if (conteudoHtml == null || conteudoHtml.isBlank()) {
             throw new IllegalArgumentException("O boletim não pode ficar vazio");
         }
-        var autor = usuarioRepository.findByLogin(loginAutor).orElseThrow().getMilitar();
+        var autor = usuarioLogadoService.militar(loginAutor);
         return boletimRepository.save(Boletim.builder()
                 .numero(numero).titulo(titulo).conteudoHtml(conteudoHtml).autor(autor)
                 .avisoRelacionado(avisoRelacionado).avisoRelacionadoDescricao(avisoRelacionadoDescricao)

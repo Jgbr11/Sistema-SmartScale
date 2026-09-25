@@ -23,10 +23,13 @@ public class NotificacaoService {
 
     private final NotificacaoRepository notificacaoRepository;
     private final UsuarioRepository usuarioRepository;
+    private final UsuarioLogadoService usuarioLogadoService;
 
-    public NotificacaoService(NotificacaoRepository notificacaoRepository, UsuarioRepository usuarioRepository) {
+    public NotificacaoService(NotificacaoRepository notificacaoRepository, UsuarioRepository usuarioRepository,
+                              UsuarioLogadoService usuarioLogadoService) {
         this.notificacaoRepository = notificacaoRepository;
         this.usuarioRepository = usuarioRepository;
+        this.usuarioLogadoService = usuarioLogadoService;
     }
 
     @Transactional
@@ -47,12 +50,12 @@ public class NotificacaoService {
     }
 
     public List<Notificacao> listarRecentes(String loginUsuario, int limite) {
-        Long usuarioId = usuarioRepository.findByLogin(loginUsuario).orElseThrow().getId();
+        Long usuarioId = usuarioLogadoService.usuario(loginUsuario).getId();
         return notificacaoRepository.findByDestinatario_IdOrderByDataCriacaoDesc(usuarioId, PageRequest.of(0, limite));
     }
 
     public long contarNaoLidas(String loginUsuario) {
-        Long usuarioId = usuarioRepository.findByLogin(loginUsuario).orElseThrow().getId();
+        Long usuarioId = usuarioLogadoService.usuario(loginUsuario).getId();
         return notificacaoRepository.countByDestinatario_IdAndLidaFalse(usuarioId);
     }
 
@@ -68,7 +71,7 @@ public class NotificacaoService {
 
     @Transactional
     public void marcarTodasComoLidas(String loginUsuario) {
-        Long usuarioId = usuarioRepository.findByLogin(loginUsuario).orElseThrow().getId();
+        Long usuarioId = usuarioLogadoService.usuario(loginUsuario).getId();
         List<Notificacao> naoLidas = notificacaoRepository.findByDestinatario_IdAndLidaFalse(usuarioId);
         for (Notificacao n : naoLidas) {
             n.setLida(true);

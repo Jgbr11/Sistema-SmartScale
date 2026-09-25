@@ -1,12 +1,11 @@
 package br.com.milscale.milscale.adapters.web;
 
-import br.com.milscale.milscale.adapters.persistence.EscalaRepository;
-import br.com.milscale.milscale.adapters.persistence.ServicoEscaladoRepository;
-import br.com.milscale.milscale.adapters.persistence.UsuarioRepository;
 import br.com.milscale.milscale.application.AuditoriaService;
 import br.com.milscale.milscale.application.BloqueioDiaService;
+import br.com.milscale.milscale.application.ConsultaEscalaService;
 import br.com.milscale.milscale.application.GerarEscalaService;
 import br.com.milscale.milscale.application.PublicarEscalaService;
+import br.com.milscale.milscale.application.UsuarioLogadoService;
 import br.com.milscale.milscale.domain.Escala;
 import br.com.milscale.milscale.domain.ServicoEscalado;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -24,24 +23,21 @@ public class EscalaController {
     private final GerarEscalaService gerarEscalaService;
     private final PublicarEscalaService publicarEscalaService;
     private final BloqueioDiaService bloqueioDiaService;
-    private final EscalaRepository escalaRepository;
-    private final ServicoEscaladoRepository servicoEscaladoRepository;
-    private final UsuarioRepository usuarioRepository;
+    private final ConsultaEscalaService consultaEscalaService;
+    private final UsuarioLogadoService usuarioLogadoService;
     private final AuditoriaService auditoriaService;
 
     public EscalaController(GerarEscalaService gerarEscalaService,
                              PublicarEscalaService publicarEscalaService,
                              BloqueioDiaService bloqueioDiaService,
-                             EscalaRepository escalaRepository,
-                             ServicoEscaladoRepository servicoEscaladoRepository,
-                             UsuarioRepository usuarioRepository,
+                             ConsultaEscalaService consultaEscalaService,
+                             UsuarioLogadoService usuarioLogadoService,
                              AuditoriaService auditoriaService) {
         this.gerarEscalaService = gerarEscalaService;
         this.publicarEscalaService = publicarEscalaService;
         this.bloqueioDiaService = bloqueioDiaService;
-        this.escalaRepository = escalaRepository;
-        this.servicoEscaladoRepository = servicoEscaladoRepository;
-        this.usuarioRepository = usuarioRepository;
+        this.consultaEscalaService = consultaEscalaService;
+        this.usuarioLogadoService = usuarioLogadoService;
         this.auditoriaService = auditoriaService;
     }
 
@@ -49,20 +45,20 @@ public class EscalaController {
     @PreAuthorize("hasAnyRole('CABO_SARGENTEACAO', 'SD_EP_SARGENTEACAO', 'SARGENTEANTE')")
     @GetMapping
     public List<Escala> listar() {
-        return escalaRepository.findAllByOrderByDataInicioDesc();
+        return consultaEscalaService.listar();
     }
 
     @PreAuthorize("hasAnyRole('CABO_SARGENTEACAO', 'SD_EP_SARGENTEACAO', 'SARGENTEANTE')")
     @GetMapping("/{id}")
     public Escala buscar(@PathVariable Long id) {
-        return escalaRepository.findById(id).orElseThrow();
+        return consultaEscalaService.buscar(id);
     }
 
     /** RF14 - roster de UM dia especifico, aberto a qualquer autenticado (inclusive Militar Escalado
      *  pela tela "Escala do dia") - nunca devolve o mes inteiro, só a data pedida. */
     @GetMapping("/dia")
     public List<ServicoEscalado> escalaDoDia(@RequestParam String data) {
-        return servicoEscaladoRepository.findByData(LocalDate.parse(data));
+        return consultaEscalaService.doDia(LocalDate.parse(data));
     }
 
     /** RF08 - gerar automaticamente. Privativo de Cabo da Sargenteacao ou Sargenteante. */
@@ -71,7 +67,7 @@ public class EscalaController {
     public Escala gerar(@RequestBody Map<String, String> body, Authentication auth) {
         LocalDate inicio = LocalDate.parse(body.get("dataInicio"));
         LocalDate fim = LocalDate.parse(body.get("dataFim"));
-        var usuario = usuarioRepository.findByLogin(auth.getName()).orElseThrow();
+        var usuario = usuarioLogadoService.usuario(auth.getName());
         Escala escala = gerarEscalaService.gerar(inicio, fim, usuario);
         auditoriaService.registrar(auth.getName(), "ESCALA_GERADA", inicio + " a " + fim);
         return escala;

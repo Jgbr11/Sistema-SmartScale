@@ -27,8 +27,8 @@ Atualizado ao fim de cada tarefa. Os detalhes de cada uma ficam na nota **"Execu
 |---|---|---|---|---|
 | 0 — Preparação | ✅ Concluída (25/09/2026) | `99f0b8b` | 22/22 | `.gitignore`, `spring-security-test`, `maven.compiler.proc=full` (fora do plano original) |
 | 1 — Tratamento de erros | ✅ Concluída (25/09/2026) | `79c0913` | 27/27 | `ErroResposta`, handlers de 403/validação/tipo/genérico, 5 testes novos |
-| 2 — Enums de domínio | ✅ Concluída (25/09/2026) | _aguardando commit_ | 32/32 | 5 enums no lugar de strings; entidades, repositórios e services; `EnumsContratoTest` |
-| 3 — Usuário logado / controllers | ⬜ Pendente | — | — | — |
+| 2 — Enums de domínio | ✅ Concluída (25/09/2026) | `f0d2c8c` | 32/32 | 5 enums no lugar de strings; entidades, repositórios e services; `EnumsContratoTest` |
+| 3 — Usuário logado / controllers | ✅ Concluída (25/09/2026) | _aguardando commit_ | 38/38 | `UsuarioLogadoService`, `ContaService`, `ConsultaEscalaService`; 15 buscas por login centralizadas |
 | 4 — DTOs com Bean Validation | ⬜ Pendente | — | — | — |
 | 5 — `PoliticaDeDescanso` | ⬜ Pendente | — | — | — |
 | 6 — Geração sem N+1 | ⬜ Pendente | — | — | — |
@@ -577,7 +577,7 @@ A linha `usuarioRepository.findByLogin(login).orElseThrow()` aparece 15 vezes. A
   - `ConsultaEscalaService.listar(): List<Escala>`, `.buscar(Long id): Escala`, `.doDia(LocalDate data): List<ServicoEscalado>`
   - `ContaService.registrarAcesso(String login): Usuario`, `.trocarSenha(String login, String senhaAtual, String senhaNova): void`
 
-- [ ] **Step 1: Escrever os testes que falham**
+- [x] **Step 1: Escrever os testes que falham**
 
 ```java
 package br.com.milscale.milscale.application;
@@ -645,12 +645,12 @@ class ContaServiceIntegrationTest {
 }
 ```
 
-- [ ] **Step 2: Rodar e confirmar que falha**
+- [x] **Step 2: Rodar e confirmar que falha**
 
 Run: `cd backend && mvn -q test -Dtest=ContaServiceIntegrationTest`
 Expected: FAIL de compilação (`ContaService`, `UsuarioLogadoService` não existem).
 
-- [ ] **Step 3: Criar `UsuarioLogadoService.java`**
+- [x] **Step 3: Criar `UsuarioLogadoService.java`**
 
 ```java
 package br.com.milscale.milscale.application;
@@ -683,7 +683,7 @@ public class UsuarioLogadoService {
 }
 ```
 
-- [ ] **Step 4: Criar `ContaService.java`** (mensagens idênticas às do `AuthController` atual)
+- [x] **Step 4: Criar `ContaService.java`** (mensagens idênticas às do `AuthController` atual)
 
 ```java
 package br.com.milscale.milscale.application;
@@ -736,7 +736,7 @@ public class ContaService {
 }
 ```
 
-- [ ] **Step 5: Criar `ConsultaEscalaService.java`**
+- [x] **Step 5: Criar `ConsultaEscalaService.java`**
 
 ```java
 package br.com.milscale.milscale.application;
@@ -777,7 +777,7 @@ public class ConsultaEscalaService {
 }
 ```
 
-- [ ] **Step 6: Reescrever os controllers para usar os services**
+- [x] **Step 6: Reescrever os controllers para usar os services**
 
 `AuthController.java` (corpo da classe; imports: remover `UsuarioRepository`, `PasswordEncoder`, `LocalDateTime`, adicionar `ContaService`):
 
@@ -826,7 +826,7 @@ public class AuthController {
 
 `MinhaEscalaController.java`: trocar `UsuarioRepository` por `UsuarioLogadoService`; `usuarioRepository.findByLogin(auth.getName()).orElseThrow().getMilitar().getId()` → `usuarioLogadoService.militar(auth.getName()).getId()`.
 
-- [ ] **Step 7: Trocar as ocorrências nos services**
+- [x] **Step 7: Trocar as ocorrências nos services**
 
 Injetar `UsuarioLogadoService` pelo construtor e substituir:
 - `SolicitacaoService` (`minhas`, `aguardandoMinhaConfirmacao`, `criar`, `criarTrocaMutua`, `confirmarSubstituto`, `cancelar`): `usuarioRepository.findByLogin(X).orElseThrow().getMilitar()` → `usuarioLogadoService.militar(X)`. `usuarioRepository` continua sendo usado em `findByMilitar_Id` (notificações) — manter.
@@ -836,12 +836,20 @@ Injetar `UsuarioLogadoService` pelo construtor e substituir:
 
 Conferir: `cd backend && grep -rn "findByLogin(.*).orElseThrow()" src/main` → só pode sobrar dentro de `UsuarioLogadoService` (que usa `orElseThrow(() -> ...)`, então o grep retorna vazio).
 
-- [ ] **Step 8: Rodar todos os testes**
+- [x] **Step 8: Rodar todos os testes**
 
 Run: `cd backend && mvn -q test`
 Expected: PASS.
 
-- [ ] **Step 9: Checkpoint** — diff, sugerir a mensagem `refactor: servicos de conta, usuario logado e consulta de escala` e aguardar o usuário commitar.
+- [x] **Step 9: Checkpoint** — diff, sugerir a mensagem `refactor: servicos de conta, usuario logado e consulta de escala` e aguardar o usuário commitar.
+
+> **Execução (25/09/2026, commit: _aguardando o usuário_)**
+> - Seguido como planejado. Step 2 falhou por compilação, como esperado.
+> - As 15 ocorrências de `usuarioRepository.findByLogin(...).orElseThrow()` foram trocadas por `usuarioLogadoService.usuario(...)` / `.militar(...)`, em `SolicitacaoService`, `AfastamentoService`, `BoletimService`, `NotificacaoService` e `MinhaEscalaController`.
+> - `AfastamentoService`, `BoletimService` e `MinhaEscalaController` deixaram de depender do `UsuarioRepository`. `SolicitacaoService` e `NotificacaoService` continuam usando o repositório para `findByMilitar_Id` / `findAll` (notificações).
+> - Controllers com acesso direto a repositório: só sobrou o `CadastroApoioController`, que lista postos e subunidades para os combos da tela. Ficou fora do escopo desta tarefa de propósito.
+> - Efeito colateral positivo: login inexistente agora responde 404 com "Usuário não encontrado". Antes era `orElseThrow()` sem mensagem.
+> - Resultado: 38/38 (32 + 6 do `ContaServiceIntegrationTest`).
 
 ---
 
