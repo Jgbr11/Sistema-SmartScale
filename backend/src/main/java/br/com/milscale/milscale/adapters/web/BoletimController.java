@@ -1,14 +1,15 @@
 package br.com.milscale.milscale.adapters.web;
 
+import br.com.milscale.milscale.adapters.web.dto.BoletimRequest;
 import br.com.milscale.milscale.application.AuditoriaService;
 import br.com.milscale.milscale.application.BoletimService;
 import br.com.milscale.milscale.domain.Boletim;
+import jakarta.validation.Valid;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Map;
 
 /** Boletim Interno - leitura aberta a todo mundo, manutencao privativa de Cabo/Sargenteante. */
 @RestController
@@ -35,18 +36,18 @@ public class BoletimController {
 
     @PreAuthorize("hasAnyRole('CABO_SARGENTEACAO', 'SARGENTEANTE')")
     @PostMapping
-    public Boletim criar(@RequestBody Map<String, String> body, Authentication auth) {
-        Boletim salvo = boletimService.criar(body.get("numero"), body.get("titulo"), body.get("conteudoHtml"),
-                body.get("avisoRelacionado"), body.get("avisoRelacionadoDescricao"), auth.getName());
+    public Boletim criar(@Valid @RequestBody BoletimRequest req, Authentication auth) {
+        Boletim salvo = boletimService.criar(req.numero(), req.titulo(), req.conteudoHtml(),
+                req.avisoRelacionado(), req.avisoRelacionadoDescricao(), auth.getName());
         auditoriaService.registrar(auth.getName(), "BOLETIM_PUBLICADO", salvo.getTitulo());
         return salvo;
     }
 
     @PreAuthorize("hasAnyRole('CABO_SARGENTEACAO', 'SARGENTEANTE')")
     @PutMapping("/{id}")
-    public Boletim atualizar(@PathVariable Long id, @RequestBody Map<String, String> body, Authentication auth) {
-        Boletim salvo = boletimService.atualizar(id, body.get("numero"), body.get("titulo"), body.get("conteudoHtml"),
-                body.get("avisoRelacionado"), body.get("avisoRelacionadoDescricao"));
+    public Boletim atualizar(@PathVariable Long id, @Valid @RequestBody BoletimRequest req, Authentication auth) {
+        Boletim salvo = boletimService.atualizar(id, req.numero(), req.titulo(), req.conteudoHtml(),
+                req.avisoRelacionado(), req.avisoRelacionadoDescricao());
         auditoriaService.registrar(auth.getName(), "BOLETIM_EDITADO", salvo.getTitulo());
         return salvo;
     }

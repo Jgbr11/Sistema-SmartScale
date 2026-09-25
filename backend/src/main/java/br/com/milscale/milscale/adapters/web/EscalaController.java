@@ -1,5 +1,6 @@
 package br.com.milscale.milscale.adapters.web;
 
+import br.com.milscale.milscale.adapters.web.dto.GerarEscalaRequest;
 import br.com.milscale.milscale.application.AuditoriaService;
 import br.com.milscale.milscale.application.BloqueioDiaService;
 import br.com.milscale.milscale.application.ConsultaEscalaService;
@@ -8,13 +9,13 @@ import br.com.milscale.milscale.application.PublicarEscalaService;
 import br.com.milscale.milscale.application.UsuarioLogadoService;
 import br.com.milscale.milscale.domain.Escala;
 import br.com.milscale.milscale.domain.ServicoEscalado;
+import jakarta.validation.Valid;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
 import java.util.List;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/api/escalas")
@@ -64,12 +65,10 @@ public class EscalaController {
     /** RF08 - gerar automaticamente. Privativo de Cabo da Sargenteacao ou Sargenteante. */
     @PreAuthorize("hasAnyRole('CABO_SARGENTEACAO', 'SARGENTEANTE')")
     @PostMapping("/gerar")
-    public Escala gerar(@RequestBody Map<String, String> body, Authentication auth) {
-        LocalDate inicio = LocalDate.parse(body.get("dataInicio"));
-        LocalDate fim = LocalDate.parse(body.get("dataFim"));
+    public Escala gerar(@Valid @RequestBody GerarEscalaRequest req, Authentication auth) {
         var usuario = usuarioLogadoService.usuario(auth.getName());
-        Escala escala = gerarEscalaService.gerar(inicio, fim, usuario);
-        auditoriaService.registrar(auth.getName(), "ESCALA_GERADA", inicio + " a " + fim);
+        Escala escala = gerarEscalaService.gerar(req.dataInicio(), req.dataFim(), usuario);
+        auditoriaService.registrar(auth.getName(), "ESCALA_GERADA", req.dataInicio() + " a " + req.dataFim());
         return escala;
     }
 

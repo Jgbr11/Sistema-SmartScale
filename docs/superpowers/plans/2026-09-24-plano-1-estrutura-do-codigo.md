@@ -28,8 +28,8 @@ Atualizado ao fim de cada tarefa. Os detalhes de cada uma ficam na nota **"Execu
 | 0 — Preparação | ✅ Concluída (25/09/2026) | `99f0b8b` | 22/22 | `.gitignore`, `spring-security-test`, `maven.compiler.proc=full` (fora do plano original) |
 | 1 — Tratamento de erros | ✅ Concluída (25/09/2026) | `79c0913` | 27/27 | `ErroResposta`, handlers de 403/validação/tipo/genérico, 5 testes novos |
 | 2 — Enums de domínio | ✅ Concluída (25/09/2026) | `f0d2c8c` | 32/32 | 5 enums no lugar de strings; entidades, repositórios e services; `EnumsContratoTest` |
-| 3 — Usuário logado / controllers | ✅ Concluída (25/09/2026) | _aguardando commit_ | 38/38 | `UsuarioLogadoService`, `ContaService`, `ConsultaEscalaService`; 15 buscas por login centralizadas |
-| 4 — DTOs com Bean Validation | ⬜ Pendente | — | — | — |
+| 3 — Usuário logado / controllers | ✅ Concluída (25/09/2026) | `ce08739` | 38/38 | `UsuarioLogadoService`, `ContaService`, `ConsultaEscalaService`; 15 buscas por login centralizadas |
+| 4 — DTOs com Bean Validation | ✅ Concluída (25/09/2026) | _aguardando commit_ | 43/43 | 10 records em `adapters/web/dto`, `@Valid` em 6 controllers, nenhum `@RequestBody Map` restante; smoke test de API 18/18 |
 | 5 — `PoliticaDeDescanso` | ⬜ Pendente | — | — | — |
 | 6 — Geração sem N+1 | ⬜ Pendente | — | — | — |
 | 7 — Frontend: formatadores + Vitest | ⬜ Pendente | — | — | — |
@@ -551,7 +551,7 @@ Expected: PASS (22 + 5 da Tarefa 1 + 5 novos).
 
 - [x] **Step 9: Checkpoint** — diff, sugerir a mensagem `refactor: enums de dominio no lugar de strings` e aguardar o usuário commitar.
 
-> **Execução (25/09/2026, commit: _aguardando o usuário_)**
+> **Execução (25/09/2026, commit `f0d2c8c`)**
 > - Seguido como planejado. Step 2 falhou por compilação, como esperado.
 > - Os repositórios importam os enums (`SituacaoServico`, `SituacaoSolicitacao`) em vez de usar o nome completo do pacote.
 > - Step 7: nenhuma string de situação/tipo sobrou em `src/main`.
@@ -843,7 +843,7 @@ Expected: PASS.
 
 - [x] **Step 9: Checkpoint** — diff, sugerir a mensagem `refactor: servicos de conta, usuario logado e consulta de escala` e aguardar o usuário commitar.
 
-> **Execução (25/09/2026, commit: _aguardando o usuário_)**
+> **Execução (25/09/2026, commit `ce08739`)**
 > - Seguido como planejado. Step 2 falhou por compilação, como esperado.
 > - As 15 ocorrências de `usuarioRepository.findByLogin(...).orElseThrow()` foram trocadas por `usuarioLogadoService.usuario(...)` / `.militar(...)`, em `SolicitacaoService`, `AfastamentoService`, `BoletimService`, `NotificacaoService` e `MinhaEscalaController`.
 > - `AfastamentoService`, `BoletimService` e `MinhaEscalaController` deixaram de depender do `UsuarioRepository`. `SolicitacaoService` e `NotificacaoService` continuam usando o repositório para `findByMilitar_Id` / `findAll` (notificações).
@@ -866,7 +866,7 @@ Os controllers recebem `Map<String, Object>` e convertem na mão (`Long.valueOf(
 - Consumes: handler `MethodArgumentNotValidException` da Tarefa 1; `TipoAfastamento` da Tarefa 2.
 - Produces: os records abaixo (usados também pelo Plano 2).
 
-- [ ] **Step 1: Escrever os testes que falham**
+- [x] **Step 1: Escrever os testes que falham**
 
 ```java
 package br.com.milscale.milscale.adapters.web;
@@ -941,12 +941,12 @@ class ValidacaoRequestIntegrationTest {
 }
 ```
 
-- [ ] **Step 2: Rodar e confirmar que falha**
+- [x] **Step 2: Rodar e confirmar que falha**
 
 Run: `cd backend && mvn -q test -Dtest=ValidacaoRequestIntegrationTest`
 Expected: FAIL — `gerarEscala_semDataFim` responde 500/400 sem a mensagem esperada; `pedirTroca_semSubstituto` responde 500.
 
-- [ ] **Step 3: Criar os records** (pacote `br.com.milscale.milscale.adapters.web.dto`; mensagens explícitas em português)
+- [x] **Step 3: Criar os records** (pacote `br.com.milscale.milscale.adapters.web.dto`; mensagens explícitas em português)
 
 ```java
 package br.com.milscale.milscale.adapters.web.dto;
@@ -1066,7 +1066,7 @@ public record TrocarSenhaRequest(
         @Size(min = 6, message = "A nova senha precisa ter pelo menos 6 caracteres") String senhaNova) {}
 ```
 
-- [ ] **Step 4: Trocar as assinaturas dos controllers** (`import jakarta.validation.Valid;` e `import br.com.milscale.milscale.adapters.web.dto.*;`)
+- [x] **Step 4: Trocar as assinaturas dos controllers** (`import jakarta.validation.Valid;` e `import br.com.milscale.milscale.adapters.web.dto.*;`)
 
 `EscalaController.gerar`:
 ```java
@@ -1135,19 +1135,38 @@ public record TrocarSenhaRequest(
 
 `AuthController.trocarSenha`: `@Valid @RequestBody TrocarSenhaRequest req` e `contaService.trocarSenha(auth.getName(), req.senhaAtual(), req.senhaNova())`.
 
-- [ ] **Step 5: Conferir que nenhum `Map` de entrada sobrou**
+- [x] **Step 5: Conferir que nenhum `Map` de entrada sobrou**
 
 Run: `cd backend && grep -rn "@RequestBody Map" src/main`
 Expected: nenhuma linha.
 
-- [ ] **Step 6: Rodar todos os testes e o build do frontend**
+- [x] **Step 6: Rodar todos os testes e o build do frontend**
 
 Run: `cd backend && mvn -q test` → PASS.
 Run: `cd ../frontend && npm run build` → PASS (nada mudou no front, mas confirma que os nomes de campo continuam os mesmos lendo `git grep -n "api.post" frontend/src` contra os records acima).
 
-- [ ] **Step 7: Teste manual rápido** — subir backend (`mvn spring-boot:run`) e frontend (`npm run dev`), logar como `000.000.000-01`, gerar uma escala de 3 dias, pedir e aprovar uma troca, cadastrar um afastamento. Tudo deve funcionar igual.
+- [x] **Step 7: Teste manual rápido** — subir backend (`mvn spring-boot:run`) e frontend (`npm run dev`), logar como `000.000.000-01`, gerar uma escala de 3 dias, pedir e aprovar uma troca, cadastrar um afastamento. Tudo deve funcionar igual.
 
-- [ ] **Step 8: Checkpoint** — diff, sugerir a mensagem `refactor: DTOs de entrada com Bean Validation` e aguardar o usuário commitar.
+- [x] **Step 8: Checkpoint** — diff, sugerir a mensagem `refactor: DTOs de entrada com Bean Validation` e aguardar o usuário commitar.
+
+> **Execução (25/09/2026, commit: _aguardando o usuário_)**
+> - Step 2: falharam os 2 casos esperados, os que expõem os bugs reais:
+>   - `gerarEscala_semDataFim` respondia **500**;
+>   - `pedirTroca_semSubstituto` respondia 400 com a mensagem técnica `For input string: "null"`.
+>
+>   Os outros 3 já passavam: a regra existia no service, ou o `valueOf` do enum já virava 400. Ficam como proteção.
+> - Os 10 records foram criados como planejado. O `AlterarAtivoRequest` não recebe `@Valid` (não tem restrições).
+> - Conferido que o frontend já envia booleanos, números e datas ISO nos mesmos campos dos records (`Trocas.tsx`, `MissoesDispensas.tsx`, `PerfisPermissoes.tsx`, `Boletim.tsx`, `EscalaDoMes.tsx`, `MinhaConta.tsx`).
+> - Mudança visível: tipo de afastamento inválido agora responde "Corpo da requisicao invalido ou faltando campos". Antes vinha a mensagem crua do `valueOf` do Java.
+> - **Step 7, teste manual feito pela API** em vez da tela: backend real na porta 8089 com H2 em memória, roteiro Node com 18 cenários, todos OK:
+>   - gerar e publicar escala;
+>   - troca completa: pedir → aceitar → triagem → autorização;
+>   - afastamento válido e inválido;
+>   - boletim válido e sem título;
+>   - desativar e reativar usuário, perfil sem id;
+>   - senha curta e troca válida;
+>   - 403 com corpo.
+> - Resultado: 43/43 (38 + 5 do `ValidacaoRequestIntegrationTest`); `npm run build` OK.
 
 ---
 

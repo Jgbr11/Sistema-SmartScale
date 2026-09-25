@@ -1,8 +1,10 @@
 package br.com.milscale.milscale.adapters.web;
 
+import br.com.milscale.milscale.adapters.web.dto.TrocarSenhaRequest;
 import br.com.milscale.milscale.application.AuditoriaService;
 import br.com.milscale.milscale.application.ContaService;
 import br.com.milscale.milscale.domain.Usuario;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
@@ -37,8 +39,8 @@ public class AuthController {
 
     /** "Minha conta" - qualquer usuario troca a propria senha, precisa confirmar a atual. */
     @PostMapping("/senha")
-    public Map<String, String> trocarSenha(@RequestBody Map<String, String> body, Authentication auth) {
-        contaService.trocarSenha(auth.getName(), body.get("senhaAtual"), body.get("senhaNova"));
+    public Map<String, String> trocarSenha(@Valid @RequestBody TrocarSenhaRequest req, Authentication auth) {
+        contaService.trocarSenha(auth.getName(), req.senhaAtual(), req.senhaNova());
         auditoriaService.registrar(auth.getName(), "SENHA_TROCADA_PELO_PROPRIO", auth.getName());
         return Map.of("mensagem", "Senha alterada com sucesso");
     }

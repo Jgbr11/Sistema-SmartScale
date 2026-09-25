@@ -1,9 +1,12 @@
 package br.com.milscale.milscale.adapters.web;
 
+import br.com.milscale.milscale.adapters.web.dto.AlterarAtivoRequest;
+import br.com.milscale.milscale.adapters.web.dto.AlterarPerfilRequest;
 import br.com.milscale.milscale.application.AuditoriaService;
 import br.com.milscale.milscale.application.UsuarioService;
 import br.com.milscale.milscale.domain.PerfilAcesso;
 import br.com.milscale.milscale.domain.Usuario;
+import jakarta.validation.Valid;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
@@ -36,16 +39,15 @@ public class UsuarioController {
     }
 
     @PutMapping("/{id}/perfil")
-    public Usuario alterarPerfil(@PathVariable Long id, @RequestBody Map<String, Object> body, Authentication auth) {
-        Long perfilId = Long.valueOf(String.valueOf(body.get("perfilId")));
-        Usuario salvo = usuarioService.alterarPerfil(id, perfilId, auth.getName());
+    public Usuario alterarPerfil(@PathVariable Long id, @Valid @RequestBody AlterarPerfilRequest req, Authentication auth) {
+        Usuario salvo = usuarioService.alterarPerfil(id, req.perfilId(), auth.getName());
         auditoriaService.registrar(auth.getName(), "PERFIL_ALTERADO", salvo.getLogin() + " -> " + salvo.getPerfil().getNome());
         return salvo;
     }
 
     @PutMapping("/{id}/ativo")
-    public Usuario alterarAtivo(@PathVariable Long id, @RequestBody Map<String, Object> body, Authentication auth) {
-        boolean ativo = Boolean.parseBoolean(String.valueOf(body.get("ativo")));
+    public Usuario alterarAtivo(@PathVariable Long id, @RequestBody AlterarAtivoRequest req, Authentication auth) {
+        boolean ativo = req.ativo();
         Usuario salvo = usuarioService.alterarAtivo(id, ativo, auth.getName());
         auditoriaService.registrar(auth.getName(), ativo ? "USUARIO_REATIVADO" : "USUARIO_DESATIVADO", salvo.getLogin());
         return salvo;
