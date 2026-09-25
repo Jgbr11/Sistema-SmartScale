@@ -17,6 +17,25 @@
 - Código novo segue o idioma do código existente: identificadores e mensagens em português, injeção por construtor, comentários curtos explicando o *porquê*.
 - Backend: `cd backend && mvn test` precisa terminar verde ao fim de toda tarefa. Frontend: `cd frontend && npm run build` (e, a partir da Tarefa 7, `npm test`) também.
 - Mensagens de erro de negócio continuam saindo como `{"erro": "<mensagem>"}` — o frontend (`src/api/client.ts`) lê exatamente a chave `erro`.
+- **Ambiente local:** o `JAVA_HOME` da máquina aponta para o JDK 11. Rodar o Maven com o JDK 23 só no comando: `export JAVA_HOME="/c/Program Files/Java/jdk-23" && mvn -B test` (ver Task 0).
+
+## Registro de execução
+
+Atualizado ao fim de cada tarefa. Os detalhes de cada uma ficam na nota **"Execução"** no fim da própria tarefa.
+
+| Task | Status | Commit | Testes backend | Resumo |
+|---|---|---|---|---|
+| 0 — Preparação | ✅ Concluída (25/09/2026) | `99f0b8b` | 22/22 | `.gitignore`, `spring-security-test`, `maven.compiler.proc=full` (fora do plano original) |
+| 1 — Tratamento de erros | ✅ Concluída (25/09/2026) | `79c0913` | 27/27 | `ErroResposta`, handlers de 403/validação/tipo/genérico, 5 testes novos |
+| 2 — Enums de domínio | ✅ Concluída (25/09/2026) | _aguardando commit_ | 32/32 | 5 enums no lugar de strings; entidades, repositórios e services; `EnumsContratoTest` |
+| 3 — Usuário logado / controllers | ⬜ Pendente | — | — | — |
+| 4 — DTOs com Bean Validation | ⬜ Pendente | — | — | — |
+| 5 — `PoliticaDeDescanso` | ⬜ Pendente | — | — | — |
+| 6 — Geração sem N+1 | ⬜ Pendente | — | — | — |
+| 7 — Frontend: formatadores + Vitest | ⬜ Pendente | — | — | — |
+| 8 — Configuração por ambiente | ⬜ Pendente | — | — | — |
+| 9 — Flyway | ⬜ Pendente | — | — | — |
+| 10 — Documentação | ⬜ Pendente | — | — | — |
 
 ---
 
@@ -51,14 +70,14 @@
 **Interfaces:**
 - Produces: dependência `spring-security-test` disponível para as tarefas seguintes (anotação `@WithUserDetails`).
 
-- [ ] **Step 1: Criar o branch de trabalho**
+- [x] **Step 1: Criar o branch de trabalho**
 
 ```bash
 cd /c/TRABALHOS/SMARTSCALE/Sistema-SmartScale
 git checkout -b melhoria/estrutura   # só com o ok do usuário
 ```
 
-- [ ] **Step 2: Criar `.gitignore` na raiz**
+- [x] **Step 2: Criar `.gitignore` na raiz**
 
 ```gitignore
 # Backend
@@ -83,7 +102,7 @@ frontend/.env.local
 Thumbs.db
 ```
 
-- [ ] **Step 3: Adicionar `spring-security-test` no `backend/pom.xml`**, logo depois da dependência `spring-boot-starter-test`:
+- [x] **Step 3: Adicionar `spring-security-test` no `backend/pom.xml`**, logo depois da dependência `spring-boot-starter-test`:
 
 ```xml
     <dependency>
@@ -93,7 +112,7 @@ Thumbs.db
     </dependency>
 ```
 
-- [ ] **Step 4: Rodar a linha de base**
+- [x] **Step 4: Rodar a linha de base**
 
 ```bash
 cd backend && mvn -q test
@@ -102,7 +121,12 @@ cd ../frontend && npm install && npm run build
 
 Expected: backend com `Tests run: 22, Failures: 0, Errors: 0`; frontend com build sem erros. Se algo já falhar aqui, **pare e reporte** — não é regressão deste plano.
 
-- [ ] **Step 5: Checkpoint** — mostrar `git status` e `git diff`, sugerir a mensagem `chore: gitignore e spring-security-test` e aguardar o usuário commitar.
+- [x] **Step 5: Checkpoint** — mostrar `git status` e `git diff`, sugerir a mensagem `chore: gitignore e spring-security-test` e aguardar o usuário commitar.
+
+> **Execução (25/09/2026, commit `99f0b8b`)**
+> - O `mvn test` não rodou de início: o `JAVA_HOME` da máquina é o JDK 11 e o projeto exige 21+. Não há JDK 21 instalado; foi usado o JDK 23 (`C:\Program Files\Java\jdk-23`) só no comando.
+> - Com o JDK 23 o Lombok não gerava código: a partir do JDK 23 o `javac` não roda processadores de anotação sozinho. **Decisão do usuário:** adicionar `<maven.compiler.proc>full</maven.compiler.proc>` nas properties do `pom.xml` (sem efeito no JDK 21 da imagem Docker).
+> - Linha de base: backend 22/22 verde; frontend `npm install` + `npm run build` OK.
 
 ---
 
@@ -118,7 +142,7 @@ Hoje um 403 sai sem corpo, `MethodArgumentTypeMismatchException` (ex.: `/api/mil
 **Interfaces:**
 - Produces: `record ErroResposta(String erro)`; handler de `MethodArgumentNotValidException` que responde 400 com a `defaultMessage` do primeiro erro de campo (usado pela Tarefa 4).
 
-- [ ] **Step 1: Escrever os testes que falham**
+- [x] **Step 1: Escrever os testes que falham**
 
 ```java
 package br.com.milscale.milscale.adapters.web;
@@ -187,12 +211,12 @@ class TratadorDeErrosIntegrationTest {
 }
 ```
 
-- [ ] **Step 2: Rodar e confirmar que falha**
+- [x] **Step 2: Rodar e confirmar que falha**
 
 Run: `cd backend && mvn -q test -Dtest=TratadorDeErrosIntegrationTest`
 Expected: FAIL em `acessoNegado_volta403ComCorpo` (sem `$.erro`) e em `idComTipoErrado_volta400EmVezDe500` (500).
 
-- [ ] **Step 3: Criar `ErroResposta.java`**
+- [x] **Step 3: Criar `ErroResposta.java`**
 
 ```java
 package br.com.milscale.milscale.adapters.web;
@@ -201,7 +225,7 @@ package br.com.milscale.milscale.adapters.web;
 public record ErroResposta(String erro) {}
 ```
 
-- [ ] **Step 4: Reescrever `TratadorDeErros.java`**
+- [x] **Step 4: Reescrever `TratadorDeErros.java`**
 
 ```java
 package br.com.milscale.milscale.adapters.web;
@@ -297,12 +321,17 @@ public class TratadorDeErros {
 }
 ```
 
-- [ ] **Step 5: Rodar os testes**
+- [x] **Step 5: Rodar os testes**
 
 Run: `cd backend && mvn -q test`
 Expected: PASS — 22 antigos + 5 novos.
 
-- [ ] **Step 6: Checkpoint** — diff, sugerir a mensagem `refactor: tratamento de erros padronizado` e aguardar o usuário commitar.
+- [x] **Step 6: Checkpoint** — diff, sugerir a mensagem `refactor: tratamento de erros padronizado` e aguardar o usuário commitar.
+
+> **Execução (25/09/2026, commit `79c0913`)**
+> - Step 2: só `acessoNegado_volta403ComCorpo` falhou. `idComTipoErrado_volta400EmVezDe500` **já passava**, porque o Spring responde 400 sozinho para `MethodArgumentTypeMismatchException`, e o plano supunha 500. O teste foi mantido como proteção: garante que o handler genérico não transforme esse 400 em 500.
+> - Bug pré-existente corrigido de quebra: o handler antigo de `NoSuchElementException` fazia `Map.of("erro", ex.getMessage())`, que lança NPE quando a mensagem é nula (ex.: `orElseThrow()` sem mensagem). Agora cai em "Registro nao encontrado".
+> - Resultado: 27/27 (22 antigos + 5 novos).
 
 ---
 
@@ -326,7 +355,7 @@ Situações de escala, serviço e solicitação, tipo de troca e tipo de afastam
   - `enum TipoAfastamento { MISSAO, DISPENSA, FERIAS, LICENCA, CURSO, OUTRO }`
   - `AfastamentoService.cadastrarMissao(List<Long>, TipoAfastamento, String, LocalDate, LocalDate, String)`
 
-- [ ] **Step 1: Escrever o teste de contrato (falha por não compilar)**
+- [x] **Step 1: Escrever o teste de contrato (falha por não compilar)**
 
 `backend/src/test/java/br/com/milscale/milscale/domain/EnumsContratoTest.java`:
 
@@ -384,12 +413,12 @@ E ajustar os testes existentes para os tipos novos:
 - `TrocaIntervaloIntegrationTest.java:141`: `.isEqualTo("TROCA_MUTUA")` → `.isEqualTo(TipoTroca.TROCA_MUTUA)`.
   (o arquivo já faz `import br.com.milscale.milscale.domain.*;`)
 
-- [ ] **Step 2: Rodar e confirmar que falha**
+- [x] **Step 2: Rodar e confirmar que falha**
 
 Run: `cd backend && mvn -q test`
 Expected: FAIL de compilação — `SituacaoEscala` etc. não existem.
 
-- [ ] **Step 3: Criar os 5 enums**, um arquivo cada, no padrão:
+- [x] **Step 3: Criar os 5 enums**, um arquivo cada, no padrão:
 
 ```java
 package br.com.milscale.milscale.domain;
@@ -433,7 +462,7 @@ package br.com.milscale.milscale.domain;
 public enum TipoAfastamento { MISSAO, DISPENSA, FERIAS, LICENCA, CURSO, OUTRO }
 ```
 
-- [ ] **Step 4: Trocar os campos das entidades**
+- [x] **Step 4: Trocar os campos das entidades**
 
 `Escala.java` (campo `situacao`):
 ```java
@@ -472,7 +501,7 @@ public enum TipoAfastamento { MISSAO, DISPENSA, FERIAS, LICENCA, CURSO, OUTRO }
     private TipoAfastamento tipo;
 ```
 
-- [ ] **Step 5: Trocar as assinaturas dos repositórios**
+- [x] **Step 5: Trocar as assinaturas dos repositórios**
 
 `ServicoEscaladoRepository.java`:
 ```java
@@ -485,7 +514,7 @@ public enum TipoAfastamento { MISSAO, DISPENSA, FERIAS, LICENCA, CURSO, OUTRO }
 ```
 (adicionar os imports de `br.com.milscale.milscale.domain.SituacaoServico` / `SituacaoSolicitacao`).
 
-- [ ] **Step 6: Atualizar os usos nos services e controller**
+- [x] **Step 6: Atualizar os usos nos services e controller**
 
 - `GerarEscalaService`: `.situacao("RASCUNHO")` → `.situacao(SituacaoEscala.RASCUNHO)`; as duas ocorrências `.situacao("PREVISTO")` → `.situacao(SituacaoServico.PREVISTO)`.
 - `PublicarEscalaService`: `escala.setSituacao("PUBLICADA")` → `escala.setSituacao(SituacaoEscala.PUBLICADA)`.
@@ -510,17 +539,24 @@ public enum TipoAfastamento { MISSAO, DISPENSA, FERIAS, LICENCA, CURSO, OUTRO }
     }
 ```
 
-- [ ] **Step 7: Confirmar que não sobrou literal**
+- [x] **Step 7: Confirmar que não sobrou literal**
 
 Run: `cd backend && grep -rnE '"(RASCUNHO|PUBLICADA|PREVISTO|AGUARDANDO_SUBSTITUTO|EM_TRIAGEM|AGUARDANDO_AUTORIZACAO|AUTORIZADA|NEGADA|CANCELADA|TROCA_MUTUA|SUBSTITUICAO)"' src/main`
 Expected: nenhuma linha (só aparecem ações de auditoria como `"TROCA_AUTORIZADA"`, que não casam com o padrão exato — se aparecerem, conferir que são nomes de ação de auditoria e não situação).
 
-- [ ] **Step 8: Rodar todos os testes**
+- [x] **Step 8: Rodar todos os testes**
 
 Run: `cd backend && mvn -q test`
 Expected: PASS (22 + 5 da Tarefa 1 + 5 novos).
 
-- [ ] **Step 9: Checkpoint** — diff, sugerir a mensagem `refactor: enums de dominio no lugar de strings` e aguardar o usuário commitar.
+- [x] **Step 9: Checkpoint** — diff, sugerir a mensagem `refactor: enums de dominio no lugar de strings` e aguardar o usuário commitar.
+
+> **Execução (25/09/2026, commit: _aguardando o usuário_)**
+> - Seguido como planejado. Step 2 falhou por compilação, como esperado.
+> - Os repositórios importam os enums (`SituacaoServico`, `SituacaoSolicitacao`) em vez de usar o nome completo do pacote.
+> - Step 7: nenhuma string de situação/tipo sobrou em `src/main`.
+> - Não havia banco H2 local (`backend/data/`), então não houve dado antigo para conferir. A compatibilidade dos nomes gravados no banco e enviados ao frontend fica garantida pelo `EnumsContratoTest`.
+> - Resultado: 32/32 (27 + 5 do `EnumsContratoTest`).
 
 ---
 

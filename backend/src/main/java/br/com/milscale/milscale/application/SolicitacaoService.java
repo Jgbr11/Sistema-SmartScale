@@ -4,7 +4,10 @@ import br.com.milscale.milscale.adapters.persistence.*;
 import br.com.milscale.milscale.domain.Militar;
 import br.com.milscale.milscale.domain.RequisitoServico;
 import br.com.milscale.milscale.domain.ServicoEscalado;
+import br.com.milscale.milscale.domain.SituacaoServico;
+import br.com.milscale.milscale.domain.SituacaoSolicitacao;
 import br.com.milscale.milscale.domain.Solicitacao;
+import br.com.milscale.milscale.domain.TipoTroca;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -65,15 +68,15 @@ public class SolicitacaoService {
     /** RF15 - pedidos onde EU sou o substituto sugerido e ainda preciso aceitar ou recusar. */
     public List<Solicitacao> aguardandoMinhaConfirmacao(String loginUsuario) {
         Long militarId = usuarioRepository.findByLogin(loginUsuario).orElseThrow().getMilitar().getId();
-        return solicitacaoRepository.findBySubstituto_IdAndSituacaoOrderByDataSolicitacaoAsc(militarId, "AGUARDANDO_SUBSTITUTO");
+        return solicitacaoRepository.findBySubstituto_IdAndSituacaoOrderByDataSolicitacaoAsc(militarId, SituacaoSolicitacao.AGUARDANDO_SUBSTITUTO);
     }
 
     public List<Solicitacao> emTriagem() {
-        return solicitacaoRepository.findBySituacaoOrderByDataSolicitacaoAsc("EM_TRIAGEM");
+        return solicitacaoRepository.findBySituacaoOrderByDataSolicitacaoAsc(SituacaoSolicitacao.EM_TRIAGEM);
     }
 
     public List<Solicitacao> aguardandoAutorizacao() {
-        return solicitacaoRepository.findBySituacaoOrderByDataSolicitacaoAsc("AGUARDANDO_AUTORIZACAO");
+        return solicitacaoRepository.findBySituacaoOrderByDataSolicitacaoAsc(SituacaoSolicitacao.AGUARDANDO_AUTORIZACAO);
     }
 
     /** RF15 - "Passar meu serviço": o substituto assume, e o solicitante fica sem nada até o próximo. */
@@ -113,8 +116,8 @@ public class SolicitacaoService {
                 .solicitante(solicitante)
                 .substituto(substituto)
                 .justificativa(justificativa)
-                .tipoTroca("SUBSTITUICAO")
-                .situacao("AGUARDANDO_SUBSTITUTO")
+                .tipoTroca(TipoTroca.SUBSTITUICAO)
+                .situacao(SituacaoSolicitacao.AGUARDANDO_SUBSTITUTO)
                 .build();
         Solicitacao salva = solicitacaoRepository.save(s);
         usuarioRepository.findByMilitar_Id(substituto.getId()).ifPresent(usuarioSubstituto ->
@@ -176,8 +179,8 @@ public class SolicitacaoService {
                 .solicitante(solicitante)
                 .substituto(outroMilitar)
                 .justificativa(justificativa)
-                .tipoTroca("TROCA_MUTUA")
-                .situacao("AGUARDANDO_SUBSTITUTO")
+                .tipoTroca(TipoTroca.TROCA_MUTUA)
+                .situacao(SituacaoSolicitacao.AGUARDANDO_SUBSTITUTO)
                 .build();
         Solicitacao salva = solicitacaoRepository.save(s);
         usuarioRepository.findByMilitar_Id(outroMilitar.getId()).ifPresent(usuarioOutro ->
@@ -191,18 +194,18 @@ public class SolicitacaoService {
     @Transactional
     public Solicitacao confirmarSubstituto(Long id, boolean aceito, String comentario, String loginUsuario) {
         Solicitacao s = buscar(id);
-        exigirSituacao(s, "AGUARDANDO_SUBSTITUTO");
+        exigirSituacao(s, SituacaoSolicitacao.AGUARDANDO_SUBSTITUTO);
         Militar quemConfirma = usuarioRepository.findByLogin(loginUsuario).orElseThrow().getMilitar();
         if (!s.getSubstituto().getId().equals(quemConfirma.getId())) {
             throw new IllegalArgumentException("Só a pessoa sugerida como substituta pode confirmar esse pedido");
         }
         if (aceito) {
-            s.setSituacao("EM_TRIAGEM");
+            s.setSituacao(SituacaoSolicitacao.EM_TRIAGEM);
             notificacaoService.registrarParaPerfis(List.of("CABO_SARGENTEACAO", "SARGENTEANTE"), "TROCA_AGUARDANDO_TRIAGEM",
                     s.getSolicitante().getNomeExibicao() + " quer trocar o serviço de " + s.getServicoOrigem().getTipoServico().getNome(),
                     "/trocas");
         } else {
-            s.setSituacao("NEGADA");
+            s.setSituacao(SituacaoSolicitacao.NEGADA);
             s.setComentarioCabo(comentario != null ? comentario : "Substituto não aceitou a troca");
             s.setDataDecisaoFinal(LocalDateTime.now());
         }
@@ -212,15 +215,15 @@ public class SolicitacaoService {
     @Transactional
     public Solicitacao triagem(Long id, boolean aprovado, String comentario) {
         Solicitacao s = buscar(id);
-        exigirSituacao(s, "EM_TRIAGEM");
+        exigirSituacao(s, SituacaoSolicitacao.EM_TRIAGEM);
         s.setComentarioCabo(comentario);
         if (aprovado) {
-            s.setSituacao("AGUARDANDO_AUTORIZACAO");
+            s.setSituacao(SituacaoSolicitacao.AGUARDANDO_AUTORIZACAO);
             notificacaoService.registrarParaPerfis(List.of("SARGENTEANTE"), "TROCA_AGUARDANDO_AUTORIZACAO",
                     "Troca de " + s.getSolicitante().getNomeExibicao() + " aprovada pelo Cabo, esperando sua autorização",
                     "/trocas");
         } else {
-            s.setSituacao("NEGADA");
+            s.setSituacao(SituacaoSolicitacao.NEGADA);
             s.setDataDecisaoFinal(LocalDateTime.now());
         }
         return solicitacaoRepository.save(s);
@@ -231,7 +234,7 @@ public class SolicitacaoService {
     @Transactional
     public Solicitacao autorizar(Long id, boolean aprovado, String comentario) {
         Solicitacao s = buscar(id);
-        exigirSituacao(s, "AGUARDANDO_AUTORIZACAO");
+        exigirSituacao(s, SituacaoSolicitacao.AGUARDANDO_AUTORIZACAO);
         s.setComentarioSargenteante(comentario);
         s.setDataDecisaoFinal(LocalDateTime.now());
         if (aprovado) {
@@ -239,7 +242,7 @@ public class SolicitacaoService {
             if (servico.isTravado()) {
                 throw new IllegalArgumentException("O dia foi travado depois do pedido — não é possível autorizar (RN04)");
             }
-            if ("TROCA_MUTUA".equals(s.getTipoTroca())) {
+            if (s.getTipoTroca() == TipoTroca.TROCA_MUTUA) {
                 ServicoEscalado destino = s.getServicoDestino();
                 if (destino.isTravado()) {
                     throw new IllegalArgumentException("O dia do outro militar foi travado depois do pedido — não é possível autorizar (RN04)");
@@ -256,9 +259,9 @@ public class SolicitacaoService {
                 servico.setObservacao("Troca autorizada — assumiu no lugar de " + s.getSolicitante().getNomeExibicao());
                 servicoEscaladoRepository.save(servico);
             }
-            s.setSituacao("AUTORIZADA");
+            s.setSituacao(SituacaoSolicitacao.AUTORIZADA);
         } else {
-            s.setSituacao("NEGADA");
+            s.setSituacao(SituacaoSolicitacao.NEGADA);
         }
         return solicitacaoRepository.save(s);
     }
@@ -270,10 +273,10 @@ public class SolicitacaoService {
         if (!s.getSolicitante().getId().equals(quemPediu.getId())) {
             throw new IllegalArgumentException("Só quem pediu a troca pode cancelá-la");
         }
-        if (!s.getSituacao().equals("AGUARDANDO_SUBSTITUTO") && !s.getSituacao().equals("EM_TRIAGEM")) {
+        if (s.getSituacao() != SituacaoSolicitacao.AGUARDANDO_SUBSTITUTO && s.getSituacao() != SituacaoSolicitacao.EM_TRIAGEM) {
             throw new IllegalArgumentException("Só é possível cancelar enquanto ainda não foi autorizada");
         }
-        s.setSituacao("CANCELADA");
+        s.setSituacao(SituacaoSolicitacao.CANCELADA);
         s.setDataDecisaoFinal(LocalDateTime.now());
         return solicitacaoRepository.save(s);
     }
@@ -310,7 +313,7 @@ public class SolicitacaoService {
         ServicoEscalado servicoOrigem = servicoEscaladoRepository.findById(servicoOrigemId)
                 .orElseThrow(() -> new NoSuchElementException("Serviço não encontrado"));
         List<ServicoEscalado> candidatosBrutos = servicoEscaladoRepository
-                .findByTipoServico_IdAndSituacao(servicoOrigem.getTipoServico().getId(), "PREVISTO");
+                .findByTipoServico_IdAndSituacao(servicoOrigem.getTipoServico().getId(), SituacaoServico.PREVISTO);
 
         List<CandidatoTrocaMutua> candidatos = new java.util.ArrayList<>();
         for (ServicoEscalado candidato : candidatosBrutos) {
@@ -341,9 +344,9 @@ public class SolicitacaoService {
         return solicitacaoRepository.findById(id).orElseThrow(() -> new NoSuchElementException("Solicitação não encontrada"));
     }
 
-    private void exigirSituacao(Solicitacao s, String esperada) {
-        if (!s.getSituacao().equals(esperada)) {
-            throw new IllegalArgumentException("Esta solicitação já não está mais em " + esperada.toLowerCase().replace("_", " "));
+    private void exigirSituacao(Solicitacao s, SituacaoSolicitacao esperada) {
+        if (s.getSituacao() != esperada) {
+            throw new IllegalArgumentException("Esta solicitação já não está mais em " + esperada.legivel());
         }
     }
 }

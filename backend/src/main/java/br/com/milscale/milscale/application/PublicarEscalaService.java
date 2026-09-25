@@ -2,6 +2,7 @@ package br.com.milscale.milscale.application;
 
 import br.com.milscale.milscale.adapters.persistence.EscalaRepository;
 import br.com.milscale.milscale.domain.Escala;
+import br.com.milscale.milscale.domain.SituacaoEscala;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,7 +23,7 @@ public class PublicarEscalaService {
     public Escala publicar(Long escalaId) {
         Escala escala = escalaRepository.findById(escalaId)
                 .orElseThrow(() -> new NoSuchElementException("Escala nao encontrada"));
-        escala.setSituacao("PUBLICADA");
+        escala.setSituacao(SituacaoEscala.PUBLICADA);
         escala.setDataPublicacao(LocalDateTime.now());
         return escalaRepository.save(escala);
     }

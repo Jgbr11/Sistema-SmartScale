@@ -20,8 +20,9 @@ public class Afastamento {
     @JoinColumn(name = "id_militar")
     private Militar militar;
 
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 15)
-    private String tipo; // MISSAO, DISPENSA, FERIAS, LICENCA, CURSO, OUTRO
+    private TipoAfastamento tipo;
 
     @Column(nullable = false, length = 150)
     private String descricao;

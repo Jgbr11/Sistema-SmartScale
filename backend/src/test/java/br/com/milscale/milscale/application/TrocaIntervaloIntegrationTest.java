@@ -97,7 +97,7 @@ class TrocaIntervaloIntegrationTest {
 
         assertThat(s).isNotNull();
         assertThat(s.getSubstituto().getId()).isEqualTo(militarC.getId());
-        assertThat(s.getSituacao()).isEqualTo("AGUARDANDO_SUBSTITUTO");
+        assertThat(s.getSituacao()).isEqualTo(SituacaoSolicitacao.AGUARDANDO_SUBSTITUTO);
     }
 
     @Test
@@ -138,10 +138,10 @@ class TrocaIntervaloIntegrationTest {
 
         Solicitacao s = solicitacaoService.criarTrocaMutua(servicoOrigem.getId(), servicoD.getId(), "trocar de dia", loginA);
 
-        assertThat(s.getTipoTroca()).isEqualTo("TROCA_MUTUA");
+        assertThat(s.getTipoTroca()).isEqualTo(TipoTroca.TROCA_MUTUA);
         assertThat(s.getSubstituto().getId()).isEqualTo(militarD.getId());
         assertThat(s.getServicoDestino().getId()).isEqualTo(servicoD.getId());
-        assertThat(s.getSituacao()).isEqualTo("AGUARDANDO_SUBSTITUTO");
+        assertThat(s.getSituacao()).isEqualTo(SituacaoSolicitacao.AGUARDANDO_SUBSTITUTO);
     }
 
     @Test

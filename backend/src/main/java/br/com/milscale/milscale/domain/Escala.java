@@ -31,9 +31,10 @@ public class Escala {
     @Column(name = "data_fim", nullable = false)
     private LocalDate dataFim;
 
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 15)
     @Builder.Default
-    private String situacao = "RASCUNHO"; // RASCUNHO, PUBLICADA, ENCERRADA
+    private SituacaoEscala situacao = SituacaoEscala.RASCUNHO;
 
     @Column(name = "data_geracao", nullable = false)
     @Builder.Default

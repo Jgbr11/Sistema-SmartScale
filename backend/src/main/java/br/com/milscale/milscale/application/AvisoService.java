@@ -54,7 +54,7 @@ public class AvisoService {
             List<Afastamento> grupo = entrada.getValue();
             Afastamento primeiro = grupo.get(0);
             List<Militar> militares = grupo.stream().map(Afastamento::getMilitar).toList();
-            avisos.add(new Aviso("afastamento-" + entrada.getKey(), primeiro.getTipo(), primeiro.getDataInicio(), primeiro.getDataFim(), primeiro.getDescricao(), militares));
+            avisos.add(new Aviso("afastamento-" + entrada.getKey(), primeiro.getTipo().name(), primeiro.getDataInicio(), primeiro.getDataFim(), primeiro.getDescricao(), militares));
         }
 
         avisos.sort(Comparator.comparing(Aviso::dataInicio));

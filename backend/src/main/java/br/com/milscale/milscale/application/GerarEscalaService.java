@@ -121,7 +121,7 @@ public class GerarEscalaService {
                 .descricao("Escala de " + nomeMesPtBr(dataInicio) + " de " + dataInicio.getYear())
                 .dataInicio(dataInicio)
                 .dataFim(dataFim)
-                .situacao("RASCUNHO")
+                .situacao(SituacaoEscala.RASCUNHO)
                 .usuarioGeracao(usuarioGeracao)
                 .build();
 
@@ -188,7 +188,7 @@ public class GerarEscalaService {
                     escolhido.marcarServico(dia);
                     gerados.add(ServicoEscalado.builder()
                             .escala(escala).data(dia).tipoServico(tipo)
-                            .militar(escolhido.militar).situacao("PREVISTO").build());
+                            .militar(escolhido.militar).situacao(SituacaoServico.PREVISTO).build());
                 }
                 // Vagas que sobraram sem gente elegível/disponível também viram
                 // registro (id_militar NULL) - uma linha por vaga em aberto, não
@@ -200,7 +200,7 @@ public class GerarEscalaService {
                 for (int i = 0; i < faltantes; i++) {
                     gerados.add(ServicoEscalado.builder()
                             .escala(escala).data(dia).tipoServico(tipo).militar(null)
-                            .situacao("PREVISTO").build());
+                            .situacao(SituacaoServico.PREVISTO).build());
                 }
             }
         }

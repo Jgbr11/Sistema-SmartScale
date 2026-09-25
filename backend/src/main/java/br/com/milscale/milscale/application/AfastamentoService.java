@@ -56,7 +56,7 @@ public class AfastamentoService {
     }
 
     @Transactional
-    public List<Afastamento> cadastrarMissao(List<Long> militarIds, String tipo, String descricao,
+    public List<Afastamento> cadastrarMissao(List<Long> militarIds, TipoAfastamento tipo, String descricao,
                                               LocalDate dataInicio, LocalDate dataFim, String loginUsuarioRegistro) {
         if (dataFim.isBefore(dataInicio)) {
             throw new IllegalArgumentException("A data final não pode ser antes da data inicial");

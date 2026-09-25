@@ -35,9 +35,10 @@ public class ServicoEscalado {
     @Column(length = 40)
     private String posicao;
 
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 15)
     @Builder.Default
-    private String situacao = "PREVISTO"; // PREVISTO, CUMPRIDO, SUBSTITUIDO
+    private SituacaoServico situacao = SituacaoServico.PREVISTO;
 
     @Column(nullable = false)
     @Builder.Default

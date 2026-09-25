@@ -8,6 +8,7 @@ import br.com.milscale.milscale.domain.Afastamento;
 import br.com.milscale.milscale.domain.Escala;
 import br.com.milscale.milscale.domain.Militar;
 import br.com.milscale.milscale.domain.ServicoEscalado;
+import br.com.milscale.milscale.domain.TipoAfastamento;
 import br.com.milscale.milscale.domain.Usuario;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -138,7 +139,7 @@ class EscalaGeracaoIntegrationTest {
         for (Militar t : tenentes) {
             if (t.getId().equals(sobrevivente.getId())) continue;
             afastamentoRepository.save(Afastamento.builder()
-                    .militar(t).tipo("FERIAS").descricao("Teste de escassez").dataInicio(inicio).dataFim(fim)
+                    .militar(t).tipo(TipoAfastamento.FERIAS).descricao("Teste de escassez").dataInicio(inicio).dataFim(fim)
                     .usuarioRegistro(usuario).build());
         }
 

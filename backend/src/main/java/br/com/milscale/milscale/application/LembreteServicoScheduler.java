@@ -2,6 +2,7 @@ package br.com.milscale.milscale.application;
 
 import br.com.milscale.milscale.adapters.persistence.ServicoEscaladoRepository;
 import br.com.milscale.milscale.domain.ServicoEscalado;
+import br.com.milscale.milscale.domain.SituacaoEscala;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -46,7 +47,7 @@ public class LembreteServicoScheduler {
         int processados = 0;
         for (ServicoEscalado s : servicos) {
             if (s.getMilitar() == null) continue;
-            if (!"PUBLICADA".equals(s.getEscala().getSituacao())) continue;
+            if (s.getEscala().getSituacao() != SituacaoEscala.PUBLICADA) continue;
             String email = s.getMilitar().getEmail();
             if (email == null || email.isBlank()) continue;
 

@@ -1,6 +1,7 @@
 package br.com.milscale.milscale.adapters.persistence;
 
 import br.com.milscale.milscale.domain.ServicoEscalado;
+import br.com.milscale.milscale.domain.SituacaoServico;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.time.LocalDate;
@@ -27,5 +28,5 @@ public interface ServicoEscaladoRepository extends JpaRepository<ServicoEscalado
     List<ServicoEscalado> findByData(LocalDate data);
 
     /** RF15 - candidatos a troca mutua: todo mundo com servico do mesmo tipo, ainda previsto. */
-    List<ServicoEscalado> findByTipoServico_IdAndSituacao(Long tipoServicoId, String situacao);
+    List<ServicoEscalado> findByTipoServico_IdAndSituacao(Long tipoServicoId, SituacaoServico situacao);
 }

@@ -42,9 +42,10 @@ public class Solicitacao {
 
     /** SUBSTITUICAO (o substituto assume e o solicitante fica sem nada até o
      *  próximo serviço normal) ou TROCA_MUTUA (os dois trocam de dia entre si). */
+    @Enumerated(EnumType.STRING)
     @Column(name = "tipo_troca", nullable = false, length = 20)
     @Builder.Default
-    private String tipoTroca = "SUBSTITUICAO";
+    private TipoTroca tipoTroca = TipoTroca.SUBSTITUICAO;
 
     /** Só preenchido em TROCA_MUTUA - o serviço do substituto que vai virar
      *  do solicitante quando a troca for autorizada. Em SUBSTITUICAO fica
@@ -56,9 +57,10 @@ public class Solicitacao {
     @Column(nullable = false, length = 250)
     private String justificativa;
 
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 25)
     @Builder.Default
-    private String situacao = "AGUARDANDO_SUBSTITUTO"; // AGUARDANDO_SUBSTITUTO, EM_TRIAGEM, AGUARDANDO_AUTORIZACAO, AUTORIZADA, NEGADA, CANCELADA
+    private SituacaoSolicitacao situacao = SituacaoSolicitacao.AGUARDANDO_SUBSTITUTO;
 
     @Column(length = 250)
     private String comentarioCabo;
