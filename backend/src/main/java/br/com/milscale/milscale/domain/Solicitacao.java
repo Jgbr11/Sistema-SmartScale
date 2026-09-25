@@ -10,8 +10,8 @@ import java.time.LocalDateTime;
  * Fluxo: AGUARDANDO_SUBSTITUTO (a pessoa sugerida precisa aceitar) ->
  * EM_TRIAGEM (Cabo analisa) -> AGUARDANDO_AUTORIZACAO (Sargenteante
  * decide) -> AUTORIZADA (troca efetivada no ServicoEscalado) ou NEGADA em
- * qualquer uma das duas etapas. O solicitante pode CANCELAR enquanto ainda
- * estiver em triagem.
+ * qualquer uma das duas etapas. O solicitante pode CANCELAR enquanto aguarda
+ * o substituto ou esta em triagem.
  *
  * Nota de escopo desta fatia: o parecer de cada etapa fica guardado direto
  * nesta linha (comentarioCabo/comentarioSargenteante), sem uma tabela de

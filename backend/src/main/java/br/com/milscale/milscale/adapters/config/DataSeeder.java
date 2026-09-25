@@ -27,9 +27,8 @@ import java.util.*;
  * Dia, Cozinheiro de Dia e Graduado do Rancho - a elegibilidade dessas
  * três funções agora é posto + SUBUNIDADE (não mais qualificação).
  *
- * Login: todo militar cadastrado ganha uma conta com login = nome de
- * guerra em minúsculas (sem espaço/acento), senha padrão "milscale123".
- * Em caso de nome de guerra repetido, entra um sufixo numérico.
+ * Login: todo militar semeado ganha uma conta com login = CPF (11
+ * digitos, RF01) e senha padrao "milscale123".
  */
 @Component
 public class DataSeeder implements CommandLineRunner {
@@ -187,7 +186,7 @@ public class DataSeeder implements CommandLineRunner {
         String senha = passwordEncoder.encode("milscale123");
         int cpfSeq = 1;
 
-        // Contas de demonstração - login pelo nome de guerra, igual a todo mundo
+        // Contas de demonstração (uma por perfil) - login pelo CPF, igual a todo mundo
         cpfSeq = criarConta("Rafael", "Zeni", cpfSeq, sgt2, ccap, perfilSargenteante, senha);
         cpfSeq = criarConta("Ricardo", "Menezes", cpfSeq, cb, ccap, perfilCabo, senha);
         cpfSeq = criarConta("Thiago", "Cardoso", cpfSeq, sdEp, cia1, perfilSdEp, senha);
@@ -256,7 +255,7 @@ public class DataSeeder implements CommandLineRunner {
         militarRepository.save(militar);
     }
 
-    /** Gera N militares alternando entre CCAp e 1ª Cia, com login proprio pelo nome de guerra. */
+    /** Gera N militares alternando entre CCAp e 1ª Cia, cada um com login proprio (CPF). */
     private List<Militar> gerarComLogin(int quantidade, PostoGraduacao posto, Subunidade a, Subunidade b,
                                          PerfilAcesso perfil, String senhaHash, int cpfInicial) {
         List<Militar> lista = new ArrayList<>();

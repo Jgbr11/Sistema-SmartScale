@@ -34,8 +34,8 @@ Atualizado ao fim de cada tarefa. Os detalhes de cada uma ficam na nota **"Execu
 | 6 — Geração sem N+1 | ✅ Concluída (25/09/2026) | `98e2821` | 49/49 | Pré-carga de requisitos/regras/afastamentos; `findBySituacao`; `exists` de afastamento; geração ~2,5–3x mais rápida |
 | 7 — Frontend: formatadores + Vitest | ✅ Concluída (25/09/2026) | `a401dda` | 49/49 (front 9/9) | `utils/formatadores.ts`; 24 cópias locais removidas de 14 arquivos; Vitest 5 com 3 arquivos de teste |
 | 8 — Configuração por ambiente | ✅ Concluída (25/09/2026) | `88ec21a` | 51/51 (front 9/9) | API no mesmo domínio (proxy Vite + nginx), CORS por propriedade, senhas do Compose em `.env`; Docker não testado (daemon desligado) |
-| 9 — Flyway | ✅ Concluída (25/09/2026) | _aguardando commit_ | 51/51 | V1 com 19 tabelas; `ddl-auto=none`; baseline em banco antigo; corrige `tinytext` de foto/boletim; MySQL não testado (Docker desligado) |
-| 10 — Documentação | ⬜ Pendente | — | — | — |
+| 9 — Flyway | ✅ Concluída (25/09/2026) | `58ceebd` | 51/51 | V1 com 19 tabelas; `ddl-auto=none`; baseline em banco antigo; corrige `tinytext` de foto/boletim; MySQL não testado (Docker desligado) |
+| 10 — Documentação | ✅ Concluída (25/09/2026) | _aguardando commit_ | 51/51 (front 9/9) | README vira manual; diário movido para `docs/HISTORICO.md` sem alteração; 4 comentários desatualizados corrigidos |
 
 ---
 
@@ -2064,7 +2064,7 @@ Expected: PASS. Se falhar com erro de SQL do H2 ao aplicar o V1, a mensagem apon
 
 - [x] **Step 7: Checkpoint** — diff, sugerir a mensagem `build: schema versionado com Flyway` e aguardar o usuário commitar.
 
-> **Execução (25/09/2026, commit: _aguardando o usuário_)**
+> **Execução (25/09/2026, commit `58ceebd`)**
 > - Step 1: o DDL foi gerado pelo comando do plano (porta 8091) em `target/ddl-mysql.sql`, com as 19 tabelas.
 > - **Achado fora do plano, com correção no V1:**
 >   - **Problema:** os campos `@Lob String` (`militar.foto_base64`, `boletim.conteudo_html`) saem como **`tinytext`** no dialeto MySQL do Hibernate 6.5, e `tinytext` guarda **no máximo 255 bytes**. Uma foto em base64 ou um boletim com imagem colada estouraria no MySQL. O README afirmava que o Hibernate escolhia `LONGTEXT` sozinho, mas não é o que acontece nesta versão.
@@ -2093,11 +2093,11 @@ O README tem 940 linhas misturando manual de uso com diário de desenvolvimento,
 - Create: `docs/HISTORICO.md`
 - Modify: `backend/.../adapters/config/DataSeeder.java` (javadoc da classe), `backend/.../domain/Militar.java` (javadoc), `backend/.../domain/Solicitacao.java` (javadoc)
 
-- [ ] **Step 1: Mover o diário para `docs/HISTORICO.md`**
+- [x] **Step 1: Mover o diário para `docs/HISTORICO.md`**
 
 Criar `docs/HISTORICO.md` com o título `# MilScale — histórico de entregas` e, abaixo, **todas** as seções do README a partir de `## Base de dados (efetivo semeado)` até o fim, sem alterar o texto.
 
-- [ ] **Step 2: Reescrever o `README.md` como manual** com estas seções, nesta ordem (reaproveitando o texto que já existe):
+- [x] **Step 2: Reescrever o `README.md` como manual** com estas seções, nesta ordem (reaproveitando o texto que já existe):
 1. `# MilScale` — um parágrafo: o que é (escala de serviço do 5º B Sup, primeiro produto da linha SmartScale, projeto de Dev. Orientado a Reuso — PUCPR).
 2. `## Arquitetura` — o bloco atual (núcleo reutilizável × especialização MilScale), sem mudanças.
 3. `## Como rodar` — Backend, Frontend (agora: `npm run dev` usa o proxy do Vite, não precisa configurar URL), Docker Compose (agora: `cp .env.example .env` antes do `docker compose up --build`), Testes (`mvn test` e `npm test`).
@@ -2106,7 +2106,7 @@ Criar `docs/HISTORICO.md` com o título `# MilScale — histórico de entregas` 
 6. `## Perfis e regras de negócio principais` — lista curta: 4 perfis; geração (RN01, RN05, RN06 3x1, RN15, aperto); trocas (substituição/mútua, 2x1 permitido, 1x1 proibido); dia travado × dia sólido.
 7. `## Histórico` — uma linha: "O registro detalhado de cada entrega está em [docs/HISTORICO.md](docs/HISTORICO.md)."
 
-- [ ] **Step 3: Corrigir comentários**
+- [x] **Step 3: Corrigir comentários**
 
 - `DataSeeder.java`, javadoc da classe: substituir o parágrafo que começa em `Login: todo militar cadastrado ganha uma conta com login = nome de guerra...` por:
 ```java
@@ -2117,11 +2117,29 @@ Criar `docs/HISTORICO.md` com o título `# MilScale — histórico de entregas` 
 - `Militar.java`, javadoc da classe: trocar a referência a `ConsultarContadorRodizioService` (classe que não existe) por `{@link #getContadorRodizio()}`.
 - `Solicitacao.java`, javadoc: `O solicitante pode CANCELAR enquanto ainda estiver em triagem.` → `O solicitante pode CANCELAR enquanto aguarda o substituto ou esta em triagem.`
 
-- [ ] **Step 4: Verificar**
+- [x] **Step 4: Verificar**
 
 Run: `cd backend && mvn -q test` → PASS (só comentários mudaram). Ler o README renderizado (preview do editor ou GitHub) e conferir que todos os comandos citados existem.
 
-- [ ] **Step 5: Checkpoint** — diff, sugerir a mensagem `docs: README como manual e historico separado` e aguardar o usuário commitar.
+- [x] **Step 5: Checkpoint** — diff, sugerir a mensagem `docs: README como manual e historico separado` e aguardar o usuário commitar.
+
+> **Execução (25/09/2026, commit: _aguardando o usuário_)**
+> - **Desvio pequeno no Step 1:** a seção "O que já funciona" (lista de entregas da 1ª fatia) também foi para o `docs/HISTORICO.md`, e não só as seções a partir de "Base de dados". Ela é histórico de entregas, e assim nenhum texto do README antigo se perde. Cópia conferida com `diff`: idêntica.
+> - Step 2: o README foi reescrito nas 7 seções do plano e atualizado com o que as Tasks 7–9 mudaram:
+>   - proxy do Vite/nginx (não precisa configurar URL);
+>   - `.env` obrigatório no Compose;
+>   - Flyway e a regra de "nunca editar migration aplicada";
+>   - `npm test`;
+>   - observação sobre JDK 23+.
+>
+>   Acréscimos úteis:
+>   - uma tabela das variáveis de ambiente;
+>   - uma linha de stack;
+>   - `PoliticaDeDescanso`, os enums e `dto/` no mapa de arquitetura;
+>   - link para `docs/PLANO DE EXECUÇÃO/plans/`.
+> - Correção de conteúdo: o README antigo dizia que "todo militar cadastrado tem conta própria". Isso só vale para os **semeados**, porque o cadastro pela tela ainda não cria conta (Plano 2, Task 5). O manual novo diz "todo militar semeado".
+> - Step 3: os 3 comentários do plano foram corrigidos, mais **1 extra** do mesmo tipo: o javadoc de `gerarComLogin` no `DataSeeder`, que ainda dizia "login pelo nome de guerra".
+> - Step 4: backend 51/51, frontend 9/9. Os arquivos citados no README existem (`docs/HISTORICO.md`, `.env.example`, `frontend/.env.example`, `V1__schema_inicial.sql`).
 
 ---
 

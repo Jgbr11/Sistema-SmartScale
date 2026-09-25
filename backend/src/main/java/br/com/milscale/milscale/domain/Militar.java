@@ -14,8 +14,7 @@ import java.util.Set;
  * "Pessoa escalada" do nucleo -> "militar" aqui.
  *
  * O contador de rodizio do MilScale e "dias sem tirar servico", calculado
- * a partir da data do ultimo servico cumprido (ver
- * br.com.milscale.milscale.application.ConsultarContadorRodizioService).
+ * a partir da data do ultimo servico (ver {@link #getContadorRodizio()}).
  * Por simplicidade nesta primeira fatia, guardamos a data do ultimo
  * servico diretamente no militar e calculamos o contador sob demanda.
  */
