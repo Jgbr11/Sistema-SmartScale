@@ -111,8 +111,7 @@ public class AfastamentoService {
 
         if (conflitantes.isEmpty()) return;
 
-        List<Militar> ativos = militarRepository.findAll().stream()
-                .filter(m -> m.getSituacao() == br.com.milscale.core.domain.SituacaoPessoa.ATIVO)
+        List<Militar> ativos = militarRepository.findBySituacao(br.com.milscale.core.domain.SituacaoPessoa.ATIVO).stream()
                 .filter(m -> !m.getId().equals(afastado.getId()))
                 .toList();
 
@@ -152,8 +151,7 @@ public class AfastamentoService {
 
 
     private boolean temImpedimentoNoDia(Militar m, LocalDate dia) {
-        return afastamentoRepository.findByDataFimGreaterThanEqual(dia).stream()
-                .anyMatch(a -> a.getMilitar().getId().equals(m.getId()) && a.cobre(dia));
+        return afastamentoRepository.existsByMilitar_IdAndDataInicioLessThanEqualAndDataFimGreaterThanEqual(m.getId(), dia, dia);
     }
 
     private boolean respeitaIntervalo(Militar m, LocalDate dia, int intervaloMinimo) {

@@ -12,6 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Caso de uso RF08: "Gerar automaticamente a escala de um periodo a
@@ -105,10 +106,22 @@ public class GerarEscalaService {
         }
 
         List<TipoServico> tipos = tipoServicoRepository.findByAtivoTrue();
-        List<Militar> ativos = militarRepository.findAll().stream()
-                .filter(m -> m.getSituacao() == SituacaoPessoa.ATIVO)
-                .toList();
-        List<Afastamento> afastamentosVigentes = afastamentoRepository.findByDataFimGreaterThanEqual(dataInicio);
+        List<Militar> ativos = militarRepository.findBySituacao(SituacaoPessoa.ATIVO);
+
+        // Tudo que nao muda durante a geracao e carregado UMA vez, fora do laco dia x tipo.
+        // RF06 - elegibilidade real: posto E (se exigido) a qualificação específica.
+        // Uma mesma função pode ter mais de uma combinação posto+curso aceita
+        // (ex.: Cozinheiro de Dia aceita Sd EP-Rancho OU Cb-Rancho) - por isso
+        // guardamos um conjunto de combinações, não um único posto.
+        Map<Long, List<Militar>> elegiveisPorTipo = new HashMap<>();
+        Map<Long, Integer> intervaloPorTipo = new HashMap<>();
+        for (TipoServico tipo : tipos) {
+            List<RequisitoServico> requisitos = requisitoServicoRepository.findByTipoServico_Id(tipo.getId());
+            elegiveisPorTipo.put(tipo.getId(), ativos.stream().filter(m -> elegibilidadeService.elegivel(m, requisitos)).toList());
+            intervaloPorTipo.put(tipo.getId(), PoliticaDeDescanso.intervaloMinimo(regraEscalaRepository.findByTipoServico_Id(tipo.getId()).orElse(null)));
+        }
+        Map<Long, List<Afastamento>> afastamentosPorMilitar = afastamentoRepository.findByDataFimGreaterThanEqual(dataInicio).stream()
+                .collect(Collectors.groupingBy(a -> a.getMilitar().getId()));
 
         // Estado mutavel do rodizio durante a geracao (RN01/RN06): comeca com o
         // ultimo servico conhecido no banco, e vai avancando conforme escalamos.
@@ -132,24 +145,17 @@ public class GerarEscalaService {
             Set<Long> escaladosHoje = new HashSet<>();
 
             for (TipoServico tipo : tipos) {
-                RegraEscala regra = regraEscalaRepository.findByTipoServico_Id(tipo.getId()).orElse(null);
-                int intervaloMinimo = PoliticaDeDescanso.intervaloMinimo(regra);
-
-                // RF06 - elegibilidade real: posto E (se exigido) a qualificação específica.
-                // Uma mesma função pode ter mais de uma combinação posto+curso aceita
-                // (ex.: Cozinheiro de Dia aceita Sd EP-Rancho OU Cb-Rancho) - por isso
-                // guardamos um conjunto de combinações, não um único posto.
-                List<RequisitoServico> requisitos = requisitoServicoRepository.findByTipoServico_Id(tipo.getId());
+                int intervaloMinimo = intervaloPorTipo.get(tipo.getId());
 
                 final LocalDate diaFinal = dia;
                 List<MilitarEmGeracao> pool = new ArrayList<>();
-                for (Militar m : ativos) {
+                List<MilitarEmGeracao> disponiveis = new ArrayList<>(); // RN05 + RF06 + RN15, sem RN06 (base do "aperto")
+                for (Militar m : elegiveisPorTipo.get(tipo.getId())) {
                     if (escaladosHoje.contains(m.getId())) continue; // RN05
-                    if (!elegibilidadeService.elegivel(m, requisitos)) continue; // RF06 - posto + qualificação
-                    if (temImpedimento(m, diaFinal, afastamentosVigentes)) continue; // RN15
+                    if (temImpedimento(m, diaFinal, afastamentosPorMilitar)) continue; // RN15
                     MilitarEmGeracao em = estado.get(m.getId());
-                    if (!PoliticaDeDescanso.respeitaIntervalo(em.getUltimoServico(), diaFinal, intervaloMinimo)) continue; // RN06
-                    pool.add(em);
+                    disponiveis.add(em);
+                    if (PoliticaDeDescanso.respeitaIntervalo(em.getUltimoServico(), diaFinal, intervaloMinimo)) pool.add(em); // RN06
                 }
 
                 List<MilitarEmGeracao> escolhidos = new ArrayList<>(motor.preencherVagas(pool, tipo, criterio));
@@ -165,15 +171,11 @@ public class GerarEscalaService {
                 // tempo dentre os poucos disponiveis, nunca escolha arbitraria.
                 int faltantesAntesDoAperto = tipo.getEfetivoNecessario() - escolhidos.size();
                 if (faltantesAntesDoAperto > 0) {
-                    Set<Long> jaEscolhidosNesteTipo = escolhidos.stream().map(e -> e.militar.getId()).collect(java.util.stream.Collectors.toSet());
-                    List<MilitarEmGeracao> poolRelaxado = new ArrayList<>();
-                    for (Militar m : ativos) {
-                        if (escaladosHoje.contains(m.getId())) continue; // RN05 - nunca dobra no mesmo dia
-                        if (jaEscolhidosNesteTipo.contains(m.getId())) continue;
-                        if (!elegibilidadeService.elegivel(m, requisitos)) continue; // RF06 continua valendo
-                        if (temImpedimento(m, diaFinal, afastamentosVigentes)) continue; // RN15 continua valendo
-                        poolRelaxado.add(estado.get(m.getId()));
-                    }
+                    Set<Long> jaEscolhidosNesteTipo = escolhidos.stream().map(e -> e.militar.getId()).collect(Collectors.toSet());
+                    // RN05, RF06 e RN15 continuam valendo - so o intervalo minimo e relaxado.
+                    List<MilitarEmGeracao> poolRelaxado = disponiveis.stream()
+                            .filter(em -> !jaEscolhidosNesteTipo.contains(em.militar.getId()))
+                            .toList();
                     TipoTurnoComEfetivo turnoRestante = new TipoTurnoComEfetivo(tipo, faltantesAntesDoAperto);
                     List<MilitarEmGeracao> extras = motor.preencherVagas(poolRelaxado, turnoRestante, criterio);
                     escolhidos.addAll(extras);
@@ -215,11 +217,8 @@ public class GerarEscalaService {
         return salva;
     }
 
-    private boolean temImpedimento(Militar m, LocalDate dia, List<Afastamento> afastamentos) {
-        for (Afastamento a : afastamentos) {
-            if (a.getMilitar().getId().equals(m.getId()) && a.cobre(dia)) return true;
-        }
-        return false;
+    private boolean temImpedimento(Militar m, LocalDate dia, Map<Long, List<Afastamento>> afastamentosPorMilitar) {
+        return afastamentosPorMilitar.getOrDefault(m.getId(), List.of()).stream().anyMatch(a -> a.cobre(dia));
     }
 
     /** Wrapper leve que reaproveita o mesmo TipoServico, só com o

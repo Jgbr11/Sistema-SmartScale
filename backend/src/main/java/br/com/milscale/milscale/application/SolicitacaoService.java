@@ -302,8 +302,7 @@ public class SolicitacaoService {
         ServicoEscalado servico = servicoEscaladoRepository.findById(servicoOrigemId)
                 .orElseThrow(() -> new NoSuchElementException("Serviço não encontrado"));
         List<RequisitoServico> requisitos = requisitoServicoRepository.findByTipoServico_Id(servico.getTipoServico().getId());
-        return militarRepository.findAll().stream()
-                .filter(m -> m.getSituacao() == br.com.milscale.core.domain.SituacaoPessoa.ATIVO)
+        return militarRepository.findBySituacao(br.com.milscale.core.domain.SituacaoPessoa.ATIVO).stream()
                 .filter(m -> !m.getId().equals(excluirMilitarId))
                 .filter(m -> elegibilidadeService.elegivel(m, requisitos))
                 .filter(m -> !ficariaEm1x1(m.getId(), servico.getData(), servico.getId()))

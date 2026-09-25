@@ -30,8 +30,8 @@ Atualizado ao fim de cada tarefa. Os detalhes de cada uma ficam na nota **"Execu
 | 2 — Enums de domínio | ✅ Concluída (25/09/2026) | `f0d2c8c` | 32/32 | 5 enums no lugar de strings; entidades, repositórios e services; `EnumsContratoTest` |
 | 3 — Usuário logado / controllers | ✅ Concluída (25/09/2026) | `ce08739` | 38/38 | `UsuarioLogadoService`, `ContaService`, `ConsultaEscalaService`; 15 buscas por login centralizadas |
 | 4 — DTOs com Bean Validation | ✅ Concluída (25/09/2026) | `b274fe7` | 43/43 | 10 records em `adapters/web/dto`, `@Valid` em 6 controllers, nenhum `@RequestBody Map` restante; smoke test de API 18/18 |
-| 5 — `PoliticaDeDescanso` | ✅ Concluída (25/09/2026) | _aguardando commit_ | 49/49 | Regra RN06 e 1x1 num lugar só; default `7` e janelas manuais removidos dos 3 services; teste de caracterização da realocação |
-| 6 — Geração sem N+1 | ⬜ Pendente | — | — | — |
+| 5 — `PoliticaDeDescanso` | ✅ Concluída (25/09/2026) | `c8011bc` | 49/49 | Regra RN06 e 1x1 num lugar só; default `7` e janelas manuais removidos dos 3 services; teste de caracterização da realocação |
+| 6 — Geração sem N+1 | ✅ Concluída (25/09/2026) | _aguardando commit_ | 49/49 | Pré-carga de requisitos/regras/afastamentos; `findBySituacao`; `exists` de afastamento; geração ~2,5–3x mais rápida |
 | 7 — Frontend: formatadores + Vitest | ⬜ Pendente | — | — | — |
 | 8 — Configuração por ambiente | ⬜ Pendente | — | — | — |
 | 9 — Flyway | ⬜ Pendente | — | — | — |
@@ -1402,7 +1402,7 @@ Expected: PASS — inclusive `TrocaIntervaloIntegrationTest` (1x1/2x1), `EscalaG
 
 - [x] **Step 6: Checkpoint** — diff, sugerir a mensagem `refactor: PoliticaDeDescanso concentra RN06 e regra de troca` e aguardar o usuário commitar.
 
-> **Execução (25/09/2026, commit: _aguardando o usuário_)**
+> **Execução (25/09/2026, commit `c8011bc`)**
 > - Step 1: o teste de caracterização `AfastamentoReconciliacaoIntegrationTest` **passou no código antigo**, como pedido. Isso fixa o comportamento antes da refatoração: realoca só dentro do período, respeita o 3x1, mantém a elegibilidade e não mexe no serviço fora do período.
 > - Step 2: `PoliticaDeDescansoTest` falhou por compilação, como esperado.
 > - Refatoração aplicada nos 3 services, conforme o plano:
@@ -1427,12 +1427,12 @@ Hoje, para um mês de 12 tipos, `GerarEscalaService` faz ~720 consultas de requi
   - `MilitarRepository.findBySituacao(SituacaoPessoa situacao): List<Militar>`
   - `AfastamentoRepository.existsByMilitar_IdAndDataInicioLessThanEqualAndDataFimGreaterThanEqual(Long militarId, LocalDate dia, LocalDate mesmoDia): boolean`
 
-- [ ] **Step 1: Registrar o tempo atual dos testes de geração (referência)**
+- [x] **Step 1: Registrar o tempo atual dos testes de geração (referência)**
 
 Run: `cd backend && mvn test -Dtest=EscalaGeracaoIntegrationTest | grep "Tests run"`
 Anotar o `Time elapsed` para comparar no Step 6.
 
-- [ ] **Step 2: Adicionar os métodos de repositório**
+- [x] **Step 2: Adicionar os métodos de repositório**
 
 `MilitarRepository.java`:
 ```java
@@ -1443,7 +1443,7 @@ Anotar o `Time elapsed` para comparar no Step 6.
     boolean existsByMilitar_IdAndDataInicioLessThanEqualAndDataFimGreaterThanEqual(Long militarId, LocalDate dia, LocalDate mesmoDia);
 ```
 
-- [ ] **Step 3: Pré-carregar tudo em `GerarEscalaService.gerar`**
+- [x] **Step 3: Pré-carregar tudo em `GerarEscalaService.gerar`**
 
 Substituir o trecho que vai de `List<TipoServico> tipos = ...` até o fim do laço `for (LocalDate dia ...)` por:
 
@@ -1536,7 +1536,7 @@ E trocar `temImpedimento` por:
 
 Adicionar `import java.util.stream.Collectors;` e remover imports que ficarem sem uso. **Atenção à ordem do pool relaxado:** antes ele era montado percorrendo `ativos` na ordem do banco; agora percorre `elegiveisPorTipo` — que é `ativos` filtrado, então a ordem relativa é a mesma e o `sort` estável do motor produz o mesmo resultado.
 
-- [ ] **Step 4: Ajustar `AfastamentoService` e `SolicitacaoService`**
+- [x] **Step 4: Ajustar `AfastamentoService` e `SolicitacaoService`**
 
 `AfastamentoService.reconciliarServicosJaMarcados`: 
 ```java
@@ -1552,14 +1552,31 @@ Adicionar `import java.util.stream.Collectors;` e remover imports que ficarem se
 ```
 `SolicitacaoService.listarElegiveisParaTroca`: `militarRepository.findAll().stream().filter(m -> m.getSituacao() == ...ATIVO)` → `militarRepository.findBySituacao(SituacaoPessoa.ATIVO).stream()`.
 
-- [ ] **Step 5: Rodar todos os testes**
+- [x] **Step 5: Rodar todos os testes**
 
 Run: `cd backend && mvn -q test`
 Expected: PASS — em especial `EscalaGeracaoIntegrationTest` (zero vaga aberta, 3x1, Aprov, CFC/Motorista, aperto), `TrocaIntervaloIntegrationTest` e `AfastamentoReconciliacaoIntegrationTest`.
 
-- [ ] **Step 6: Comparar o tempo** — repetir o comando do Step 1 e registrar antes/depois no resumo da tarefa (esperado: queda perceptível; não é critério de aceite, só informação).
+- [x] **Step 6: Comparar o tempo** — repetir o comando do Step 1 e registrar antes/depois no resumo da tarefa (esperado: queda perceptível; não é critério de aceite, só informação).
 
-- [ ] **Step 7: Checkpoint** — diff, sugerir a mensagem `perf: geracao de escala sem consultas dentro do laco` e aguardar o usuário commitar.
+- [x] **Step 7: Checkpoint** — diff, sugerir a mensagem `perf: geracao de escala sem consultas dentro do laco` e aguardar o usuário commitar.
+
+> **Execução (25/09/2026, commit: _aguardando o usuário_)**
+> - As mudanças foram feitas como edições pontuais, não com a substituição do bloco inteiro do Step 3, para o diff ficar legível. O comentário longo do "aperto" foi mantido. O comentário de RF06 foi para a pré-carga.
+> - O "pool relaxado" agora sai da lista `disponiveis`, montada no mesmo laço do pool rigoroso: quem cumpre RN05, RF06 e RN15, sem RN06. É o mesmo filtro de antes, só que sem repetir as consultas.
+> - `AfastamentoService` e `SolicitacaoService` passaram a usar `findBySituacao(ATIVO)`, e `temImpedimentoNoDia` usa uma consulta `exists` no banco.
+> - **Medição.** Tempo de cada teste no relatório do surefire, 2 rodadas, só a classe `EscalaGeracaoIntegrationTest`. O 1º teste inclui o aquecimento da JVM.
+>
+>   | Teste | Antes (s) | Depois (s) |
+>   |---|---|---|
+>   | 1º teste (inclui aquecimento) | 2,60 | 1,45–1,48 |
+>   | Aprov fora do rancho | 1,30–1,33 | 0,43 |
+>   | Sem vaga aberta | 0,90–0,99 | 0,35–0,44 |
+>   | Intervalo 3x1 | 0,82–0,83 | 0,31–0,37 |
+>   | Efetivo insuficiente (aperto) | 0,87–0,89 | 0,28–0,33 |
+>
+>   A geração de um mês ficou **~2,5–3x mais rápida**, com o mesmo resultado: as 5 regras de geração, as 9 de troca e a de realocação continuam verdes.
+> - Resultado: 49/49.
 
 ---
 
