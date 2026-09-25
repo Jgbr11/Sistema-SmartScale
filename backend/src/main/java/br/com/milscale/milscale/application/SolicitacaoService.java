@@ -2,6 +2,7 @@ package br.com.milscale.milscale.application;
 
 import br.com.milscale.milscale.adapters.persistence.*;
 import br.com.milscale.milscale.domain.Militar;
+import br.com.milscale.milscale.domain.PoliticaDeDescanso;
 import br.com.milscale.milscale.domain.RequisitoServico;
 import br.com.milscale.milscale.domain.ServicoEscalado;
 import br.com.milscale.milscale.domain.SituacaoServico;
@@ -337,10 +338,10 @@ public class SolicitacaoService {
      *  só 1 dia de folga (1x1) contra algum outro serviço PREVISTO dele -
      *  ignorando o servico EXCLUIRSERVICOID (o que ele está abrindo mão). */
     private boolean ficariaEm1x1(Long militarId, LocalDate novaData, Long excluirServicoId) {
-        LocalDate janelaInicio = novaData.minusDays(2);
-        LocalDate janelaFim = novaData.plusDays(2);
-        return servicoEscaladoRepository.findByMilitar_IdAndDataBetween(militarId, janelaInicio, janelaFim).stream()
-                .anyMatch(s -> !s.getId().equals(excluirServicoId));
+        int janela = PoliticaDeDescanso.DISTANCIA_MINIMA_EM_TROCA - 1;
+        return servicoEscaladoRepository.findByMilitar_IdAndDataBetween(militarId, novaData.minusDays(janela), novaData.plusDays(janela)).stream()
+                .filter(s -> !s.getId().equals(excluirServicoId))
+                .anyMatch(s -> PoliticaDeDescanso.ficariaEm1x1(s.getData(), novaData));
     }
 
     private Solicitacao buscar(Long id) {

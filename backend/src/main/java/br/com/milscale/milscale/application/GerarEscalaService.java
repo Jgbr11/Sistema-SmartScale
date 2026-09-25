@@ -133,7 +133,7 @@ public class GerarEscalaService {
 
             for (TipoServico tipo : tipos) {
                 RegraEscala regra = regraEscalaRepository.findByTipoServico_Id(tipo.getId()).orElse(null);
-                int intervaloMinimo = regra != null ? regra.getIntervaloMinimo() : 7;
+                int intervaloMinimo = PoliticaDeDescanso.intervaloMinimo(regra);
 
                 // RF06 - elegibilidade real: posto E (se exigido) a qualificação específica.
                 // Uma mesma função pode ter mais de uma combinação posto+curso aceita
@@ -148,11 +148,7 @@ public class GerarEscalaService {
                     if (!elegibilidadeService.elegivel(m, requisitos)) continue; // RF06 - posto + qualificação
                     if (temImpedimento(m, diaFinal, afastamentosVigentes)) continue; // RN15
                     MilitarEmGeracao em = estado.get(m.getId());
-                    // RN06 - "intervaloMinimo" e o numero de dias de folga EXIGIDOS entre dois
-                    // servicos (ex.: 3 = folga,folga,folga,servico). Por isso a exclusao usa
-                    // <= : um vao de exatamente `intervaloMinimo` dias no calendario so da
-                    // `intervaloMinimo - 1` dias de folga de verdade, entao precisa de 1 a mais.
-                    if (em.diasDesdeUltimoServico(diaFinal) <= intervaloMinimo && em.getUltimoServico() != null) continue; // RN06
+                    if (!PoliticaDeDescanso.respeitaIntervalo(em.getUltimoServico(), diaFinal, intervaloMinimo)) continue; // RN06
                     pool.add(em);
                 }
 
@@ -258,11 +254,6 @@ public class GerarEscalaService {
         void marcarServico(LocalDate data) {
             this.ultimoServico = data;
             this.atualizado = true;
-        }
-
-        long diasDesdeUltimoServico(LocalDate referencia) {
-            if (ultimoServico == null) return Long.MAX_VALUE;
-            return Math.abs(ChronoUnit.DAYS.between(ultimoServico, referencia));
         }
 
         @Override public Long getId() { return militar.getId(); }

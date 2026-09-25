@@ -29,8 +29,8 @@ Atualizado ao fim de cada tarefa. Os detalhes de cada uma ficam na nota **"Execu
 | 1 — Tratamento de erros | ✅ Concluída (25/09/2026) | `79c0913` | 27/27 | `ErroResposta`, handlers de 403/validação/tipo/genérico, 5 testes novos |
 | 2 — Enums de domínio | ✅ Concluída (25/09/2026) | `f0d2c8c` | 32/32 | 5 enums no lugar de strings; entidades, repositórios e services; `EnumsContratoTest` |
 | 3 — Usuário logado / controllers | ✅ Concluída (25/09/2026) | `ce08739` | 38/38 | `UsuarioLogadoService`, `ContaService`, `ConsultaEscalaService`; 15 buscas por login centralizadas |
-| 4 — DTOs com Bean Validation | ✅ Concluída (25/09/2026) | _aguardando commit_ | 43/43 | 10 records em `adapters/web/dto`, `@Valid` em 6 controllers, nenhum `@RequestBody Map` restante; smoke test de API 18/18 |
-| 5 — `PoliticaDeDescanso` | ⬜ Pendente | — | — | — |
+| 4 — DTOs com Bean Validation | ✅ Concluída (25/09/2026) | `b274fe7` | 43/43 | 10 records em `adapters/web/dto`, `@Valid` em 6 controllers, nenhum `@RequestBody Map` restante; smoke test de API 18/18 |
+| 5 — `PoliticaDeDescanso` | ✅ Concluída (25/09/2026) | _aguardando commit_ | 49/49 | Regra RN06 e 1x1 num lugar só; default `7` e janelas manuais removidos dos 3 services; teste de caracterização da realocação |
 | 6 — Geração sem N+1 | ⬜ Pendente | — | — | — |
 | 7 — Frontend: formatadores + Vitest | ⬜ Pendente | — | — | — |
 | 8 — Configuração por ambiente | ⬜ Pendente | — | — | — |
@@ -1149,7 +1149,7 @@ Run: `cd ../frontend && npm run build` → PASS (nada mudou no front, mas confir
 
 - [x] **Step 8: Checkpoint** — diff, sugerir a mensagem `refactor: DTOs de entrada com Bean Validation` e aguardar o usuário commitar.
 
-> **Execução (25/09/2026, commit: _aguardando o usuário_)**
+> **Execução (25/09/2026, commit `b274fe7`)**
 > - Step 2: falharam os 2 casos esperados, os que expõem os bugs reais:
 >   - `gerarEscala_semDataFim` respondia **500**;
 >   - `pedirTroca_semSubstituto` respondia 400 com a mensagem técnica `For input string: "null"`.
@@ -1188,7 +1188,7 @@ A regra de intervalo (RN06) e a do 1x1 em troca estão espalhadas em três servi
   - `boolean ficariaEm1x1(LocalDate servicoExistente, LocalDate novaData)`
   - `int intervaloMinimo(RegraEscala regra)`
 
-- [ ] **Step 1: Teste de caracterização da realocação (deve PASSAR já no código atual)**
+- [x] **Step 1: Teste de caracterização da realocação (deve PASSAR já no código atual)**
 
 ```java
 package br.com.milscale.milscale.application;
@@ -1266,7 +1266,7 @@ class AfastamentoReconciliacaoIntegrationTest {
 Run: `cd backend && mvn -q test -Dtest=AfastamentoReconciliacaoIntegrationTest`
 Expected: PASS (caracteriza o comportamento atual). Se falhar, **pare e reporte**: é um bug pré-existente, não algo para "consertar" nesta tarefa.
 
-- [ ] **Step 2: Escrever o teste unitário da política (falha: classe não existe)**
+- [x] **Step 2: Escrever o teste unitário da política (falha: classe não existe)**
 
 ```java
 package br.com.milscale.milscale.domain;
@@ -1317,7 +1317,7 @@ class PoliticaDeDescansoTest {
 
 Run: `cd backend && mvn -q test -Dtest=PoliticaDeDescansoTest` → FAIL de compilação.
 
-- [ ] **Step 3: Criar `PoliticaDeDescanso.java`**
+- [x] **Step 3: Criar `PoliticaDeDescanso.java`**
 
 ```java
 package br.com.milscale.milscale.domain;
@@ -1364,7 +1364,7 @@ public final class PoliticaDeDescanso {
 }
 ```
 
-- [ ] **Step 4: Usar a política nos três services**
+- [x] **Step 4: Usar a política nos três services**
 
 `GerarEscalaService`:
 - `int intervaloMinimo = regra != null ? regra.getIntervaloMinimo() : 7;` → `int intervaloMinimo = PoliticaDeDescanso.intervaloMinimo(regra);`
@@ -1395,12 +1395,22 @@ public final class PoliticaDeDescanso {
     }
 ```
 
-- [ ] **Step 5: Rodar todos os testes**
+- [x] **Step 5: Rodar todos os testes**
 
 Run: `cd backend && mvn -q test`
 Expected: PASS — inclusive `TrocaIntervaloIntegrationTest` (1x1/2x1), `EscalaGeracaoIntegrationTest` (3x1) e o novo teste de caracterização.
 
-- [ ] **Step 6: Checkpoint** — diff, sugerir a mensagem `refactor: PoliticaDeDescanso concentra RN06 e regra de troca` e aguardar o usuário commitar.
+- [x] **Step 6: Checkpoint** — diff, sugerir a mensagem `refactor: PoliticaDeDescanso concentra RN06 e regra de troca` e aguardar o usuário commitar.
+
+> **Execução (25/09/2026, commit: _aguardando o usuário_)**
+> - Step 1: o teste de caracterização `AfastamentoReconciliacaoIntegrationTest` **passou no código antigo**, como pedido. Isso fixa o comportamento antes da refatoração: realoca só dentro do período, respeita o 3x1, mantém a elegibilidade e não mexe no serviço fora do período.
+> - Step 2: `PoliticaDeDescansoTest` falhou por compilação, como esperado.
+> - Refatoração aplicada nos 3 services, conforme o plano:
+>   - `GerarEscalaService`: o comentário longo de RN06 foi para a política, e o método `diasDesdeUltimoServico` saiu;
+>   - `AfastamentoService`: `respeitaIntervalo` delega à política;
+>   - `SolicitacaoService`: a janela do 1x1 vem de `DISTANCIA_MINIMA_EM_TROCA`.
+> - Conferido: nenhum `: 7;`, `diasDesdeUltimoServico` ou `minusDays(2)` sobrou em `src/main`.
+> - Resultado: 49/49 (43 + 1 de caracterização + 5 da política). Os testes de regra (`EscalaGeracao` 3x1, `TrocaIntervalo` 1x1/2x1) continuam verdes.
 
 ---
 

@@ -140,7 +140,7 @@ public class AfastamentoService {
         LocalDate dia = servico.getData();
         List<RequisitoServico> requisitos = requisitoServicoRepository.findByTipoServico_Id(tipo.getId());
         RegraEscala regra = regraEscalaRepository.findByTipoServico_Id(tipo.getId()).orElse(null);
-        int intervaloMinimo = regra != null ? regra.getIntervaloMinimo() : 7;
+        int intervaloMinimo = PoliticaDeDescanso.intervaloMinimo(regra);
 
         return candidatos.stream()
                 .filter(m -> elegibilidadeService.elegivel(m, requisitos))
@@ -157,9 +157,10 @@ public class AfastamentoService {
     }
 
     private boolean respeitaIntervalo(Militar m, LocalDate dia, int intervaloMinimo) {
-        LocalDate janelaInicio = dia.minusDays(intervaloMinimo);
-        LocalDate janelaFim = dia.plusDays(intervaloMinimo);
-        return servicoEscaladoRepository.findByMilitar_IdAndDataBetween(m.getId(), janelaInicio, janelaFim).isEmpty();
+        return servicoEscaladoRepository
+                .findByMilitar_IdAndDataBetween(m.getId(), dia.minusDays(intervaloMinimo), dia.plusDays(intervaloMinimo))
+                .stream()
+                .allMatch(s -> PoliticaDeDescanso.respeitaIntervalo(s.getData(), dia, intervaloMinimo));
     }
 
     private long diasSemServico(Militar m, LocalDate referencia) {
