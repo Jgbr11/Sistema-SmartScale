@@ -4,6 +4,7 @@ import type { Militar } from "../api/types";
 import { PageHeader } from "../components/Shell";
 import { useAuth } from "../context/AuthContext";
 import { PERFIL_LABEL } from "../utils/perfis";
+import { formatarCpf, formatarDataBR } from "../utils/formatadores";
 
 export function MinhaContaPage() {
   const { usuario } = useAuth();
@@ -117,13 +118,4 @@ function TrocarSenhaForm() {
       </button>
     </div>
   );
-}
-
-function formatarCpf(cpf: string) {
-  if (cpf.length !== 11) return cpf;
-  return `${cpf.slice(0, 3)}.${cpf.slice(3, 6)}.${cpf.slice(6, 9)}-${cpf.slice(9)}`;
-}
-function formatarDataBR(iso: string) {
-  const [ano, mes, dia] = iso.split("-");
-  return `${dia}/${mes}/${ano}`;
 }

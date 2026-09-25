@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { api } from "../api/client";
 import type { Afastamento, Militar, TipoServico } from "../api/types";
 import { TIPO_AFASTAMENTO_LABEL } from "../utils/afastamentoTipos";
+import { formatarCpf, formatarDataBR } from "../utils/formatadores";
 
 /**
  * Tela sobreposta (não é um alert/popup nativo) com os dados do militar,
@@ -151,14 +152,6 @@ function CampoDado({ label, valor }: { label: string; valor: string }) {
   );
 }
 
-function formatarCpf(cpf: string) {
-  if (cpf.length !== 11) return cpf;
-  return `${cpf.slice(0, 3)}.${cpf.slice(3, 6)}.${cpf.slice(6, 9)}-${cpf.slice(9)}`;
-}
-function formatarDataBR(iso: string) {
-  const [ano, mes, dia] = iso.split("-");
-  return `${dia}/${mes}/${ano}`;
-}
 function formatarContador(dias: number): string {
   if (dias > 100000) return "nunca serviu";
   return `há ${Math.abs(dias)} dia${Math.abs(dias) === 1 ? "" : "s"}`;

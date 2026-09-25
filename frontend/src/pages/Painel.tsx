@@ -6,6 +6,7 @@ import { PageHeader } from "../components/Shell";
 import { MilitarDetalheOverlay } from "../components/MilitarDetalheOverlay";
 import { useAuth } from "../context/AuthContext";
 import { ordenarPorTipo } from "../utils/ordemTipos";
+import { capitalizar, formatarDataBR } from "../utils/formatadores";
 
 export function PainelPage() {
   const { usuario } = useAuth();
@@ -224,12 +225,4 @@ export function PainelPage() {
       <MilitarDetalheOverlay militarId={militarSelecionado} onFechar={() => setMilitarSelecionado(null)} />
     </>
   );
-}
-
-function capitalizar(s: string) {
-  return s.charAt(0).toUpperCase() + s.slice(1);
-}
-function formatarDataBR(iso: string) {
-  const [ano, mes, dia] = iso.split("-");
-  return `${dia}/${mes}/${ano}`;
 }

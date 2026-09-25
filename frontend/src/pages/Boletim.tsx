@@ -6,6 +6,7 @@ import { PageHeader } from "../components/Shell";
 import { RichEditor } from "../components/RichEditor";
 import { useAuth } from "../context/AuthContext";
 import { TIPO_AFASTAMENTO_LABEL } from "../utils/afastamentoTipos";
+import { formatarDataBR, formatarDataHora } from "../utils/formatadores";
 
 export function BoletimPage() {
   const { usuario } = useAuth();
@@ -186,13 +187,4 @@ function BoletimForm({ boletim, onSalvou, onCancelar }: { boletim: Boletim | nul
       </div>
     </div>
   );
-}
-
-function formatarDataHora(iso: string) {
-  const d = new Date(iso);
-  return d.toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" });
-}
-function formatarDataBR(iso: string) {
-  const [ano, mes, dia] = iso.split("-");
-  return `${dia}/${mes}/${ano}`;
 }

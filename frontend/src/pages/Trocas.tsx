@@ -3,6 +3,7 @@ import { api, ApiError } from "../api/client";
 import type { CandidatoTrocaMutua, Militar, ServicoEscalado, Solicitacao } from "../api/types";
 import { PageHeader } from "../components/Shell";
 import { useAuth } from "../context/AuthContext";
+import { formatarDataBR } from "../utils/formatadores";
 
 export function TrocasPage() {
   const { usuario } = useAuth();
@@ -494,9 +495,4 @@ function TipoTrocaPill({ tipo }: { tipo: Solicitacao["tipoTroca"] }) {
   return tipo === "TROCA_MUTUA"
     ? <span className="pill pill-grey" title="Vocês dois trocam de dia entre si">Troca de dia</span>
     : <span className="pill pill-grey" title="A outra pessoa assume, você fica sem nada até o próximo">Passar serviço</span>;
-}
-
-function formatarDataBR(iso: string) {
-  const [ano, mes, dia] = iso.split("-");
-  return `${dia}/${mes}/${ano}`;
 }

@@ -5,6 +5,7 @@ import { PageHeader } from "../components/Shell";
 import { MilitarDetalheOverlay } from "../components/MilitarDetalheOverlay";
 import { useAuth } from "../context/AuthContext";
 import { ordenarPorTipo } from "../utils/ordemTipos";
+import { capitalizar, formatarDataBR } from "../utils/formatadores";
 
 const DIAS_SEMANA = ["DOM", "SEG", "TER", "QUA", "QUI", "SEX", "SÁB"];
 
@@ -334,5 +335,3 @@ function Metric({ label, value }: { label: string; value: number }) {
 function primeiroDiaDoMes(d: Date) { return new Date(d.getFullYear(), d.getMonth(), 1).toISOString().slice(0, 10); }
 function ultimoDiaDoMes(d: Date) { return new Date(d.getFullYear(), d.getMonth() + 1, 0).toISOString().slice(0, 10); }
 function diasEntre(a: string, b: string) { return Math.round((new Date(b).getTime() - new Date(a).getTime()) / 86400000) + 1; }
-function formatarDataBR(iso: string) { const [ano, mes, dia] = iso.split("-"); return `${dia}/${mes}/${ano}`; }
-function capitalizar(s: string) { return s.charAt(0).toUpperCase() + s.slice(1); }

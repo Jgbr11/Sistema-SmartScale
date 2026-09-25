@@ -2,6 +2,7 @@ import { NavLink, useLocation } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { useAuth } from "../context/AuthContext";
 import { NotificacaoSino } from "./NotificacaoSino";
+import { PERFIL_LABEL } from "../utils/perfis";
 
 interface Item {
   label: string;
@@ -134,7 +135,7 @@ export function Shell({ children }: { children: React.ReactNode }) {
         {usuario && (
           <NavLink to="/minha-conta" className="user-box" style={{ cursor: "pointer" }}>
             <strong>{usuario.nomeExibicao}</strong>
-            <small>{formatarPerfil(usuario.perfil)}</small>
+            <small>{PERFIL_LABEL[usuario.perfil] ?? usuario.perfil}</small>
           </NavLink>
         )}
         <button className="logout" onClick={sair}>
@@ -152,16 +153,6 @@ function ItemLink({ item }: { item: Item }) {
       {item.label}
     </NavLink>
   );
-}
-
-function formatarPerfil(perfil: string) {
-  const nomes: Record<string, string> = {
-    SARGENTEANTE: "Sargenteante",
-    CABO_SARGENTEACAO: "Cabo da sargenteação",
-    SD_EP_SARGENTEACAO: "Soldado EP da sargenteação",
-    MILITAR_ESCALADO: "Militar escalado",
-  };
-  return nomes[perfil] ?? perfil;
 }
 
 export function PageHeader({ title, subtitle }: { title: string; subtitle?: string }) {

@@ -4,6 +4,7 @@ import type { Afastamento, Militar } from "../api/types";
 import { PageHeader } from "../components/Shell";
 import { useAuth } from "../context/AuthContext";
 import { TIPOS_AFASTAMENTO as TIPOS } from "../utils/afastamentoTipos";
+import { formatarDataBR } from "../utils/formatadores";
 
 interface GrupoAfastamento {
   loteOuId: string;
@@ -263,9 +264,4 @@ function NovoAfastamentoForm({ militares, onCriado }: { militares: Militar[]; on
       </button>
     </div>
   );
-}
-
-function formatarDataBR(iso: string) {
-  const [ano, mes, dia] = iso.split("-");
-  return `${dia}/${mes}/${ano}`;
 }

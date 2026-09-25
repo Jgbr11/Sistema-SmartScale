@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { api } from "../api/client";
 import type { ServicoEscalado } from "../api/types";
 import { PageHeader } from "../components/Shell";
+import { capitalizar } from "../utils/formatadores";
 
 const DIAS_SEMANA = ["DOM", "SEG", "TER", "QUA", "QUI", "SEX", "SÁB"];
 
@@ -96,8 +97,4 @@ export function MinhaEscalaPage() {
       </div>
     </>
   );
-}
-
-function capitalizar(s: string) {
-  return s.charAt(0).toUpperCase() + s.slice(1);
 }

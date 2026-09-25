@@ -4,6 +4,7 @@ import type { Afastamento, ServicoEscalado, Solicitacao } from "../api/types";
 import { PageHeader } from "../components/Shell";
 import { useAuth } from "../context/AuthContext";
 import { TIPO_AFASTAMENTO_LABEL } from "../utils/afastamentoTipos";
+import { formatarDataBR } from "../utils/formatadores";
 
 /**
  * "Meu histórico" — aberto a todo mundo, cada um vê o próprio
@@ -110,9 +111,4 @@ export function HistoricoPage() {
       </div>
     </>
   );
-}
-
-function formatarDataBR(iso: string) {
-  const [ano, mes, dia] = iso.split("-");
-  return `${dia}/${mes}/${ano}`;
 }

@@ -31,8 +31,8 @@ Atualizado ao fim de cada tarefa. Os detalhes de cada uma ficam na nota **"Execu
 | 3 — Usuário logado / controllers | ✅ Concluída (25/09/2026) | `ce08739` | 38/38 | `UsuarioLogadoService`, `ContaService`, `ConsultaEscalaService`; 15 buscas por login centralizadas |
 | 4 — DTOs com Bean Validation | ✅ Concluída (25/09/2026) | `b274fe7` | 43/43 | 10 records em `adapters/web/dto`, `@Valid` em 6 controllers, nenhum `@RequestBody Map` restante; smoke test de API 18/18 |
 | 5 — `PoliticaDeDescanso` | ✅ Concluída (25/09/2026) | `c8011bc` | 49/49 | Regra RN06 e 1x1 num lugar só; default `7` e janelas manuais removidos dos 3 services; teste de caracterização da realocação |
-| 6 — Geração sem N+1 | ✅ Concluída (25/09/2026) | _aguardando commit_ | 49/49 | Pré-carga de requisitos/regras/afastamentos; `findBySituacao`; `exists` de afastamento; geração ~2,5–3x mais rápida |
-| 7 — Frontend: formatadores + Vitest | ⬜ Pendente | — | — | — |
+| 6 — Geração sem N+1 | ✅ Concluída (25/09/2026) | `98e2821` | 49/49 | Pré-carga de requisitos/regras/afastamentos; `findBySituacao`; `exists` de afastamento; geração ~2,5–3x mais rápida |
+| 7 — Frontend: formatadores + Vitest | ✅ Concluída (25/09/2026) | _aguardando commit_ | 49/49 (front 9/9) | `utils/formatadores.ts`; 24 cópias locais removidas de 14 arquivos; Vitest 5 com 3 arquivos de teste |
 | 8 — Configuração por ambiente | ⬜ Pendente | — | — | — |
 | 9 — Flyway | ⬜ Pendente | — | — | — |
 | 10 — Documentação | ⬜ Pendente | — | — | — |
@@ -1561,7 +1561,7 @@ Expected: PASS — em especial `EscalaGeracaoIntegrationTest` (zero vaga aberta,
 
 - [x] **Step 7: Checkpoint** — diff, sugerir a mensagem `perf: geracao de escala sem consultas dentro do laco` e aguardar o usuário commitar.
 
-> **Execução (25/09/2026, commit: _aguardando o usuário_)**
+> **Execução (25/09/2026, commit `98e2821`)**
 > - As mudanças foram feitas como edições pontuais, não com a substituição do bloco inteiro do Step 3, para o diff ficar legível. O comentário longo do "aperto" foi mantido. O comentário de RF06 foi para a pré-carga.
 > - O "pool relaxado" agora sai da lista `disponiveis`, montada no mesmo laço do pool rigoroso: quem cumpre RN05, RF06 e RN15, sem RN06. É o mesmo filtro de antes, só que sem repetir as consultas.
 > - `AfastamentoService` e `SolicitacaoService` passaram a usar `findBySituacao(ATIVO)`, e `temImpedimentoNoDia` usa uma consulta `exists` no banco.
@@ -1592,7 +1592,7 @@ Expected: PASS — em especial `EscalaGeracaoIntegrationTest` (zero vaga aberta,
 **Interfaces:**
 - Produces (`src/utils/formatadores.ts`): `formatarDataBR(iso: string): string`, `formatarDataHora(iso: string): string`, `formatarPeriodo(inicio: string, fim: string): string`, `formatarCpf(cpf: string): string`, `capitalizar(s: string): string`.
 
-- [ ] **Step 1: Instalar o Vitest e criar o script**
+- [x] **Step 1: Instalar o Vitest e criar o script**
 
 ```bash
 cd frontend && npm install -D vitest
@@ -1602,7 +1602,7 @@ Expected: `vitest` instalado sem erro de peer dependency com o `vite@8`. Se o np
 
 Em `package.json`, dentro de `"scripts"`, adicionar: `"test": "vitest run"`.
 
-- [ ] **Step 2: Escrever os testes (falham: `formatadores.ts` não existe)**
+- [x] **Step 2: Escrever os testes (falham: `formatadores.ts` não existe)**
 
 `src/utils/formatadores.test.ts`:
 ```ts
@@ -1683,7 +1683,7 @@ describe("ordenarPorTipo", () => {
 Run: `cd frontend && npm test`
 Expected: FAIL em `formatadores.test.ts` (módulo não encontrado); `mascaras` e `ordemTipos` PASS.
 
-- [ ] **Step 3: Criar `src/utils/formatadores.ts`**
+- [x] **Step 3: Criar `src/utils/formatadores.ts`**
 
 ```ts
 /** Formatadores de exibição usados em várias telas — um lugar só. */
@@ -1717,7 +1717,7 @@ export function capitalizar(s: string): string {
 }
 ```
 
-- [ ] **Step 4: Remover as cópias locais e importar**
+- [x] **Step 4: Remover as cópias locais e importar**
 
 Em cada arquivo abaixo, **apagar** a função local listada (no fim do arquivo) e adicionar o import `import { ... } from "../utils/formatadores";` com exatamente as funções que o arquivo usa:
 
@@ -1742,20 +1742,32 @@ Em cada arquivo abaixo, **apagar** a função local listada (no fim do arquivo) 
 
 Conferir: `cd frontend && grep -rnE "^function (formatarDataBR|formatarCpf|capitalizar|formatarDataHora|formatarPeriodo)" src` → nenhuma linha.
 
-- [ ] **Step 5: `Shell.tsx` usa o mapa único de perfis**
+- [x] **Step 5: `Shell.tsx` usa o mapa único de perfis**
 
 Remover a função `formatarPerfil` do fim de `Shell.tsx`, adicionar `import { PERFIL_LABEL } from "../utils/perfis";` e trocar `{formatarPerfil(usuario.perfil)}` por `{PERFIL_LABEL[usuario.perfil] ?? usuario.perfil}`. (Efeito visível mínimo e desejado: o rodapé do menu passa a mostrar "Cabo da Sargenteação" com a mesma grafia das outras telas.)
 
-- [ ] **Step 6: `index.html`** — `<html lang="en">` → `<html lang="pt-BR">`; `<title>frontend</title>` → `<title>MilScale</title>`.
+- [x] **Step 6: `index.html`** — `<html lang="en">` → `<html lang="pt-BR">`; `<title>frontend</title>` → `<title>MilScale</title>`.
 
-- [ ] **Step 7: Rodar testes, lint e build**
+- [x] **Step 7: Rodar testes, lint e build**
 
 Run: `cd frontend && npm test && npm run lint && npm run build`
 Expected: 3 arquivos de teste PASS; lint sem erros novos; build OK.
 
-- [ ] **Step 8: Teste manual** — `npm run dev`, abrir Escala do mês, Avisos, Feriados, Boletim, Minha conta, Perfis e permissões e o popup do militar: datas e CPF aparecem formatados como antes.
+- [ ] **Step 8: Teste manual** — `npm run dev`, abrir Escala do mês, Avisos, Feriados, Boletim, Minha conta, Perfis e permissões e o popup do militar: datas e CPF aparecem formatados como antes. *(pendente: conferência visual fica com o usuário, ver nota abaixo)*
 
-- [ ] **Step 9: Checkpoint** — diff, sugerir a mensagem `refactor(front): formatadores compartilhados e testes com vitest` e aguardar o usuário commitar.
+- [x] **Step 9: Checkpoint** — diff, sugerir a mensagem `refactor(front): formatadores compartilhados e testes com vitest` e aguardar o usuário commitar.
+
+> **Execução (25/09/2026, commit: _aguardando o usuário_)**
+> - Step 1: instalado o `vitest@5.0.2`, sem conflito de dependência com o `vite@8.2.2`.
+> - Step 2: `formatadores.test.ts` falhou porque o módulo ainda não existia. `mascaras.test.ts` e `ordemTipos.test.ts` já passaram, porque testam código existente e ficam como proteção.
+> - Step 4: as cópias locais foram removidas por script, com import inserido depois do último `import` de cada arquivo:
+>   - 23 cópias em 14 arquivos, mais o `formatarPerfil` do `Shell.tsx` (24 no total);
+>   - `formatarContador` foi mantido de propósito, porque os textos são diferentes.
+> - **Ajuste fora do previsto:** em `Feriados.tsx`, a cópia local de `formatarDataBR` só era usada dentro de `formatarPeriodo`. O import dela ficou sobrando (aviso `no-unused-vars` no lint) e foi removido.
+> - `npm run lint`: termina sem erros (exit 0). Restam 16 avisos, todos de regras que o código já tinha antes (`set-state-in-effect`, `only-export-components`); nenhum vem desta tarefa.
+> - Mudança visível mínima e esperada: o rodapé do menu mostra os nomes de perfil do `utils/perfis.ts` (ex.: "Cabo da Sargenteação" em vez de "Cabo da sargenteação").
+> - **Step 8, teste manual visual: não executado por mim.** A mudança é mecânica (mesmas funções, só importadas de outro lugar), e o `tsc -b` do build garante que toda chamada resolve para uma função com a mesma assinatura. A conferência visual das telas fica com o usuário.
+> - Resultado: frontend `npm test` 9/9, `npm run build` OK; backend 49/49 (sem mudança).
 
 ---
 

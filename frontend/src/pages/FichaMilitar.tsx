@@ -6,6 +6,7 @@ import { PageHeader } from "../components/Shell";
 import { useAuth } from "../context/AuthContext";
 import { mascararCpf, mascararFusex, mascararTelefone, somenteDigitos } from "../utils/mascaras";
 import { TIPO_AFASTAMENTO_LABEL } from "../utils/afastamentoTipos";
+import { formatarCpf, formatarDataBR } from "../utils/formatadores";
 
 export function FichaMilitarPage() {
   const { id } = useParams<{ id: string }>();
@@ -327,13 +328,4 @@ function EditarForm({ militar, onSalvou, onCancelar }: { militar: Militar; onSal
       </div>
     </div>
   );
-}
-
-function formatarCpf(cpf: string) {
-  if (cpf.length !== 11) return cpf;
-  return `${cpf.slice(0, 3)}.${cpf.slice(3, 6)}.${cpf.slice(6, 9)}-${cpf.slice(9)}`;
-}
-function formatarDataBR(iso: string) {
-  const [ano, mes, dia] = iso.split("-");
-  return `${dia}/${mes}/${ano}`;
 }

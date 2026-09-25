@@ -3,6 +3,7 @@ import { api, ApiError } from "../api/client";
 import type { Feriado } from "../api/types";
 import { PageHeader } from "../components/Shell";
 import { useAuth } from "../context/AuthContext";
+import { formatarPeriodo } from "../utils/formatadores";
 
 const TIPOS: { valor: Feriado["tipo"]; label: string }[] = [
   { valor: "NACIONAL", label: "Nacional" },
@@ -149,13 +150,4 @@ function NovoFeriadoForm({ onCriado }: { onCriado: () => void }) {
       </button>
     </div>
   );
-}
-
-function formatarPeriodo(inicio: string, fim: string) {
-  if (inicio === fim) return formatarDataBR(inicio);
-  return `${formatarDataBR(inicio)} a ${formatarDataBR(fim)}`;
-}
-function formatarDataBR(iso: string) {
-  const [ano, mes, dia] = iso.split("-");
-  return `${dia}/${mes}/${ano}`;
 }

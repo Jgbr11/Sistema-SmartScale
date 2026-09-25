@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { api } from "../api/client";
 import type { LogAuditoria } from "../api/types";
 import { PageHeader } from "../components/Shell";
+import { formatarDataHora } from "../utils/formatadores";
 
 const ACAO_LABEL: Record<string, string> = {
   MILITAR_CADASTRADO: "Militar cadastrado",
@@ -95,9 +96,4 @@ export function AuditoriaPage() {
       </div>
     </>
   );
-}
-
-function formatarDataHora(iso: string) {
-  const d = new Date(iso);
-  return d.toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" });
 }

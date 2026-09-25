@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { api } from "../api/client";
 import type { Aviso, Boletim } from "../api/types";
 import { PageHeader } from "../components/Shell";
+import { capitalizar, formatarDataBR, formatarPeriodo } from "../utils/formatadores";
 
 const DIAS_SEMANA = ["DOM", "SEG", "TER", "QUA", "QUI", "SEX", "SÁB"];
 
@@ -203,16 +204,4 @@ function AvisoDetalhe({ aviso, boletim, onVerBoletim }: { aviso: Aviso; boletim?
       )}
     </div>
   );
-}
-
-function capitalizar(s: string) {
-  return s.charAt(0).toUpperCase() + s.slice(1);
-}
-function formatarDataBR(iso: string) {
-  const [ano, mes, dia] = iso.split("-");
-  return `${dia}/${mes}/${ano}`;
-}
-function formatarPeriodo(inicio: string, fim: string) {
-  if (inicio === fim) return formatarDataBR(inicio);
-  return `${formatarDataBR(inicio)} a ${formatarDataBR(fim)}`;
 }
