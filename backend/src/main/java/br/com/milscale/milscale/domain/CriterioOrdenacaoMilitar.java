@@ -1,7 +1,7 @@
 package br.com.milscale.milscale.domain;
 
-import br.com.milscale.core.domain.CriterioDeOrdenacao;
-import br.com.milscale.core.domain.PessoaEscalada;
+import br.com.smartscale.core.CriterioDeOrdenacao;
+import br.com.smartscale.core.PessoaEscalada;
 
 import java.util.Comparator;
 

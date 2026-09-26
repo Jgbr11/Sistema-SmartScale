@@ -1,6 +1,6 @@
 package br.com.milscale.milscale.adapters.persistence;
 
-import br.com.milscale.core.domain.SituacaoPessoa;
+import br.com.smartscale.core.SituacaoPessoa;
 import br.com.milscale.milscale.domain.Militar;
 import org.springframework.data.jpa.repository.JpaRepository;
 

@@ -111,7 +111,7 @@ public class AfastamentoService {
 
         if (conflitantes.isEmpty()) return;
 
-        List<Militar> ativos = militarRepository.findBySituacao(br.com.milscale.core.domain.SituacaoPessoa.ATIVO).stream()
+        List<Militar> ativos = militarRepository.findBySituacao(br.com.smartscale.core.SituacaoPessoa.ATIVO).stream()
                 .filter(m -> !m.getId().equals(afastado.getId()))
                 .toList();
 

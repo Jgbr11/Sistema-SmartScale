@@ -1,9 +1,9 @@
 package br.com.milscale.milscale.application;
 
-import br.com.milscale.core.domain.MotorDeRodizio;
-import br.com.milscale.core.domain.PessoaEscalada;
-import br.com.milscale.core.domain.SituacaoPessoa;
-import br.com.milscale.core.domain.TipoTurno;
+import br.com.smartscale.core.MotorDeRodizio;
+import br.com.smartscale.core.PessoaEscalada;
+import br.com.smartscale.core.SituacaoPessoa;
+import br.com.smartscale.core.TipoTurno;
 import br.com.milscale.milscale.adapters.persistence.*;
 import br.com.milscale.milscale.domain.*;
 import org.springframework.stereotype.Service;

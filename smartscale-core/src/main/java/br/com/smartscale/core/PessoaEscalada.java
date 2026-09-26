@@ -1,4 +1,4 @@
-package br.com.milscale.core.domain;
+package br.com.smartscale.core;
 
 /**
  * ===================== NUCLEO REUTILIZAVEL (LPS) =====================
@@ -34,7 +34,7 @@ public interface PessoaEscalada {
      * Em outro produto da linha poderia ser "carga horaria acumulada"
      * (quanto menor, mais prioridade) - por isso o criterio de comparacao
      * fica a cargo de cada produto, nao desta interface (ver
-     * {@link br.com.milscale.core.domain.CriterioDeOrdenacao}).
+     * {@link CriterioDeOrdenacao}).
      */
     long getContadorRodizio();
 }

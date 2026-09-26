@@ -1,4 +1,4 @@
-package br.com.milscale.core.domain;
+package br.com.smartscale.core;
 
 import java.util.Comparator;
 

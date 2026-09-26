@@ -1,5 +1,5 @@
-# Backend
-backend/target/
+# Maven
+**/target/
 backend/data/
 *.log
 

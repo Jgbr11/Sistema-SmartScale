@@ -12,13 +12,16 @@ Monólito hexagonal (Ports & Adapters), conforme o documento **"SMART
 SCALE - ATIVOS REUTILIZÁVEIS, REQUISITOS E ARQUITETURA v2"**:
 
 ```
-backend/src/main/java/br/com/milscale/
-  core/domain/        ← NÚCLEO REUTILIZÁVEL (Linha de Produto de Software)
+pom.xml                ← agregador Maven (módulos smartscale-core e backend)
+
+smartscale-core/       ← NÚCLEO REUTILIZÁVEL (Linha de Produto de Software)
+  src/main/java/br/com/smartscale/core/     JAR br.com.smartscale:smartscale-core:1.0.0
     PessoaEscalada.java        interface genérica (RF04)
     TipoTurno.java              interface genérica (RF06)
     CriterioDeOrdenacao.java    ponto de variação (RN01)
     MotorDeRodizio.java         algoritmo de fila/rodízio (RN01/RN05/RN06/RN15/RN20)
 
+backend/src/main/java/br/com/milscale/     ← PRODUTO MILSCALE (consome o smartscale-core)
   milscale/domain/     ← ESPECIALIZAÇÃO MILSCALE
     Militar.java                implements PessoaEscalada
     TipoServico.java             implements TipoTurno
@@ -39,7 +42,9 @@ que é um "militar" — ele só enxerga `PessoaEscalada` e `TipoTurno`. Um
 futuro produto da linha (ex.: escala hospitalar) reaproveita esse motor
 inteiro, criando apenas as suas próprias implementações dessas duas
 interfaces e o seu próprio `CriterioDeOrdenacao` — sem tocar em uma linha
-do núcleo.
+do núcleo. Por isso o núcleo é um módulo Maven separado, sem dependência de
+Spring nem de JPA: ele é empacotado e versionado como um JAR próprio
+(`smartscale-core`), e o MilScale o consome como qualquer outra dependência.
 
 Toda essa separação está comentada diretamente no código-fonte, marcando
 com `NÚCLEO REUTILIZÁVEL (LPS)` o que é genérico e `Especialização
@@ -56,9 +61,13 @@ Requer Java 21 ou mais novo e Maven. (Com JDK 23+ o `pom.xml` já habilita
 o processamento de anotações que o Lombok precisa.)
 
 ```bash
-cd backend
-mvn spring-boot:run
+mvn install                        # na raiz: compila, testa e instala o smartscale-core, depois o backend
+cd backend && mvn spring-boot:run
 ```
+
+O `mvn install` na raiz só é necessário na primeira vez e quando o
+`smartscale-core` mudar; depois disso o backend roda sozinho de dentro de
+`backend/`.
 
 Sobe em `http://localhost:8080`. Usa H2 em modo de compatibilidade MySQL,
 gravado em `backend/data/` — não precisa de Docker nem MySQL instalado.
@@ -120,6 +129,7 @@ Pra recomeçar do zero: `docker compose down -v`.
 ## Testes
 
 ```bash
+mvn test                    # na raiz: núcleo (motor de rodízio) e backend
 cd backend && mvn test      # JUnit: regras de escala, trocas, validação, erros, segurança
 cd frontend && npm test     # Vitest: formatadores, máscaras, ordenação
 ```

@@ -1,6 +1,6 @@
 package br.com.milscale.milscale.application;
 
-import br.com.milscale.core.domain.SituacaoPessoa;
+import br.com.smartscale.core.SituacaoPessoa;
 import br.com.milscale.milscale.adapters.persistence.AfastamentoRepository;
 import br.com.milscale.milscale.adapters.persistence.MilitarRepository;
 import br.com.milscale.milscale.adapters.persistence.RequisitoServicoRepository;

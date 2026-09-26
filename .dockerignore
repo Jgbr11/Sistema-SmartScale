@@ -1,0 +1,7 @@
+frontend
+.git
+docs
+**/target
+**/data
+**/*.log
+.env

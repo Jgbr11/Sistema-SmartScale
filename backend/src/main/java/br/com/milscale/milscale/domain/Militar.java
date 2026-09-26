@@ -1,7 +1,7 @@
 package br.com.milscale.milscale.domain;
 
-import br.com.milscale.core.domain.PessoaEscalada;
-import br.com.milscale.core.domain.SituacaoPessoa;
+import br.com.smartscale.core.PessoaEscalada;
+import br.com.smartscale.core.SituacaoPessoa;
 import jakarta.persistence.*;
 import lombok.*;
 

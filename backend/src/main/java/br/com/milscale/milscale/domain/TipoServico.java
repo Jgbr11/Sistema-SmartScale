@@ -1,6 +1,6 @@
 package br.com.milscale.milscale.domain;
 
-import br.com.milscale.core.domain.TipoTurno;
+import br.com.smartscale.core.TipoTurno;
 import jakarta.persistence.*;
 import lombok.*;
 
