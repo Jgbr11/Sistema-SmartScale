@@ -24,51 +24,56 @@
 
 - **Quem commita é o usuário, tarefa a tarefa.** Checkpoint ao fim de cada tarefa. Criar tag (`v1.0.0`) e publicar o JAR são ações do usuário.
 - **Branch:** `entrega/componentes-reuso`, a partir da `main`. A criação depende do ok do usuário.
-- **Regra da disciplina sobre IA:** o código passa por **prova de autoria**. Por isso a Task 6 produz `docs/PADROES_DE_PROJETO.md`, que explica cada padrão, onde está e por que foi escolhido, para a equipe estudar antes da apresentação. A equipe deve declarar o uso de IA no padrão PUCPR (Resolução 274/2024 CONSUN).
-- **Comentários:** regra do Plano 3, só delimitadores de seção e as marcações LPS de uma linha. A explicação dos padrões fica no documento da Task 6, não no código.
+- **Regra da disciplina sobre IA:** o código passa por **prova de autoria**. Por isso a Task 7 produz `docs/PADROES_DE_PROJETO.md`, que explica cada padrão, onde está e por que foi escolhido, para a equipe estudar antes da apresentação. A equipe deve declarar o uso de IA no padrão PUCPR (Resolução 274/2024 CONSUN).
+- **Comentários:** regra do Plano 3, só delimitadores de seção e as marcações LPS de uma linha. A explicação dos padrões fica no documento da Task 7, não no código.
 - **Verificação:** `mvn -q install` na raiz verde, e `cd frontend && npm test && npm run build` verde.
 - **JDK:** o `JAVA_HOME` da máquina é o JDK 11. Rodar o Maven com `export JAVA_HOME="/c/Program Files/Java/jdk-23"`.
 - **Ordem entre planos:**
   - **Independente dos Planos 2–4:** este plano pode ser feito antes deles se o prazo da disciplina apertar. As tarefas não dependem deles, e onde um plano anterior muda uma assinatura, a tarefa avisa.
-  - **Plano 3 depois deste:** o Plano 3, Task 5 (ArchUnit), passa a usar o pacote `br.com.smartscale.core` no lugar de `br.com.milscale.core`.
+  - **Planos 2 e 3 depois deste:** os dois já foram ajustados para o pacote `br.com.smartscale.core` (em 2026-09-26). O Plano 3, Task 5 (ArchUnit), não tem mais a regra do núcleo, porque o isolamento agora é garantido pelo próprio módulo Maven.
 
 ## Registro de execução
 
 | Ordem | Task | Status | Commit | Resumo |
 |---|---|---|---|---|
-| 1 | 0 — Preparação e confirmações com a equipe | ⬜ Pendente | — | — |
-| 2 | 1 — Módulo `smartscale-core` (empacotamento) | ⬜ Pendente | — | — |
+| 1 | 0 — Preparação e confirmações com a equipe | ✅ Concluída | — (sem código) | 4 integrantes; Opção 01; Plano 5 antes dos Planos 2–4; branch `entrega/componentes-reuso`; linha de base verde (backend 51, frontend 9, build ok) |
+| 2 | 1 — Módulo `smartscale-core` (empacotamento) | 🟡 Aguardando commit | — | Núcleo movido para `smartscale-core` (`br.com.smartscale.core`), POM agregador na raiz, JAR 1.0.0 + sources instalado; core 4 testes, backend 51 verdes; Docker com contexto na raiz |
 | 3 | 2 — Strategy ×3: critérios de ordenação da fila | ⬜ Pendente | — | — |
 | 4 | 3 — Singleton ×2 e variabilidade por configuração | ⬜ Pendente | — | — |
 | 5 | 4 — Template Method ×3: relatórios CSV | ⬜ Pendente | — | — |
 | 6 | 5 — CRUDs completos | ⬜ Pendente | — | — |
-| 7 | 6 — Documentação de padrões e variabilidade | ⬜ Pendente | — | — |
-| 8 | 7 — Release 1.0.0 e roteiro da gravação | ⬜ Pendente | — | — |
+| 7 | 6 — CRUD de Postos e graduações e de Subunidades | ⬜ Pendente | — | — |
+| 8 | 7 — Documentação de padrões e variabilidade | ⬜ Pendente | — | — |
+| 9 | 8 — Release 1.0.0 e roteiro da gravação | ⬜ Pendente | — | — |
 
 ## Como o plano cobre o PDF
 
 | Exigência do PDF | Onde |
 |---|---|
-| ≥ 10 classes principais com métodos e atributos | Já atende: 24 classes de domínio e mais os services. Listadas em `docs/PADROES_DE_PROJETO.md` (Task 6) |
+| ≥ 10 classes principais com métodos e atributos | Já atende: 24 classes de domínio e mais os services. Listadas em `docs/PADROES_DE_PROJETO.md` (Task 7) |
 | Singleton, 2 exemplos | Task 3: `CatalogoDeCriterios` (clássico, *holder* preguiçoso) e `IdentidadeDaOrganizacao` (enum) |
 | Template Method, 3 exemplos | Task 4: `RelatorioCsv` com `RelatorioEscalaDoDia`, `RelatorioServicosDoMilitar` e `RelatorioAfastamentosDoMes` |
 | Mais um padrão, 3 exemplos | Task 2: Strategy com `CriterioOrdenacaoMilitar` (maior folga), `CriterioMenorCargaNaGeracao` e `CriterioMaisModernoPrimeiro` |
-| 2 telas CRUD por integrante | Task 5: 6 telas com CRUD completo (Militares, Tipos de serviço, Boletim, Qualificações, Feriados e Missões e dispensas), o que cobre até 3 integrantes |
+| 2 telas CRUD por integrante (4 integrantes = 8 telas) | Tasks 5 e 6: 8 telas com CRUD completo. A Task 5 completa Militares, Tipos de serviço, Boletim, Qualificações, Feriados e Missões e dispensas. A Task 6 cria Postos e graduações e Subunidades |
 | ≥ 3 tabelas | Já atende: 19 tabelas versionadas pelo Flyway |
-| Exemplo de variabilidade | Task 3: `milscale.lps.criterio-ordenacao`. Task 6: modelo de features em `docs/VARIABILIDADE.md` |
+| Exemplo de variabilidade | Task 3: `milscale.lps.criterio-ordenacao`. Task 7: modelo de features em `docs/VARIABILIDADE.md` |
 | Repositório e empacotamento focado em reuso | Task 1: `smartscale-core` 1.0.0, um JAR com README, LICENSE e CHANGELOG, instalado via `mvn install` e consumido como dependência |
-| Gravação do passo a passo | Task 7: `docs/ROTEIRO_GRAVACAO.md`. A gravação em si é feita pela equipe |
+| Gravação do passo a passo | Task 8: `docs/ROTEIRO_GRAVACAO.md`. A gravação em si é feita pela equipe |
 
 ---
 
 ### Task 0: Preparação e confirmações com a equipe
 
-- [ ] **Step 1: Confirmar com o usuário** (e ajustar este plano antes de seguir):
-  - **Opção 01 ou 02 do PDF.** Este plano assume a Opção 01. Com a Opção 02, a Task 3 deixa de exigir 2 Singletons e a Task 2 fica com 2 exemplos em vez de 3; a Task 4 continua.
-  - **Número de integrantes.** 6 telas CRUD cobrem até 3. Com 4 integrantes, acrescentar 2 telas na Task 5; as candidatas são Regras da escala (criar e excluir) e Perfis e permissões (criar conta avulsa).
-  - **Prazo de entrega**, para decidir se este plano vem antes dos Planos 2–4.
-- [ ] **Step 2:** com o ok do usuário, `git checkout -b entrega/componentes-reuso` a partir da `main`.
-- [ ] **Step 3:** linha de base: `cd backend && mvn -q test` e `cd frontend && npm test && npm run build`.
+- [x] **Step 1: Decisões** (confirmadas em 2026-09-26):
+  - **Equipe de 4 integrantes** → 8 telas CRUD. A Task 6 acrescenta Postos e graduações e Subunidades às 6 da Task 5. Essas duas são as mais coerentes com a LPS: são exatamente os cadastros que mudam de uma organização para outra.
+  - **Opção 01 do PDF** (Singleton ×2, Template Method ×3 e Strategy ×3), escolhida por ser a mais viável:
+    - **o Strategy já existe no núcleo** (`CriterioDeOrdenacao`), então só faltam 2 critérios novos. Ele também cobre sozinho o item "exemplo de variabilidade";
+    - **Singleton e Template Method são nomeados pelo professor**, o que elimina a dúvida de interpretação da Opção 02 ("3 *outros* padrões");
+    - **os dois se encaixam sem forçar a arquitetura:** o Singleton é o catálogo de critérios e a identidade da OM; o Template Method são os relatórios CSV, que também entregam uma funcionalidade útil;
+    - **a Opção 02 pede 6 exemplos contra 8, mas em 3 padrões novos.** Seria preciso inventar 2 padrões sem uso natural no sistema, o que pesa na prova de autoria.
+  - **Este plano vem antes dos Planos 2–4**, por causa do prazo da disciplina.
+- [x] **Step 2:** com o ok do usuário, `git checkout -b entrega/componentes-reuso` a partir da `main`.
+- [x] **Step 3:** linha de base: `cd backend && mvn -q test` e `cd frontend && npm test && npm run build`.
 
 ---
 
@@ -92,7 +97,7 @@
 **Interfaces:**
 - Produces: artefato `br.com.smartscale:smartscale-core:1.0.0` com o pacote `br.com.smartscale.core` (`PessoaEscalada`, `TipoTurno`, `CriterioDeOrdenacao`, `MotorDeRodizio`, `SituacaoPessoa`).
 
-- [ ] **Step 1: POM do núcleo** — `smartscale-core/pom.xml`
+- [x] **Step 1: POM do núcleo** — `smartscale-core/pom.xml`
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0"
@@ -172,7 +177,7 @@
 ```
 O núcleo **não depende de nada** além do Java, nem de Spring nem de JPA, e é isso que o torna reutilizável por qualquer produto da linha.
 
-- [ ] **Step 2: Agregador** — `pom.xml` na raiz
+- [x] **Step 2: Agregador** — `pom.xml` na raiz
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0"
@@ -192,7 +197,7 @@ O núcleo **não depende de nada** além do Java, nem de Spring nem de JPA, e é
 </project>
 ```
 
-- [ ] **Step 3: Mover o núcleo e renomear o pacote**
+- [x] **Step 3: Mover o núcleo e renomear o pacote**
 ```bash
 cd /c/TRABALHOS/SMARTSCALE/Sistema-SmartScale
 mkdir -p smartscale-core/src/main/java/br/com/smartscale/core smartscale-core/src/test/java/br/com/smartscale/core
@@ -203,7 +208,7 @@ grep -rn 'milscale\.core' backend/src smartscale-core/src
 ```
 Expected: o último `grep` sai vazio. Em `MilScaleApplication`: `scanBasePackages = "br.com.milscale"` continua (o núcleo não tem beans do Spring).
 
-- [ ] **Step 4: O backend consome o JAR** — em `backend/pom.xml`, em `<dependencies>`:
+- [x] **Step 4: O backend consome o JAR** — em `backend/pom.xml`, em `<dependencies>`:
 ```xml
     <dependency>
       <groupId>br.com.smartscale</groupId>
@@ -212,7 +217,7 @@ Expected: o último `grep` sai vazio. Em `MilScaleApplication`: `scanBasePackage
     </dependency>
 ```
 
-- [ ] **Step 5: O núcleo ganha testes próprios** — `smartscale-core/src/test/java/br/com/smartscale/core/MotorDeRodizioTest.java`
+- [x] **Step 5: O núcleo ganha testes próprios** — `smartscale-core/src/test/java/br/com/smartscale/core/MotorDeRodizioTest.java`
 ```java
 package br.com.smartscale.core;
 
@@ -267,7 +272,7 @@ class MotorDeRodizioTest {
 ```
 O último teste é a prova de reuso: um "produto hospitalar" com critério de menor carga usa o mesmo motor, sem alterar uma linha dele.
 
-- [ ] **Step 6: Docker com o módulo**
+- [x] **Step 6: Docker com o módulo**
   - **Contexto de build:** o build do backend passa a precisar do núcleo. Por isso o contexto vira a raiz do repositório.
   - **`docker-compose.yml`, serviço `backend`:**
 ```yaml
@@ -303,18 +308,33 @@ backend/data
 docs
 ```
 
-- [ ] **Step 7: Rodar o build inteiro** — na raiz, `mvn -q install`.
+- [x] **Step 7: Rodar o build inteiro** — na raiz, `mvn -q install`.
   Expected: 
   - `smartscale-core` compila, passa nos 3 testes e é instalado em `~/.m2/repository/br/com/smartscale/smartscale-core/1.0.0/`;
   - o backend compila e passa em todos os testes.
 
   Depois: `cd backend && mvn -q test` também funciona sozinho, porque encontra o JAR instalado.
-- [ ] **Step 8: `README.md`**, seção "Arquitetura": atualizar a árvore com o `smartscale-core/` na raiz e acrescentar o bloco "Como rodar → Backend":
+- [x] **Step 8: `README.md`**, seção "Arquitetura": atualizar a árvore com o `smartscale-core/` na raiz e acrescentar o bloco "Como rodar → Backend":
 ```bash
 mvn install              # na raiz: compila e instala o smartscale-core, depois o backend
 cd backend && mvn spring-boot:run
 ```
-- [ ] **Step 9: Checkpoint** — diff, sugerir `build: nucleo da linha de produto como modulo smartscale-core 1.0.0` e aguardar o usuário commitar.
+- [x] **Step 9: Checkpoint** — diff, sugerir `build: nucleo da linha de produto como modulo smartscale-core 1.0.0` e aguardar o usuário commitar.
+
+**Notas de execução (2026-09-26):**
+- **Steps 1–8 feitos.** Diferenças em relação ao texto acima:
+  - `maven-jar-plugin` 3.4.2, a mesma versão do Spring Boot 3.3.4, e `maven-compiler-plugin` 3.13.0 fixado no POM do núcleo;
+  - um 4º teste no núcleo (`filtroExtra_eAplicadoAntesDeOrdenar`), que cobre a sobrecarga de `preencherVagas` com `Predicate`;
+  - no Dockerfile, `dependency:go-offline` recebe `-DexcludeGroupIds=br.com.smartscale`. Sem isso, o passo de cache tentaria baixar o núcleo de um repositório remoto antes de ele ser compilado;
+  - o `backend/.dockerignore` foi apagado e substituído pelo `.dockerignore` da raiz, que é onde o contexto do build está agora;
+  - o `.gitignore` passou a ignorar `**/target/`.
+- **Verificação:**
+  - `mvn install` na raiz: núcleo 4/4 e backend 51/51;
+  - o JAR tem só as 5 classes e o `MANIFEST.MF` com `Implementation-Version: 1.0.0` e `Automatic-Module-Name`;
+  - o backend compila sozinho (`cd backend && mvn -o compile`);
+  - o JAR executável traz `BOOT-INF/lib/smartscale-core-1.0.0.jar`.
+- **Build da imagem:** o Docker Desktop estava parado, então a imagem não foi construída. Os dois passos do Dockerfile foram simulados localmente, sem o núcleo instalado: `go-offline` e `package` em reactor passaram. Falta rodar `docker compose build backend` com o Docker ligado.
+- **Comentários:** os arquivos do núcleo foram movidos sem mexer nos comentários. A limpeza continua no Plano 3, Task 2, que já aponta para o novo caminho.
 
 ---
 
@@ -490,7 +510,7 @@ public class CriterioMaisModernoPrimeiro implements CriterioDeOrdenacao<MilitarE
   - `application/GerarEscalaService.java` (recebe o critério por injeção)
   - `LembreteServicoService` (Plano 3, Task 6) ou `LembreteServicoScheduler` (texto do e-mail)
   - `adapters/config/SecurityConfig.java` (liberar `/api/organizacao`)
-  - `application.properties`, `smartscale-core/CHANGELOG.md` (criado na Task 7)
+  - `application.properties`
   - frontend: `pages/Login.tsx`, `pages/EscalaPdf.tsx`
 - Test:
   - `smartscale-core/src/test/java/br/com/smartscale/core/CatalogoDeCriteriosTest.java`
@@ -1156,7 +1176,472 @@ class CrudsCompletosIntegrationTest {
 
 ---
 
-### Task 6: Documentação de padrões e variabilidade (para a apresentação e a prova de autoria)
+### Task 6: CRUD de Postos e graduações e de Subunidades (telas 7 e 8)
+
+Hoje os dois cadastros só têm `GET`, no `CadastroApoioController`, que devolve `Object`. Eles são o **ponto de adaptação** da LPS: um produto hospitalar teria "cargos" e "setores" no lugar deles. Com esta task, o sistema passa a ter as 8 telas CRUD que os 4 integrantes precisam.
+
+**Files:**
+- Create:
+  - `application/PostoGraduacaoService.java`, `application/SubunidadeService.java`
+  - `adapters/web/PostoGraduacaoController.java`, `adapters/web/SubunidadeController.java`
+  - `application/DadosPostoGraduacao.java`, `application/DadosSubunidade.java` (no pacote `application`, como os `Dados*` do Plano 2, Task 12, para respeitar a regra ArchUnit do Plano 3)
+  - `frontend/src/pages/PostosGraduacao.tsx`, `frontend/src/pages/Subunidades.tsx`
+- Delete: `adapters/web/CadastroApoioController.java`. Os `GET` passam para os controllers novos, com as mesmas URLs.
+- Modify:
+  - `MilitarRepository`, `RequisitoServicoRepository`, `EscalaRepository`, `PostoGraduacaoRepository`, `SubunidadeRepository`
+  - `frontend/src/App.tsx`, `frontend/src/components/Shell.tsx`
+  - combo de subunidade no cadastro de militar
+  - **Plano 3, Task 4:** deixa de criar o `CadastroApoioService`, porque esta task já resolve o `Object` e o acesso direto ao repositório.
+- Test: `backend/src/test/java/br/com/milscale/milscale/application/CadastrosDeOrganizacaoIntegrationTest.java`
+
+**Interfaces:**
+- **Consultas:** `GET /api/postos-graduacao` (ordenado por `nivelHierarquico`) e `GET /api/subunidades` (ordenado por `sigla`). As URLs não mudam, e continuam abertas a qualquer usuário logado.
+- **Escrita, só Sargenteante:**
+  - `POST /api/postos-graduacao`, `PUT /api/postos-graduacao/{id}` e `DELETE /api/postos-graduacao/{id}`: o `DELETE` recusa com 400 se o posto estiver em uso;
+  - `POST /api/subunidades`, `PUT /api/subunidades/{id}` e `DELETE /api/subunidades/{id}`: o `DELETE` remove se a subunidade não estiver em uso e, se estiver, só desativa. A resposta é `{ "desativada": boolean }`.
+- **Validação:** a sigla é única nos dois cadastros, e o nível hierárquico é único nos postos. Repetir um deles dá 400 com mensagem clara.
+
+- [ ] **Step 1: Testes (falham)**
+```java
+package br.com.milscale.milscale.application;
+
+import br.com.milscale.milscale.adapters.persistence.PostoGraduacaoRepository;
+import br.com.milscale.milscale.adapters.persistence.SubunidadeRepository;
+import br.com.milscale.milscale.domain.PostoGraduacao;
+import br.com.milscale.milscale.domain.Subunidade;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.transaction.annotation.Transactional;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+
+@SpringBootTest
+@ActiveProfiles("test")
+@Transactional
+class CadastrosDeOrganizacaoIntegrationTest {
+
+    @Autowired private PostoGraduacaoService postoService;
+    @Autowired private PostoGraduacaoRepository postoRepository;
+    @Autowired private SubunidadeService subunidadeService;
+    @Autowired private SubunidadeRepository subunidadeRepository;
+
+    private PostoGraduacao cabo() {
+        return postoRepository.findAll().stream().filter(p -> p.getSigla().equals("Cb")).findFirst().orElseThrow();
+    }
+
+    @Test
+    void postos_saoListadosPelaHierarquia() {
+        assertThat(postoService.listar()).extracting(PostoGraduacao::getNivelHierarquico).isSorted();
+    }
+
+    @Test
+    void criarEditarEExcluirPostoSemUso() {
+        PostoGraduacao criado = postoService.cadastrar(new DadosPostoGraduacao("1 Ten", "Primeiro-Tenente", 99));
+        postoService.atualizar(criado.getId(), new DadosPostoGraduacao("1º Ten", "Primeiro-Tenente", 99));
+        assertThat(postoRepository.findById(criado.getId()).orElseThrow().getSigla()).isEqualTo("1º Ten");
+
+        postoService.excluir(criado.getId());
+        assertThat(postoRepository.findById(criado.getId())).isEmpty();
+    }
+
+    @Test
+    void postoComSiglaOuNivelRepetido_recusa() {
+        assertThatThrownBy(() -> postoService.cadastrar(new DadosPostoGraduacao("Cb", "Outro", 98)))
+                .isInstanceOf(IllegalArgumentException.class).hasMessageContaining("sigla");
+        assertThatThrownBy(() -> postoService.cadastrar(new DadosPostoGraduacao("Xx", "Outro", cabo().getNivelHierarquico())))
+                .isInstanceOf(IllegalArgumentException.class).hasMessageContaining("nível");
+    }
+
+    @Test
+    void editarPostoMantendoAPropriaSigla_aceita() {
+        PostoGraduacao cb = cabo();
+        postoService.atualizar(cb.getId(), new DadosPostoGraduacao("Cb", "Cabo (editado)", cb.getNivelHierarquico()));
+        assertThat(postoRepository.findById(cb.getId()).orElseThrow().getDescricao()).isEqualTo("Cabo (editado)");
+    }
+
+    @Test
+    void excluirPostoEmUso_recusa() {
+        assertThatThrownBy(() -> postoService.excluir(cabo().getId()))
+                .isInstanceOf(IllegalArgumentException.class).hasMessageContaining("em uso");
+    }
+
+    @Test
+    void excluirSubunidadeSemUso_remove() {
+        Subunidade criada = subunidadeService.cadastrar(new DadosSubunidade("4ª Cia", "Quarta Companhia", true));
+        assertThat(subunidadeService.excluir(criada.getId())).isFalse();
+        assertThat(subunidadeRepository.findById(criada.getId())).isEmpty();
+    }
+
+    @Test
+    void excluirSubunidadeEmUso_soDesativa() {
+        Subunidade emUso = subunidadeService.listar().get(0);
+        assertThat(subunidadeService.excluir(emUso.getId())).isTrue();
+        assertThat(subunidadeRepository.findById(emUso.getId()).orElseThrow().isAtivo()).isFalse();
+    }
+}
+```
+A premissa do último teste é que a primeira subunidade do seed, em ordem de sigla, tem militares, o que vale para o seed atual. Rodar → falha de compilação.
+
+- [ ] **Step 2: DTOs**
+```java
+package br.com.milscale.milscale.application;
+
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
+
+public record DadosPostoGraduacao(
+        @NotBlank @Size(max = 10) String sigla,
+        @NotBlank @Size(max = 60) String descricao,
+        @NotNull @Min(1) @Max(99) Integer nivelHierarquico) {
+}
+```
+```java
+package br.com.milscale.milscale.application;
+
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
+
+public record DadosSubunidade(
+        @NotBlank @Size(max = 20) String sigla,
+        @NotBlank @Size(max = 80) String nome,
+        boolean ativo) {
+}
+```
+
+- [ ] **Step 3: Consultas nos repositórios**
+```java
+// PostoGraduacaoRepository
+List<PostoGraduacao> findAllByOrderByNivelHierarquicoAsc();
+boolean existsBySiglaIgnoreCaseAndIdNot(String sigla, Long id);
+boolean existsByNivelHierarquicoAndIdNot(Integer nivelHierarquico, Long id);
+
+// SubunidadeRepository
+List<Subunidade> findAllByOrderBySiglaAsc();
+boolean existsBySiglaIgnoreCaseAndIdNot(String sigla, Long id);
+
+// MilitarRepository
+boolean existsByPosto_Id(Long postoId);
+boolean existsBySubunidade_Id(Long subunidadeId);
+
+// RequisitoServicoRepository
+boolean existsByPosto_Id(Long postoId);
+boolean existsBySubunidade_IdOrSubunidadeExcluida_Id(Long subunidadeId, Long mesmaSubunidadeId);
+
+// EscalaRepository
+boolean existsBySubunidade_Id(Long subunidadeId);
+```
+No cadastro, o `id` ainda não existe. Por isso a checagem de duplicidade passa `-1L` como `id`.
+
+- [ ] **Step 4: Services**
+```java
+package br.com.milscale.milscale.application;
+
+import br.com.milscale.milscale.adapters.persistence.MilitarRepository;
+import br.com.milscale.milscale.adapters.persistence.PostoGraduacaoRepository;
+import br.com.milscale.milscale.adapters.persistence.RequisitoServicoRepository;
+import br.com.milscale.milscale.domain.PostoGraduacao;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+import java.util.NoSuchElementException;
+
+@Service
+public class PostoGraduacaoService {
+
+    private static final Long SEM_ID = -1L;
+
+    private final PostoGraduacaoRepository postoRepository;
+    private final MilitarRepository militarRepository;
+    private final RequisitoServicoRepository requisitoRepository;
+
+    public PostoGraduacaoService(PostoGraduacaoRepository postoRepository, MilitarRepository militarRepository,
+                                 RequisitoServicoRepository requisitoRepository) {
+        this.postoRepository = postoRepository;
+        this.militarRepository = militarRepository;
+        this.requisitoRepository = requisitoRepository;
+    }
+
+    public List<PostoGraduacao> listar() {
+        return postoRepository.findAllByOrderByNivelHierarquicoAsc();
+    }
+
+    @Transactional
+    public PostoGraduacao cadastrar(DadosPostoGraduacao dados) {
+        validarUnicidade(dados, SEM_ID);
+        PostoGraduacao novo = new PostoGraduacao();
+        aplicar(novo, dados);
+        return postoRepository.save(novo);
+    }
+
+    @Transactional
+    public PostoGraduacao atualizar(Long id, DadosPostoGraduacao dados) {
+        PostoGraduacao existente = buscar(id);
+        validarUnicidade(dados, id);
+        aplicar(existente, dados);
+        return postoRepository.save(existente);
+    }
+
+    @Transactional
+    public void excluir(Long id) {
+        PostoGraduacao posto = buscar(id);
+        if (militarRepository.existsByPosto_Id(id) || requisitoRepository.existsByPosto_Id(id)) {
+            throw new IllegalArgumentException("Esse posto está em uso por militares ou por requisitos de serviço");
+        }
+        postoRepository.delete(posto);
+    }
+
+    private PostoGraduacao buscar(Long id) {
+        return postoRepository.findById(id).orElseThrow(() -> new NoSuchElementException("Posto/graduação não encontrado"));
+    }
+
+    private void validarUnicidade(DadosPostoGraduacao dados, Long id) {
+        if (postoRepository.existsBySiglaIgnoreCaseAndIdNot(dados.sigla().trim(), id)) {
+            throw new IllegalArgumentException("Já existe um posto com essa sigla");
+        }
+        if (postoRepository.existsByNivelHierarquicoAndIdNot(dados.nivelHierarquico(), id)) {
+            throw new IllegalArgumentException("Já existe um posto com esse nível hierárquico");
+        }
+    }
+
+    private void aplicar(PostoGraduacao posto, DadosPostoGraduacao dados) {
+        posto.setSigla(dados.sigla().trim());
+        posto.setDescricao(dados.descricao().trim());
+        posto.setNivelHierarquico(dados.nivelHierarquico());
+    }
+}
+```
+```java
+package br.com.milscale.milscale.application;
+
+import br.com.milscale.milscale.adapters.persistence.EscalaRepository;
+import br.com.milscale.milscale.adapters.persistence.MilitarRepository;
+import br.com.milscale.milscale.adapters.persistence.RequisitoServicoRepository;
+import br.com.milscale.milscale.adapters.persistence.SubunidadeRepository;
+import br.com.milscale.milscale.domain.Subunidade;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+import java.util.NoSuchElementException;
+
+@Service
+public class SubunidadeService {
+
+    private static final Long SEM_ID = -1L;
+
+    private final SubunidadeRepository subunidadeRepository;
+    private final MilitarRepository militarRepository;
+    private final RequisitoServicoRepository requisitoRepository;
+    private final EscalaRepository escalaRepository;
+
+    public SubunidadeService(SubunidadeRepository subunidadeRepository, MilitarRepository militarRepository,
+                             RequisitoServicoRepository requisitoRepository, EscalaRepository escalaRepository) {
+        this.subunidadeRepository = subunidadeRepository;
+        this.militarRepository = militarRepository;
+        this.requisitoRepository = requisitoRepository;
+        this.escalaRepository = escalaRepository;
+    }
+
+    public List<Subunidade> listar() {
+        return subunidadeRepository.findAllByOrderBySiglaAsc();
+    }
+
+    @Transactional
+    public Subunidade cadastrar(DadosSubunidade dados) {
+        validarUnicidade(dados, SEM_ID);
+        Subunidade nova = new Subunidade();
+        aplicar(nova, dados);
+        return subunidadeRepository.save(nova);
+    }
+
+    @Transactional
+    public Subunidade atualizar(Long id, DadosSubunidade dados) {
+        Subunidade existente = buscar(id);
+        validarUnicidade(dados, id);
+        aplicar(existente, dados);
+        return subunidadeRepository.save(existente);
+    }
+
+    @Transactional
+    public boolean excluir(Long id) {
+        Subunidade subunidade = buscar(id);
+        if (emUso(id)) {
+            subunidade.setAtivo(false);
+            subunidadeRepository.save(subunidade);
+            return true;
+        }
+        subunidadeRepository.delete(subunidade);
+        return false;
+    }
+
+    private boolean emUso(Long id) {
+        return militarRepository.existsBySubunidade_Id(id)
+                || requisitoRepository.existsBySubunidade_IdOrSubunidadeExcluida_Id(id, id)
+                || escalaRepository.existsBySubunidade_Id(id);
+    }
+
+    private Subunidade buscar(Long id) {
+        return subunidadeRepository.findById(id).orElseThrow(() -> new NoSuchElementException("Subunidade não encontrada"));
+    }
+
+    private void validarUnicidade(DadosSubunidade dados, Long id) {
+        if (subunidadeRepository.existsBySiglaIgnoreCaseAndIdNot(dados.sigla().trim(), id)) {
+            throw new IllegalArgumentException("Já existe uma subunidade com essa sigla");
+        }
+    }
+
+    private void aplicar(Subunidade subunidade, DadosSubunidade dados) {
+        subunidade.setSigla(dados.sigla().trim());
+        subunidade.setNome(dados.nome().trim());
+        subunidade.setAtivo(dados.ativo());
+    }
+}
+```
+`excluir` devolve `true` quando só desativou. O controller usa isso para dizer na tela o que aconteceu.
+
+- [ ] **Step 5: Controllers** (substituem o `CadastroApoioController`; a escrita fica registrada na auditoria)
+```java
+package br.com.milscale.milscale.adapters.web;
+
+import br.com.milscale.milscale.application.AuditoriaService;
+import br.com.milscale.milscale.application.DadosPostoGraduacao;
+import br.com.milscale.milscale.application.PostoGraduacaoService;
+import br.com.milscale.milscale.domain.PostoGraduacao;
+import jakarta.validation.Valid;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+
+@RestController
+@RequestMapping("/api/postos-graduacao")
+public class PostoGraduacaoController {
+
+    private final PostoGraduacaoService postoService;
+    private final AuditoriaService auditoriaService;
+
+    public PostoGraduacaoController(PostoGraduacaoService postoService, AuditoriaService auditoriaService) {
+        this.postoService = postoService;
+        this.auditoriaService = auditoriaService;
+    }
+
+    @GetMapping
+    public List<PostoGraduacao> listar() {
+        return postoService.listar();
+    }
+
+    @PreAuthorize("hasRole('SARGENTEANTE')")
+    @PostMapping
+    public PostoGraduacao cadastrar(@Valid @RequestBody DadosPostoGraduacao dados, Authentication auth) {
+        PostoGraduacao salvo = postoService.cadastrar(dados);
+        auditoriaService.registrar(auth.getName(), "POSTO_CADASTRADO", salvo.getSigla() + " (id " + salvo.getId() + ")");
+        return salvo;
+    }
+
+    @PreAuthorize("hasRole('SARGENTEANTE')")
+    @PutMapping("/{id}")
+    public PostoGraduacao atualizar(@PathVariable Long id, @Valid @RequestBody DadosPostoGraduacao dados, Authentication auth) {
+        PostoGraduacao salvo = postoService.atualizar(id, dados);
+        auditoriaService.registrar(auth.getName(), "POSTO_EDITADO", salvo.getSigla() + " (id " + id + ")");
+        return salvo;
+    }
+
+    @PreAuthorize("hasRole('SARGENTEANTE')")
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> excluir(@PathVariable Long id, Authentication auth) {
+        postoService.excluir(id);
+        auditoriaService.registrar(auth.getName(), "POSTO_EXCLUIDO", "id " + id);
+        return ResponseEntity.noContent().build();
+    }
+}
+```
+```java
+package br.com.milscale.milscale.adapters.web;
+
+import br.com.milscale.milscale.application.AuditoriaService;
+import br.com.milscale.milscale.application.DadosSubunidade;
+import br.com.milscale.milscale.application.SubunidadeService;
+import br.com.milscale.milscale.domain.Subunidade;
+import jakarta.validation.Valid;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+import java.util.Map;
+
+@RestController
+@RequestMapping("/api/subunidades")
+public class SubunidadeController {
+
+    private final SubunidadeService subunidadeService;
+    private final AuditoriaService auditoriaService;
+
+    public SubunidadeController(SubunidadeService subunidadeService, AuditoriaService auditoriaService) {
+        this.subunidadeService = subunidadeService;
+        this.auditoriaService = auditoriaService;
+    }
+
+    @GetMapping
+    public List<Subunidade> listar() {
+        return subunidadeService.listar();
+    }
+
+    @PreAuthorize("hasRole('SARGENTEANTE')")
+    @PostMapping
+    public Subunidade cadastrar(@Valid @RequestBody DadosSubunidade dados, Authentication auth) {
+        Subunidade salva = subunidadeService.cadastrar(dados);
+        auditoriaService.registrar(auth.getName(), "SUBUNIDADE_CADASTRADA", salva.getSigla() + " (id " + salva.getId() + ")");
+        return salva;
+    }
+
+    @PreAuthorize("hasRole('SARGENTEANTE')")
+    @PutMapping("/{id}")
+    public Subunidade atualizar(@PathVariable Long id, @Valid @RequestBody DadosSubunidade dados, Authentication auth) {
+        Subunidade salva = subunidadeService.atualizar(id, dados);
+        auditoriaService.registrar(auth.getName(), "SUBUNIDADE_EDITADA", salva.getSigla() + " (id " + id + ")");
+        return salva;
+    }
+
+    @PreAuthorize("hasRole('SARGENTEANTE')")
+    @DeleteMapping("/{id}")
+    public Map<String, Boolean> excluir(@PathVariable Long id, Authentication auth) {
+        boolean desativada = subunidadeService.excluir(id);
+        auditoriaService.registrar(auth.getName(), desativada ? "SUBUNIDADE_DESATIVADA" : "SUBUNIDADE_EXCLUIDA", "id " + id);
+        return Map.of("desativada", desativada);
+    }
+}
+```
+Apagar `CadastroApoioController.java`.
+
+- [ ] **Step 6: Telas** — `PostosGraduacao.tsx` e `Subunidades.tsx`, no mesmo formato de `Qualificacoes.tsx`:
+  - **Tabela:**
+    - Postos: Nível, Sigla e Descrição;
+    - Subunidades: Sigla, Nome e Situação ("Ativa"/"Inativa").
+  - **Edição:** feita na própria linha.
+  - **Cadastro:** formulário "Novo posto"/"Nova subunidade" acima da tabela.
+  - **Exclusão:** botão "Excluir", que pede confirmação antes. O erro do backend aparece para a pessoa. Na subunidade, se a resposta vier `{ desativada: true }`, a tela avisa "Subunidade em uso: foi desativada em vez de excluída".
+  - **Perfis:** as ações só aparecem para o Sargenteante (`usuario?.perfil === "SARGENTEANTE"`).
+  - **Rotas e menu:** em `App.tsx`, `/postos-graduacao` e `/subunidades`. Em `Shell.tsx`, no grupo CONFIGURAÇÃO do Sargenteante, `{ label: "Postos e graduações", to: "/postos-graduacao" }` e `{ label: "Subunidades", to: "/subunidades" }`.
+  - **Combos do cadastro de militar:** seguem usando as mesmas URLs de `GET`. O combo de subunidade deve mostrar só as ativas (`filter((s) => s.ativo)`).
+- [ ] **Step 7:** `mvn -q install` → PASS; `npm run build` → PASS. Teste manual, como Sargenteante:
+  - criar, editar e excluir um posto novo;
+  - tentar excluir "Cb" (a tela deve recusar);
+  - excluir uma subunidade em uso (ela deve ser desativada) e conferir que ela sai do combo de militares.
+- [ ] **Step 8: Checkpoint** — diff, sugerir `feat: CRUD de postos e graduacoes e de subunidades` e aguardar o usuário commitar.
+
+---
+
+### Task 7: Documentação de padrões e variabilidade (para a apresentação e a prova de autoria)
 
 **Files:**
 - Create: `docs/PADROES_DE_PROJETO.md`, `docs/VARIABILIDADE.md`
@@ -1224,7 +1709,7 @@ MILSCALE_CRITERIO_ORDENACAO=menor-carga   →   VariabilidadeConfig registra os 
 
 ---
 
-### Task 7: Release 1.0.0 do núcleo e roteiro da gravação
+### Task 8: Release 1.0.0 do núcleo e roteiro da gravação
 
 **Files:**
 - Create: `smartscale-core/README.md`, `smartscale-core/LICENSE`, `smartscale-core/CHANGELOG.md`, `docs/ROTEIRO_GRAVACAO.md`

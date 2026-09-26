@@ -40,7 +40,7 @@
   - **Rascunho:** só a sargenteação (Cabo, Sd EP, Sargenteante) vê escala em RASCUNHO na Escala do mês/dia. "Minha escala", "Meu histórico" e a visão do Militar Escalado mostram só escala PUBLICADA.
   - **Regras:** implementar **máx. serviços/mês** no motor; **esconder** "dias de folga" e os pesos (fim de semana/feriado) da tela; os campos continuam no banco, reservados para um futuro avaliador de justiça.
   - **Flyway:** já adotado no Plano 1. Toda mudança de schema aqui é uma migration nova. Nunca editar uma migration já aplicada. Como as tarefas podem ser feitas fora da ordem numérica, **use o próximo número livre** no momento da execução (`ls backend/src/main/resources/db/migration`). Os nomes `V2`, `V3`… citados nas tarefas partem da ordem recomendada.
-- O pacote `br.com.milscale.core.domain` não pode ser alterado.
+- O pacote `br.com.smartscale.core` não pode ser alterado.
 - Erros continuam no formato `{"erro": "..."}` (`ErroResposta`). Mensagens em português.
 - Ao fim de cada tarefa: `cd backend && mvn test` verde; `cd frontend && npm test && npm run build` verdes.
 - **Senhas nunca aparecem em log de auditoria nem em log de aplicação.**
@@ -532,7 +532,7 @@ Em `Militar.java`, adicionar `import com.fasterxml.jackson.annotation.JsonProper
 ```java
 package br.com.milscale.milscale.adapters.web.dto;
 
-import br.com.milscale.core.domain.SituacaoPessoa;
+import br.com.smartscale.core.SituacaoPessoa;
 import br.com.milscale.milscale.domain.Militar;
 import br.com.milscale.milscale.domain.PostoGraduacao;
 import br.com.milscale.milscale.domain.Qualificacao;

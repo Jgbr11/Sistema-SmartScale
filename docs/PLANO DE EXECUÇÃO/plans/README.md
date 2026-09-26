@@ -6,7 +6,7 @@
 | 2 | [Segurança e regras de negócio](2026-09-24-plano-2-implementacoes-necessarias.md) | Rotas de auth, cookie, mass assignment, força bruta, fuso, trocas, regeneração com histórico, botão de travar só em dias futuros | 0–18 | ⬜ Pendente |
 | 3 | [Qualidade e organização](2026-09-25-plano-3-qualidade-e-organizacao.md) | Limpeza de comentários, rastreabilidade RF/RN, ArchUnit, porta de e-mail, hooks e pastas do front, feedback sem `alert`/`confirm` | 0–11 | ⬜ Pendente |
 | 4 | [Frontend diferenciado](2026-09-25-plano-4-frontend-diferenciado.md) | Identidade visual (tokens, tipografia, ícones), "Fita do serviço", calendário, login, acessibilidade, microcopy | 0–9 | ⬜ Pendente |
-| 5 | [Requisitos da disciplina](2026-09-25-plano-5-requisitos-da-disciplina.md) | Strategy ×3, Singleton ×2, Template Method ×3, CRUDs completos, módulo `smartscale-core` 1.0.0, variabilidade, roteiro de gravação | 0–7 | ⬜ Pendente |
+| 5 | [Requisitos da disciplina](2026-09-25-plano-5-requisitos-da-disciplina.md) | Strategy ×3, Singleton ×2, Template Method ×3, 8 telas CRUD (equipe de 4), módulo `smartscale-core` 1.0.0, variabilidade, roteiro de gravação | 0–8 | 🔄 Em execução (vem primeiro, pelo prazo da disciplina) |
 
 ## Ordem recomendada
 
