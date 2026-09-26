@@ -1,15 +1,31 @@
-# Plano 2 — Implementações Necessárias (MilScale)
+# Plano 2 — Segurança e Regras de Negócio (MilScale)
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Corrigir as falhas de regra de negócio e de segurança encontradas na análise e completar o que o sistema promete mas não faz:
-- escala em rascunho visível para todos;
+**Goal:** Corrigir as falhas de segurança e de regra de negócio encontradas na análise inicial e na revisão completa de código (25/09/2026), e completar o que o sistema promete mas não faz.
+
+*Segurança:*
 - dados pessoais expostos a qualquer usuário logado;
 - XSS no Boletim;
 - senha padrão fixa;
+- rota de troca de senha liberada sem login;
+- cookie de sessão sem `SameSite`;
+- contas de demonstração criadas também em produção;
+- *mass assignment* nos cadastros;
+- CPF vazando pelo `login` do usuário embutido no JSON;
+- login sem limite de tentativas.
+
+*Regras de negócio:*
+- escala em rascunho visível para todos;
 - militar cadastrado pela tela que não consegue logar;
 - regras de escala que o motor ignora;
-- tipos de serviço novos que ninguém consegue tirar.
+- tipos de serviço novos que ninguém consegue tirar;
+- botão "Travar/Destravar este dia" em dias que já passaram;
+- dois pedidos de troca para o mesmo serviço;
+- troca autorizada sem revalidar;
+- regeneração bloqueada para sempre por troca antiga;
+- Escala do mês mostrando só a última escala gerada;
+- fuso horário UTC no container.
 
 **Architecture:** Mesma arquitetura hexagonal. Cada tarefa é uma fatia vertical (backend + frontend + teste) entregável sozinha. **Pré-requisito: o Plano 1 concluído** — este plano usa `UsuarioLogadoService`, `ConsultaEscalaService`, `ContaService`, os enums (`SituacaoEscala`, `SituacaoServico`...), os DTOs em `adapters/web/dto`, `ErroResposta`, `PoliticaDeDescanso`, o `GerarEscalaService` pré-carregado, os formatadores do front (`utils/formatadores.ts`), o Vitest e o Flyway (migrations começam em `V2`).
 
@@ -18,15 +34,54 @@
 ## Global Constraints
 
 - **Quem commita é o usuário, tarefa a tarefa.** Nenhum implementador (humano, agente ou subagente) roda `git commit` / `git push`. Cada tarefa termina num **Checkpoint**: mostrar `git status` + `git diff --stat` + o diff relevante, sugerir a mensagem de commit e **parar** até o usuário confirmar que commitou.
-- Branch de trabalho: `melhoria/implementacoes`, criado a partir de `melhoria/estrutura` depois do Plano 1 commitado (criação só com o ok do usuário).
+- Branch de trabalho: `melhoria/implementacoes`, criado a partir da `main` **depois** que o usuário fizer o merge do Plano 1 (`git checkout main && git merge --ff-only melhoria/estrutura`). A criação do branch também depende do ok do usuário.
+- **Ambiente local:** o `JAVA_HOME` da máquina é o JDK 11. Rodar o Maven com `export JAVA_HOME="/c/Program Files/Java/jdk-23"` só no comando (ver Plano 1, Task 0).
 - Decisões já tomadas com o usuário (não reabrir):
   - **Rascunho:** só a sargenteação (Cabo, Sd EP, Sargenteante) vê escala em RASCUNHO na Escala do mês/dia. "Minha escala", "Meu histórico" e a visão do Militar Escalado mostram só escala PUBLICADA.
   - **Regras:** implementar **máx. serviços/mês** no motor; **esconder** "dias de folga" e os pesos (fim de semana/feriado) da tela; os campos continuam no banco, reservados para um futuro avaliador de justiça.
-  - **Flyway:** já adotado no Plano 1. Toda mudança de schema aqui é uma migration nova (`V2__...`, `V3__...`). Nunca editar o `V1`.
+  - **Flyway:** já adotado no Plano 1. Toda mudança de schema aqui é uma migration nova. Nunca editar uma migration já aplicada. Como as tarefas podem ser feitas fora da ordem numérica, **use o próximo número livre** no momento da execução (`ls backend/src/main/resources/db/migration`). Os nomes `V2`, `V3`… citados nas tarefas partem da ordem recomendada.
 - O pacote `br.com.milscale.core.domain` não pode ser alterado.
 - Erros continuam no formato `{"erro": "..."}` (`ErroResposta`). Mensagens em português.
 - Ao fim de cada tarefa: `cd backend && mvn test` verde; `cd frontend && npm test && npm run build` verdes.
 - **Senhas nunca aparecem em log de auditoria nem em log de aplicação.**
+
+## Registro de execução
+
+Atualizado ao fim de cada tarefa, como no Plano 1. Os detalhes de cada uma ficam na nota **"Execução"** no fim da própria tarefa.
+
+**Ordem recomendada.** Primeiro segurança, depois regras. A coluna "Ordem" é a sequência de execução; o número da Task é só o identificador.
+
+| Ordem | Task | Status | Commit | Testes | Resumo |
+|---|---|---|---|---|---|
+| 1 | 0 — Preparação | ⬜ Pendente | — | — | — |
+| 2 | 10 — Rotas de autenticação e cookie de sessão | ⬜ Pendente | — | — | — |
+| 3 | 13 — Nenhuma conta embutida no JSON | ⬜ Pendente | — | — | — |
+| 4 | 2 — Privacidade + foto sob demanda | ⬜ Pendente | — | — | — |
+| 5 | 3 — Boletim sem XSS | ⬜ Pendente | — | — | — |
+| 6 | 4 — Senha temporária | ⬜ Pendente | — | — | — |
+| 7 | 5 — Conta criada no cadastro | ⬜ Pendente | — | — | — |
+| 8 | 11 — Seed de demonstração só quando habilitado | ⬜ Pendente | — | — | — |
+| 9 | 12 — Cadastros sem *mass assignment* | ⬜ Pendente | — | — | — |
+| 10 | 14 — Limite de tentativas de login | ⬜ Pendente | — | — | — |
+| 11 | 15 — Fuso horário fixo | ⬜ Pendente | — | — | — |
+| 12 | 1 — Rascunho só para a sargenteação | ⬜ Pendente | — | — | — |
+| 13 | 16 — Trocas: sem duplicidade, revalidação, travamento otimista | ⬜ Pendente | — | — | — |
+| 14 | 17 — Regerar período com histórico de trocas | ⬜ Pendente | — | — | — |
+| 15 | 18 — Escala do mês por mês + listagem leve | ⬜ Pendente | — | — | — |
+| 16 | 9 — Sem travar/destravar em dia que já começou | ⬜ Pendente | — | — | — |
+| 17 | 6 — Máx. serviços/mês | ⬜ Pendente | — | — | — |
+| 18 | 7 — Requisitos de elegibilidade (backend) | ⬜ Pendente | — | — | — |
+| 19 | 8 — Tela de elegibilidade (frontend) | ⬜ Pendente | — | — | — |
+
+**Dependências que a ordem acima respeita:**
+- **2 depende de 1 e 13:** a Task 2 usa `PerfisSargenteacao`, criado na Task 1, e parte do JSON já sem `Usuario` (Task 13). Se a Task 2 vier antes da 1, **crie o `PerfisSargenteacao` como primeiro passo da Task 2**, com o código do Step 4 da Task 1.
+- **5 depende de 4:** a Task 5 usa `GeradorDeSenha` e `senhaTemporaria`.
+- **11 depende de 4:** o administrador inicial nasce com senha temporária.
+- **12 depende de 2 e 5:** a Task 12 usa `MilitarDetalheResponse` e o cadastro que já cria conta.
+- **16, 17 e 18 mexem no mesmo fluxo de trocas e escalas:** faça na ordem.
+- **9 depende de 18:** se a Task 18 já tiver sido feita, a Task 9 usa `travar(data)` em vez de `travar(escalaId, data)`.
+- **7 vem depois de 12:** o Step 5 da Task 7 se aplica ao `cadastrar(DadosTipoServico)` e acrescenta só a criação da `RegraEscala`. O teste dela usa `tipoServicoService.cadastrar(new DadosTipoServico("Sentinela Extra", null, 1, null, null))` no lugar de `TipoServico.builder()`.
+- **Test: SeedIntegrationTest (Task 11)** foi separado em `SeedSemDemonstracaoIntegrationTest` e `AdministradorInicialIntegrationTest`.
 
 ---
 
@@ -39,13 +94,16 @@
 - `application/GeradorDeSenha.java` — senha temporária aleatória.
 - `adapters/config/SenhaTemporariaFilter.java` — bloqueia a API até a pessoa trocar a senha temporária.
 - `application/RequisitoServicoService.java`, `application/NovoRequisito.java`, `adapters/web/RequisitoServicoController.java`
-- `resources/db/migration/V2__usuario_senha_temporaria.sql`
+- `resources/db/migration/V2__usuario_senha_temporaria.sql`, `V3__versao_otimista.sql`, `V4__solicitacao_historico.sql`
+- `adapters/config/ProtecaoContraForcaBruta.java`, `adapters/config/RelogioConfig.java`
+- `adapters/config/DadosDeReferenciaSeeder.java`, `adapters/config/DemoSeeder.java`, `adapters/config/AdministradorInicialSeeder.java` (substituem o `DataSeeder`)
+- `application/DadosMilitar.java`, `DadosTipoServico.java`, `DadosQualificacao.java`, `DadosFeriado.java`, `EscalaResumo.java`, `EscalaDoMes.java`; `domain/TipoFeriado.java`
 - Testes (listados em cada tarefa).
 
-**Backend — modificar**: `pom.xml`, `domain/Militar.java`, `domain/Usuario.java`, `domain/TipoServico.java`, `domain/RegraEscala.java`, repositórios `ServicoEscaladoRepository`, services `ConsultaEscalaService`, `MinhaEscalaService`, `MilitarService`, `SolicitacaoService`, `BoletimService`, `UsuarioService`, `ContaService`, `GerarEscalaService`, `RegraEscalaService`, `TipoServicoService`, controllers `EscalaController`, `MilitarController`, `UsuarioController`, `AuthController`, `TipoServicoController`, `RegraEscalaController`, `QualificacaoController`, `SecurityConfig`, testes `TrocaIntervaloIntegrationTest`.
+**Backend — modificar**: `pom.xml`, `domain/Militar.java`, `domain/Usuario.java`, `domain/TipoServico.java`, `domain/RegraEscala.java`, repositórios `ServicoEscaladoRepository`, services `BloqueioDiaService`, `ConsultaEscalaService`, `MinhaEscalaService`, `MilitarService`, `SolicitacaoService`, `BoletimService`, `UsuarioService`, `ContaService`, `GerarEscalaService`, `RegraEscalaService`, `TipoServicoService`, controllers `EscalaController`, `MilitarController`, `UsuarioController`, `AuthController`, `TipoServicoController`, `RegraEscalaController`, `QualificacaoController`, `SecurityConfig`, testes `TrocaIntervaloIntegrationTest`.
 
 **Frontend — criar**: `src/components/RequisitosPainel.tsx`, `src/utils/requisitos.ts`, `src/utils/requisitos.test.ts`.
-**Frontend — modificar**: `src/api/types.ts`, `src/App.tsx`, `src/context/AuthContext.tsx`, `src/components/Shell.tsx`, `src/components/MilitarDetalheOverlay.tsx`, `src/components/RichEditor.tsx`, páginas `Boletim`, `EscalaDoDia`, `MinhaEscala`, `MinhaConta`, `FichaMilitar`, `Militares`, `PerfisPermissoes`, `Login`, `RegrasEscala`, `TiposServico`, `Auditoria`; `package.json`.
+**Frontend — modificar**: `src/api/types.ts`, `src/App.tsx`, `src/context/AuthContext.tsx`, `src/components/Shell.tsx`, `src/components/MilitarDetalheOverlay.tsx`, `src/components/RichEditor.tsx`, páginas `Boletim`, `EscalaDoDia`, `EscalaDoMes`, `MinhaEscala`, `MinhaConta`, `FichaMilitar`, `Militares`, `PerfisPermissoes`, `Login`, `RegrasEscala`, `TiposServico`, `Auditoria`; `package.json`.
 
 ---
 
@@ -2186,6 +2244,1778 @@ Run: `cd frontend && npm test && npm run lint && npm run build` → PASS.
   5. No Log de auditoria aparecem as ações novas.
 
 - [ ] **Step 7: Checkpoint** — diff, sugerir `feat(front): tela de elegibilidade dos tipos de servico` e aguardar o usuário commitar.
+
+---
+
+### Task 9: Dia que já começou não oferece "Travar/Destravar este dia"
+
+Pedido do usuário (25/09/2026). Na Escala do mês, o detalhe do dia mostra ao Sargenteante o botão **"Travar este dia"** (ou "Destravar este dia") em **qualquer** dia com serviços, inclusive nos que já passaram. Só que um dia cujo serviço já começou (horário de início, 08h) já é imutável sozinho, o "dia sólido" (`ServicoEscalado.isJaComecou()`). Ele não pode ser regerado, trocado nem realocado, então o botão não tem efeito prático e confunde. O backend também aceita a chamada sem reclamar.
+
+Correção:
+- **frontend:** some com o botão nesses dias e mostra uma etiqueta "Dia concluído";
+- **backend:** recusa travar/destravar dia já começado (defesa no servidor, não só na tela).
+
+**Tarefa independente:** pode ser executada antes ou depois das outras. Não depende das Tasks 1–8.
+
+**Files:**
+- Modify: `backend/src/main/java/br/com/milscale/milscale/application/BloqueioDiaService.java`
+- Modify: `frontend/src/pages/EscalaDoMes.tsx` (bloco de botões do detalhe do dia, hoje em `EscalaDoMes.tsx:258-270`)
+- Test: `backend/src/test/java/br/com/milscale/milscale/application/BloqueioDiaIntegrationTest.java`
+
+**Interfaces:**
+- Consumes: `ServicoEscalado.isJaComecou()` (já existe; exposto no JSON como `jaComecou`).
+- Produces: `BloqueioDiaService.travar/destravar` lançam `IllegalArgumentException("Esse dia já começou — ele já está confirmado e não pode mais ser travado ou destravado")`, que vira 400 com `{"erro": ...}` pelo `TratadorDeErros`.
+
+- [ ] **Step 1: Escrever os testes que falham**
+
+```java
+package br.com.milscale.milscale.application;
+
+import br.com.milscale.milscale.adapters.persistence.*;
+import br.com.milscale.milscale.domain.*;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDate;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+
+/** Dia que ja comecou e imutavel por definicao - travar/destravar nao faz sentido nele. */
+@SpringBootTest
+@ActiveProfiles("test")
+@Transactional
+class BloqueioDiaIntegrationTest {
+
+    @Autowired private BloqueioDiaService bloqueioDiaService;
+    @Autowired private EscalaRepository escalaRepository;
+    @Autowired private ServicoEscaladoRepository servicoEscaladoRepository;
+    @Autowired private TipoServicoRepository tipoServicoRepository;
+    @Autowired private UsuarioRepository usuarioRepository;
+
+    private Escala escala;
+    private TipoServico tipo;
+
+    @BeforeEach
+    void montar() {
+        Usuario sargenteante = usuarioRepository.findByLogin("00000000001").orElseThrow();
+        tipo = tipoServicoRepository.findAll().get(0); // horaInicio 08:00
+        escala = escalaRepository.save(Escala.builder().descricao("teste")
+                .dataInicio(LocalDate.now().minusDays(5)).dataFim(LocalDate.now().plusDays(5))
+                .usuarioGeracao(sargenteante).build());
+    }
+
+    private void servicoEm(LocalDate dia) {
+        servicoEscaladoRepository.save(ServicoEscalado.builder().escala(escala).data(dia).tipoServico(tipo).build());
+    }
+
+    @Test
+    void travarDiaQueJaPassou_recusa() {
+        LocalDate ontem = LocalDate.now().minusDays(1);
+        servicoEm(ontem);
+        assertThatThrownBy(() -> bloqueioDiaService.travar(escala.getId(), ontem))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("já começou");
+    }
+
+    @Test
+    void destravarDiaQueJaPassou_recusa() {
+        LocalDate ontem = LocalDate.now().minusDays(1);
+        servicoEm(ontem);
+        assertThatThrownBy(() -> bloqueioDiaService.destravar(escala.getId(), ontem))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("já começou");
+    }
+
+    @Test
+    void travarDiaFuturo_continuaFuncionando() {
+        LocalDate amanha = LocalDate.now().plusDays(1);
+        servicoEm(amanha);
+        assertThat(bloqueioDiaService.travar(escala.getId(), amanha)).allMatch(ServicoEscalado::isTravado);
+        assertThat(bloqueioDiaService.destravar(escala.getId(), amanha)).noneMatch(ServicoEscalado::isTravado);
+    }
+}
+```
+
+Run: `cd backend && mvn -q test -Dtest=BloqueioDiaIntegrationTest`
+Expected: FAIL em `travarDiaQueJaPassou_recusa` e `destravarDiaQueJaPassou_recusa` (hoje não lança nada). O teste do dia futuro já passa.
+
+- [ ] **Step 2: Backend recusa travar/destravar dia já começado**
+
+Em `BloqueioDiaService.alternarTravamento`, logo depois de buscar `doDia`:
+```java
+        // RF12 (variante automatica) - dia que ja comecou ja e "solido" sozinho:
+        // travar ou destravar nele nao muda nada e so confunde quem opera.
+        if (doDia.stream().anyMatch(ServicoEscalado::isJaComecou)) {
+            throw new IllegalArgumentException("Esse dia já começou — ele já está confirmado e não pode mais ser travado ou destravado");
+        }
+```
+
+Run: `mvn -q test` → PASS.
+
+- [ ] **Step 3: Frontend esconde o botão e mostra "Dia concluído"**
+
+Em `pages/EscalaDoMes.tsx`, ao lado de `const diaTravado = ...` (hoje linha ~114):
+```tsx
+  // Dia cujo serviço já começou é imutável sozinho ("dia sólido") — não faz sentido travar/destravar.
+  const diaJaComecou = servicosDoDiaEscolhido.length > 0 && servicosDoDiaEscolhido.every((s) => s.jaComecou);
+```
+No bloco de botões do detalhe do dia, trocar a condição
+`{podePublicar && servicosDoDiaEscolhido.length > 0 && (`
+por
+`{podePublicar && servicosDoDiaEscolhido.length > 0 && !diaJaComecou && (`
+e, logo antes do botão "Gerar PDF", acrescentar a etiqueta:
+```tsx
+                    {diaJaComecou && (
+                      <span className="pill pill-grey" title="O serviço deste dia já começou — ele está confirmado e não muda mais">
+                        Dia concluído
+                      </span>
+                    )}
+```
+
+Run: `cd frontend && npm test && npm run build` → PASS.
+
+- [ ] **Step 4: Teste manual**
+  1. Como `000.000.000-01`, gerar uma escala que inclua ontem e amanhã. O backend recusa regerar dia já começado, então pode ser preciso usar uma escala existente que cubra ontem.
+  2. Em Escala do mês, clicar em **ontem**: aparece "Dia concluído" e **não** aparece "Travar este dia".
+  3. Clicar em **amanhã**: o botão "Travar este dia" continua lá e funciona.
+
+- [ ] **Step 5: Checkpoint** — diff, sugerir `fix: sem travar/destravar em dia que ja comecou` e aguardar o usuário commitar.
+
+---
+
+### Task 10: Rotas de autenticação e cookie de sessão
+
+**Achados da revisão:**
+- **Troca de senha sem login:** `SecurityConfig` libera `/api/auth/**` inteiro. Por isso `POST /api/auth/senha` sem sessão chega ao controller com `Authentication` nulo e estoura em 500.
+- **Logout redireciona:** o logout usa o handler padrão, que responde com um redirect 302 para `/login?logout`, uma rota que não existe no frontend.
+- **Cookie sem proteção contra CSRF:** o CSRF está desligado, mas o cookie de sessão não declara `SameSite`. A proteção contra requisição forjada vinda de outro site fica dependendo do padrão de cada navegador.
+
+**Correção:**
+- liberar só `/api/auth/login`;
+- logout responde 204;
+- cookie `HttpOnly` e `SameSite=Strict`, com `Secure` configurável para HTTPS.
+
+**Files:**
+- Modify: `backend/src/main/java/br/com/milscale/milscale/adapters/config/SecurityConfig.java`, `backend/src/main/resources/application.properties`, `README.md` (tabela de variáveis)
+- Test: `backend/src/test/java/br/com/milscale/milscale/adapters/config/AutenticacaoIntegrationTest.java`
+
+**Interfaces:**
+- Produces: variável `MILSCALE_COOKIE_SEGURO` (padrão `false`; `true` quando houver HTTPS).
+
+- [ ] **Step 1: Escrever os testes que falham** (servidor real na porta aleatória, porque os atributos do cookie são aplicados pelo Tomcat e o MockMvc não os vê)
+
+```java
+package br.com.milscale.milscale.adapters.config;
+
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.web.client.TestRestTemplate;
+import org.springframework.http.*;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@ActiveProfiles("test")
+class AutenticacaoIntegrationTest {
+
+    @Autowired private TestRestTemplate http;
+
+    private ResponseEntity<String> login(String cpf, String senha) {
+        HttpHeaders cabecalhos = new HttpHeaders();
+        cabecalhos.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+        MultiValueMap<String, String> form = new LinkedMultiValueMap<>();
+        form.add("username", cpf);
+        form.add("password", senha);
+        return http.postForEntity("/api/auth/login", new HttpEntity<>(form, cabecalhos), String.class);
+    }
+
+    @Test
+    void trocarSenhaSemSessao_volta401() {
+        HttpHeaders cabecalhos = new HttpHeaders();
+        cabecalhos.setContentType(MediaType.APPLICATION_JSON);
+        ResponseEntity<String> r = http.postForEntity("/api/auth/senha",
+                new HttpEntity<>("{\"senhaAtual\":\"abcdef\",\"senhaNova\":\"ghijkl\"}", cabecalhos), String.class);
+        assertThat(r.getStatusCode().value()).isEqualTo(401);
+    }
+
+    @Test
+    void cookieDeSessao_eHttpOnlyESameSiteStrict() {
+        ResponseEntity<String> r = login("00000000001", "milscale123");
+        assertThat(r.getStatusCode().value()).isEqualTo(200);
+        assertThat(r.getHeaders().getFirst(HttpHeaders.SET_COOKIE))
+                .contains("JSESSIONID").contains("HttpOnly").contains("SameSite=Strict");
+    }
+
+    @Test
+    void logout_volta204SemRedirecionar() {
+        String cookie = login("00000000001", "milscale123").getHeaders().getFirst(HttpHeaders.SET_COOKIE).split(";")[0];
+        HttpHeaders cabecalhos = new HttpHeaders();
+        cabecalhos.add(HttpHeaders.COOKIE, cookie);
+        ResponseEntity<String> r = http.postForEntity("/api/auth/logout", new HttpEntity<>(cabecalhos), String.class);
+        assertThat(r.getStatusCode().value()).isEqualTo(204);
+    }
+}
+```
+
+Run: `cd backend && mvn -q test -Dtest=AutenticacaoIntegrationTest`
+Expected: FAIL nos 3. A senha sem sessão dá 500; o cookie não tem `SameSite`; o logout dá 302.
+
+- [ ] **Step 2: Rotas e logout no `SecurityConfig`**
+
+```java
+            .authorizeHttpRequests(auth -> auth
+                .requestMatchers("/api/auth/login").permitAll()
+                .anyRequest().authenticated()
+            )
+```
+```java
+            .logout(logout -> logout
+                .logoutUrl("/api/auth/logout")
+                .logoutSuccessHandler((req, res, a) -> res.setStatus(HttpServletResponse.SC_NO_CONTENT)))
+```
+(import `jakarta.servlet.http.HttpServletResponse`.) O `/api/auth/me` continua respondendo 401 sem sessão: agora pelo `authenticationEntryPoint`, e não mais pelo `if (auth == null)` do controller, que pode sair.
+
+- [ ] **Step 3: Cookie de sessão** — em `application.properties`:
+
+```properties
+# ---- Sessão ----
+server.servlet.session.cookie.http-only=true
+server.servlet.session.cookie.same-site=strict
+server.servlet.session.cookie.secure=${MILSCALE_COOKIE_SEGURO:false}
+server.servlet.session.timeout=8h
+```
+
+`SameSite=Strict` funciona porque o frontend chama a API pelo mesmo domínio (proxy do Vite ou do nginx, Plano 1 Task 8).
+
+- [ ] **Step 4:** acrescentar na tabela de variáveis do `README.md` a linha `MILSCALE_COOKIE_SEGURO | backend | true quando o sistema for servido por HTTPS`.
+
+- [ ] **Step 5: Rodar tudo** — `mvn -q test` → PASS. Teste manual: logar pela porta 5173, navegar e clicar em "Log out". A tela volta para o login sem nenhum erro no console.
+
+- [ ] **Step 6: Checkpoint** — diff, sugerir `fix(seguranca): so /api/auth/login publico, logout 204 e cookie SameSite` e aguardar o usuário commitar.
+
+---
+
+### Task 11: Seed de demonstração só quando habilitado, e administrador inicial
+
+**Achado da revisão:** o `DataSeeder` roda em **qualquer** perfil, inclusive no `mysql`/Docker. Um banco de produção recém-criado nasce com cerca de 200 contas de login que têm senha pública (`milscale123`), incluindo um Sargenteante.
+
+**Correção.** O seed é dividido em três partes:
+1. **Dados de referência:** postos, subunidades, cursos, tipos de serviço, regras, requisitos e perfis. Sempre roda, porque o sistema não funciona sem eles.
+2. **Demonstração:** militares e contas. Só roda com `milscale.seed.demo=true`.
+3. **Administrador inicial:** se não existir nenhum usuário, cria o primeiro Sargenteante a partir de variáveis de ambiente, com senha temporária.
+
+**Files:**
+- Create: `adapters/config/DadosDeReferenciaSeeder.java`, `adapters/config/DemoSeeder.java`, `adapters/config/AdministradorInicialSeeder.java`
+- Delete: `adapters/config/DataSeeder.java`
+- Modify: `adapters/persistence/PostoGraduacaoRepository.java`, `SubunidadeRepository.java`, `QualificacaoRepository.java`; `application.properties`, `application-mysql.properties`, `application-test.properties`; `docker-compose.yml`; `.env.example`; `README.md`
+- Test: `backend/src/test/java/br/com/milscale/milscale/adapters/config/SeedIntegrationTest.java`
+
+**Interfaces:**
+- Consumes: `Usuario.senhaTemporaria` (Task 4).
+- Produces: `PostoGraduacaoRepository.findBySigla(String): Optional<PostoGraduacao>`, `SubunidadeRepository.findBySigla(String): Optional<Subunidade>`, `QualificacaoRepository.findByNome(String): Optional<Qualificacao>`; propriedades `milscale.seed.demo`, `milscale.admin.cpf`, `milscale.admin.senha`.
+
+- [ ] **Step 1: Escrever os testes que falham** — duas classes, porque cada uma sobe um contexto com propriedades e banco em memória próprios.
+
+`backend/src/test/java/br/com/milscale/milscale/adapters/config/SeedSemDemonstracaoIntegrationTest.java`:
+```java
+package br.com.milscale.milscale.adapters.config;
+
+import br.com.milscale.milscale.adapters.persistence.*;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
+@SpringBootTest(properties = {"milscale.seed.demo=false",
+        "spring.datasource.url=jdbc:h2:mem:seed_prod;MODE=MySQL;DATABASE_TO_LOWER=TRUE"})
+@ActiveProfiles("test")
+class SeedSemDemonstracaoIntegrationTest {
+
+    @Autowired private MilitarRepository militarRepository;
+    @Autowired private UsuarioRepository usuarioRepository;
+    @Autowired private TipoServicoRepository tipoServicoRepository;
+    @Autowired private PerfilAcessoRepository perfilAcessoRepository;
+
+    @Test
+    void criaSoDadosDeReferencia() {
+        assertThat(tipoServicoRepository.count()).isEqualTo(12);
+        assertThat(perfilAcessoRepository.count()).isEqualTo(4);
+        assertThat(militarRepository.count()).isZero();
+        assertThat(usuarioRepository.count()).isZero();
+    }
+}
+```
+
+`backend/src/test/java/br/com/milscale/milscale/adapters/config/AdministradorInicialIntegrationTest.java`:
+```java
+package br.com.milscale.milscale.adapters.config;
+
+import br.com.milscale.milscale.adapters.persistence.UsuarioRepository;
+import br.com.milscale.milscale.domain.Usuario;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.test.context.ActiveProfiles;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
+@SpringBootTest(properties = {"milscale.seed.demo=false",
+        "milscale.admin.cpf=123.456.789-09", "milscale.admin.senha=senhaInicial1",
+        "spring.datasource.url=jdbc:h2:mem:seed_admin;MODE=MySQL;DATABASE_TO_LOWER=TRUE"})
+@ActiveProfiles("test")
+class AdministradorInicialIntegrationTest {
+
+    @Autowired private UsuarioRepository usuarioRepository;
+    @Autowired private PasswordEncoder passwordEncoder;
+
+    @Test
+    void criaSargenteanteComSenhaTemporaria() {
+        Usuario admin = usuarioRepository.findByLogin("12345678909").orElseThrow();
+        assertThat(admin.getPerfil().getNome()).isEqualTo("SARGENTEANTE");
+        assertThat(admin.isSenhaTemporaria()).isTrue();
+        assertThat(passwordEncoder.matches("senhaInicial1", admin.getSenhaHash())).isTrue();
+    }
+}
+```
+
+Run: `cd backend && mvn -q test -Dtest='SeedSemDemonstracaoIntegrationTest,AdministradorInicialIntegrationTest'`
+Expected: FAIL: `militarRepository.count()` não é zero, e o administrador não é criado.
+
+- [ ] **Step 2: Finders nos repositórios**
+
+`PostoGraduacaoRepository`: `Optional<PostoGraduacao> findBySigla(String sigla);`
+`SubunidadeRepository`: `Optional<Subunidade> findBySigla(String sigla);`
+`QualificacaoRepository`: `Optional<Qualificacao> findByNome(String nome);`
+
+- [ ] **Step 3: `DadosDeReferenciaSeeder`**
+
+Mover do `DataSeeder` para esta classe, **sem alterar valores**, o trecho do `run` que vai de `Subunidade ccap = subunidadeRepository.save(...)` até a criação dos 4 `PerfilAcesso`, e os métodos `salvarRequisito` e `salvarRequisitoExcluindoAprov`.
+
+```java
+@Component
+@Order(1)
+public class DadosDeReferenciaSeeder implements CommandLineRunner {
+
+    // injeção por construtor: SubunidadeRepository, PostoGraduacaoRepository, QualificacaoRepository,
+    // TipoServicoRepository, RequisitoServicoRepository, RegraEscalaRepository, PerfilAcessoRepository
+
+    @Override
+    @Transactional
+    public void run(String... args) {
+        if (subunidadeRepository.count() > 0) return;
+        // (trecho movido do DataSeeder, sem alterar valores)
+    }
+}
+```
+
+- [ ] **Step 4: `DemoSeeder`** — só com a propriedade ligada. Ele busca as referências pelo nome, em vez de recebê-las em variáveis locais.
+
+```java
+@Component
+@Order(2)
+@ConditionalOnProperty(name = "milscale.seed.demo", havingValue = "true")
+public class DemoSeeder implements CommandLineRunner {
+
+    // injeção por construtor: MilitarRepository, UsuarioRepository, PasswordEncoder,
+    // PostoGraduacaoRepository, SubunidadeRepository, QualificacaoRepository, PerfilAcessoRepository
+
+    @Override
+    @Transactional
+    public void run(String... args) {
+        if (militarRepository.count() > 0) return;
+        PostoGraduacao sdEv = posto("Sd EV"), sdEp = posto("Sd EP"), cb = posto("Cb"),
+                sgt3 = posto("3 Sgt"), sgt2 = posto("2 Sgt"), ten = posto("Ten");
+        Subunidade ccap = subunidade("CCAp"), cia1 = subunidade("1 Cia"), aprov = subunidade("Aprov");
+        Qualificacao cfc = curso("CFC"), motorista = curso("Motorista");
+        PerfilAcesso perfilMilitar = perfil("MILITAR_ESCALADO"), perfilSdEp = perfil("SD_EP_SARGENTEACAO"),
+                perfilCabo = perfil("CABO_SARGENTEACAO"), perfilSargenteante = perfil("SARGENTEANTE");
+        // (trecho do DataSeeder de `String senha = passwordEncoder.encode("milscale123");` até o fim do run)
+    }
+
+    private PostoGraduacao posto(String sigla) { return postoRepository.findBySigla(sigla).orElseThrow(); }
+    private Subunidade subunidade(String sigla) { return subunidadeRepository.findBySigla(sigla).orElseThrow(); }
+    private Qualificacao curso(String nome) { return qualificacaoRepository.findByNome(nome).orElseThrow(); }
+    private PerfilAcesso perfil(String nome) { return perfilAcessoRepository.findByNome(nome).orElseThrow(); }
+
+    // + os métodos do DataSeeder: SOBRENOMES, sobrenomeUnicoParaPosto, vincularQualificacao, gerarComLogin,
+    //   gerarComLoginSubunidadeFixa, criarMilitarComLogin, gerarDataNascimento, gerarNumeroRegistro,
+    //   gerarFusex, criarConta (movidos sem alteração)
+}
+```
+
+Apagar o `DataSeeder.java`.
+
+- [ ] **Step 5: `AdministradorInicialSeeder`**
+
+```java
+@Component
+@Order(3)
+public class AdministradorInicialSeeder implements CommandLineRunner {
+
+    private static final Logger log = LoggerFactory.getLogger(AdministradorInicialSeeder.class);
+
+    private final UsuarioRepository usuarioRepository;
+    private final MilitarRepository militarRepository;
+    private final PostoGraduacaoRepository postoRepository;
+    private final SubunidadeRepository subunidadeRepository;
+    private final PerfilAcessoRepository perfilAcessoRepository;
+    private final PasswordEncoder passwordEncoder;
+    private final String cpf;
+    private final String senha;
+
+    public AdministradorInicialSeeder(UsuarioRepository usuarioRepository, MilitarRepository militarRepository,
+                                      PostoGraduacaoRepository postoRepository, SubunidadeRepository subunidadeRepository,
+                                      PerfilAcessoRepository perfilAcessoRepository, PasswordEncoder passwordEncoder,
+                                      @Value("${milscale.admin.cpf:}") String cpf,
+                                      @Value("${milscale.admin.senha:}") String senha) {
+        this.usuarioRepository = usuarioRepository;
+        this.militarRepository = militarRepository;
+        this.postoRepository = postoRepository;
+        this.subunidadeRepository = subunidadeRepository;
+        this.perfilAcessoRepository = perfilAcessoRepository;
+        this.passwordEncoder = passwordEncoder;
+        this.cpf = cpf.replaceAll("\\D", "");
+        this.senha = senha;
+    }
+
+    @Override
+    @Transactional
+    public void run(String... args) {
+        if (usuarioRepository.count() > 0) return;
+        if (cpf.length() != 11 || senha.length() < 6) {
+            log.warn("Nenhum usuario cadastrado. Defina MILSCALE_ADMIN_CPF e MILSCALE_ADMIN_SENHA para criar o primeiro Sargenteante.");
+            return;
+        }
+        Militar admin = militarRepository.save(Militar.builder()
+                .nomeCompleto("Administrador do Sistema").nomeGuerra("Admin").cpf(cpf)
+                .posto(postoRepository.findBySigla("2 Sgt").orElseThrow())
+                .subunidade(subunidadeRepository.findBySigla("CCAp").orElseThrow())
+                .build());
+        usuarioRepository.save(Usuario.builder()
+                .militar(admin).login(cpf)
+                .perfil(perfilAcessoRepository.findByNome("SARGENTEANTE").orElseThrow())
+                .senhaHash(passwordEncoder.encode(senha)).senhaTemporaria(true)
+                .build());
+        log.info("Primeiro Sargenteante criado para o CPF informado em MILSCALE_ADMIN_CPF.");
+    }
+}
+```
+
+- [ ] **Step 6: Propriedades e Compose**
+
+`application.properties`:
+```properties
+# ---- Dados iniciais ----
+milscale.seed.demo=${MILSCALE_SEED_DEMO:true}
+milscale.admin.cpf=${MILSCALE_ADMIN_CPF:}
+milscale.admin.senha=${MILSCALE_ADMIN_SENHA:}
+```
+`application-mysql.properties`: `milscale.seed.demo=${MILSCALE_SEED_DEMO:false}`
+`application-test.properties`: `milscale.seed.demo=true`
+`docker-compose.yml`, no `environment` do `backend`:
+```yaml
+      MILSCALE_SEED_DEMO: ${MILSCALE_SEED_DEMO:-true}
+      MILSCALE_ADMIN_CPF: ${MILSCALE_ADMIN_CPF:-}
+      MILSCALE_ADMIN_SENHA: ${MILSCALE_ADMIN_SENHA:-}
+```
+`.env.example`, no fim:
+```bash
+# Demonstração: true cria ~200 militares com senha milscale123. Em produção use false
+# e informe o primeiro Sargenteante (troca a senha no primeiro acesso).
+MILSCALE_SEED_DEMO=true
+MILSCALE_ADMIN_CPF=
+MILSCALE_ADMIN_SENHA=
+```
+`README.md`, na tabela de variáveis: as três variáveis acima.
+
+- [ ] **Step 7: Rodar tudo** — `mvn -q test` → PASS. Os testes existentes usam o perfil `test`, que segue com a demonstração ligada.
+
+- [ ] **Step 8: Checkpoint** — diff, sugerir `fix(seguranca): demonstracao so quando habilitada e administrador inicial` e aguardar o usuário commitar.
+
+---
+
+### Task 12: Cadastros sem *mass assignment*
+
+**Achado da revisão:** `POST/PUT /api/militares`, `POST/PUT /api/tipos-servico`, `POST/PUT /api/qualificacoes` e `POST /api/feriados` recebem **a entidade JPA inteira** no corpo. Com isso, quem tem acesso ao cadastro consegue gravar campos que a tela nunca envia:
+- **Militar:** `dataUltimoServico` (manipula a fila da escala) e `qualificacoes`;
+- **Tipo de serviço:** `requisitos` (com `cascade ALL`, cria requisitos pelo corpo) e `ativo`.
+
+**Correção:** um record de entrada por cadastro, só com os campos editáveis e validados. O service monta a entidade a partir dele.
+
+**Files:**
+- Create: `application/DadosMilitar.java`, `application/DadosTipoServico.java`, `application/DadosQualificacao.java`, `application/DadosFeriado.java`, `domain/TipoFeriado.java`
+- Modify: `domain/Feriado.java`; services `MilitarService`, `TipoServicoService`, `QualificacaoService`, `FeriadoService`; controllers `MilitarController`, `TipoServicoController`, `QualificacaoController`, `FeriadoController`; testes que chamam `cadastrar(Militar)` / `cadastrar(TipoServico)`
+- Modify (front): `pages/Militares.tsx`, `pages/FichaMilitar.tsx` (enviar `postoId`/`subunidadeId`)
+- Test: `backend/src/test/java/br/com/milscale/milscale/adapters/web/MassAssignmentIntegrationTest.java`
+
+**Interfaces:**
+- Consumes: `MilitarService.MilitarCadastrado` (Task 5), `MilitarDetalheResponse` (Task 2).
+- Produces:
+  - `MilitarService.cadastrar(DadosMilitar)`, `atualizar(Long, DadosMilitar)`;
+  - `TipoServicoService.cadastrar(DadosTipoServico)`, `atualizar(Long, DadosTipoServico)`;
+  - `QualificacaoService.cadastrar(DadosQualificacao)`, `atualizar(Long, DadosQualificacao)`;
+  - `FeriadoService.cadastrar(DadosFeriado)`;
+  - `enum TipoFeriado { NACIONAL, MILITAR, OM }`.
+
+- [ ] **Step 1: Escrever os testes que falham**
+
+```java
+package br.com.milscale.milscale.adapters.web;
+
+import br.com.milscale.milscale.adapters.persistence.MilitarRepository;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithUserDetails;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.transaction.annotation.Transactional;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+@SpringBootTest
+@AutoConfigureMockMvc
+@ActiveProfiles("test")
+@Transactional
+class MassAssignmentIntegrationTest {
+
+    @Autowired private MockMvc mvc;
+    @Autowired private MilitarRepository militarRepository;
+    @Autowired private br.com.milscale.milscale.adapters.persistence.RequisitoServicoRepository requisitoServicoRepository;
+
+    @Test
+    @WithUserDetails("00000000001")
+    void cadastrarMilitar_ignoraCamposQueATelaNaoEnvia() throws Exception {
+        mvc.perform(post("/api/militares").contentType(MediaType.APPLICATION_JSON).content("""
+                {"nomeCompleto":"Teste Mass","nomeGuerra":"Massa","cpf":"52998224725",
+                 "postoId":1,"subunidadeId":1,
+                 "dataUltimoServico":"2000-01-01","situacao":"DESLIGADO","qualificacoes":[{"id":1}]}"""))
+                .andExpect(status().isOk());
+        var m = militarRepository.findByCpf("52998224725").orElseThrow();
+        assertThat(m.getDataUltimoServico()).isNull();
+        assertThat(m.getSituacao().name()).isEqualTo("ATIVO");
+        assertThat(m.getQualificacoes()).isEmpty();
+    }
+
+    @Test
+    @WithUserDetails("00000000001")
+    void cadastrarTipoServico_ignoraRequisitosEAtivoNoCorpo() throws Exception {
+        long requisitosAntes = requisitoServicoRepository.count();
+        mvc.perform(post("/api/tipos-servico").contentType(MediaType.APPLICATION_JSON).content("""
+                {"nome":"Sentinela Mass","efetivoNecessario":1,"ativo":false,
+                 "requisitos":[{"posto":{"id":1}}]}"""))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.ativo").value(true));
+        assertThat(requisitoServicoRepository.count()).isEqualTo(requisitosAntes);
+    }
+
+    @Test
+    @WithUserDetails("00000000001")
+    void cadastrarMilitar_semPosto_volta400ComMensagem() throws Exception {
+        mvc.perform(post("/api/militares").contentType(MediaType.APPLICATION_JSON).content("""
+                {"nomeCompleto":"Sem Posto","nomeGuerra":"Semposto","cpf":"11144477735","subunidadeId":1}"""))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.erro").value("Escolha o posto/graduação"));
+    }
+}
+```
+
+Run: `mvn -q test -Dtest=MassAssignmentIntegrationTest` → FAIL. A `dataUltimoServico` é gravada, e o corpo sem posto responde 500 em vez de 400.
+
+- [ ] **Step 2: Records de entrada**
+
+```java
+package br.com.milscale.milscale.application;
+
+import jakarta.validation.constraints.*;
+import java.time.LocalDate;
+
+public record DadosMilitar(
+        @NotBlank(message = "Informe o nome completo") @Size(max = 120) String nomeCompleto,
+        @NotBlank(message = "Informe o nome de guerra") @Size(max = 40) String nomeGuerra,
+        @NotBlank(message = "Informe o CPF") String cpf,
+        @Size(max = 20) String numeroRegistro,
+        LocalDate dataNascimento,
+        @Size(max = 20) String fusex,
+        @Email(message = "Email inválido") @Size(max = 120) String email,
+        @Size(max = 20) String telefone,
+        @Size(max = 3_000_000, message = "Foto muito grande (máximo de 2 MB)") String fotoBase64,
+        @NotNull(message = "Escolha o posto/graduação") Long postoId,
+        @NotNull(message = "Escolha a subunidade") Long subunidadeId) {}
+```
+```java
+package br.com.milscale.milscale.application;
+
+import jakarta.validation.constraints.*;
+import java.time.LocalTime;
+
+public record DadosTipoServico(
+        @NotBlank(message = "Informe o nome do serviço") @Size(max = 60) String nome,
+        @Size(max = 150) String descricao,
+        @Min(value = 1, message = "O efetivo necessário precisa ser pelo menos 1")
+        @Max(value = 50, message = "O efetivo necessário pode ser no máximo 50") int efetivoNecessario,
+        LocalTime horaInicio,
+        Integer duracaoHoras) {}
+```
+```java
+package br.com.milscale.milscale.application;
+
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
+
+public record DadosQualificacao(
+        @NotBlank(message = "Informe o nome do curso") @Size(max = 60) String nome,
+        @Size(max = 120) String descricao) {}
+```
+```java
+package br.com.milscale.milscale.application;
+
+import br.com.milscale.milscale.domain.TipoFeriado;
+import jakarta.validation.constraints.*;
+import java.time.LocalDate;
+
+public record DadosFeriado(
+        @NotNull(message = "Informe a data inicial") LocalDate dataInicio,
+        @NotNull(message = "Informe a data final") LocalDate dataFim,
+        @NotBlank(message = "Informe a descrição") @Size(max = 100) String descricao,
+        @NotNull(message = "Informe o tipo") TipoFeriado tipo) {}
+```
+```java
+package br.com.milscale.milscale.domain;
+
+public enum TipoFeriado { NACIONAL, MILITAR, OM }
+```
+Em `Feriado.java`: `private String tipo;` → `@Enumerated(EnumType.STRING) @Column(nullable = false, length = 15) private TipoFeriado tipo;`. Os valores gravados são os mesmos, então não há migration.
+
+- [ ] **Step 3: Services montam a entidade a partir do record**
+
+`MilitarService` (a validação de CPF, o nome de guerra e a criação de conta da Task 5 continuam iguais):
+```java
+    @Transactional
+    public MilitarCadastrado cadastrar(DadosMilitar dados) {
+        Militar militar = Militar.builder().situacao(SituacaoPessoa.ATIVO).build();
+        aplicar(dados, militar);
+        validarCpfUnico(militar.getCpf(), null);
+        validarNomeGuerraUnicoNoPosto(militar.getPosto().getId(), militar.getNomeGuerra(), null);
+        Militar salvo = militarRepository.save(militar);
+        // (criação da conta com senha temporária — igual à Task 5)
+    }
+
+    @Transactional
+    public Militar atualizar(Long id, DadosMilitar dados) {
+        Militar existente = buscar(id);
+        String cpfAnterior = existente.getCpf();
+        String fotoAnterior = existente.getFotoBase64();
+        aplicar(dados, existente);
+        if (dados.fotoBase64() == null) existente.setFotoBase64(fotoAnterior);
+        validarCpfUnico(existente.getCpf(), id);
+        validarNomeGuerraUnicoNoPosto(existente.getPosto().getId(), existente.getNomeGuerra(), id);
+        Militar salvo = militarRepository.save(existente);
+        if (!cpfAnterior.equals(salvo.getCpf())) {
+            usuarioRepository.findByMilitar_Id(id).ifPresent(u -> {
+                u.setLogin(salvo.getCpf());
+                usuarioRepository.save(u);
+            });
+        }
+        return salvo;
+    }
+
+    private void aplicar(DadosMilitar d, Militar m) {
+        m.setNomeCompleto(d.nomeCompleto().trim());
+        m.setNomeGuerra(d.nomeGuerra().trim());
+        m.setCpf(normalizarCpf(d.cpf()));
+        m.setNumeroRegistro(d.numeroRegistro());
+        m.setDataNascimento(d.dataNascimento());
+        m.setFusex(d.fusex());
+        m.setEmail(d.email());
+        m.setTelefone(d.telefone() == null ? null : d.telefone().replaceAll("\\D", ""));
+        m.setFotoBase64(d.fotoBase64());
+        m.setPosto(postoGraduacaoRepository.findById(d.postoId())
+                .orElseThrow(() -> new NoSuchElementException("Posto/graduação não encontrado")));
+        m.setSubunidade(subunidadeRepository.findById(d.subunidadeId())
+                .orElseThrow(() -> new NoSuchElementException("Subunidade não encontrada")));
+    }
+```
+(injetar `PostoGraduacaoRepository` e `SubunidadeRepository`.)
+
+`TipoServicoService`:
+```java
+    @Transactional
+    public TipoServico cadastrar(DadosTipoServico d) {
+        TipoServico tipo = TipoServico.builder().ativo(true).build();
+        aplicar(d, tipo);
+        TipoServico salvo = tipoServicoRepository.save(tipo);
+        regraEscalaRepository.save(RegraEscala.builder()
+                .tipoServico(salvo).intervaloMinimo(INTERVALO_MINIMO_NOVO_TIPO).build());
+        return salvo;
+    }
+
+    @Transactional
+    public TipoServico atualizar(Long id, DadosTipoServico d) {
+        TipoServico existente = tipoServicoRepository.findById(id)
+                .orElseThrow(() -> new NoSuchElementException("Tipo de servico nao encontrado"));
+        aplicar(d, existente);
+        return tipoServicoRepository.save(existente);
+    }
+
+    private void aplicar(DadosTipoServico d, TipoServico t) {
+        t.setNome(d.nome().trim());
+        t.setDescricao(d.descricao());
+        t.setEfetivoNecessario(d.efetivoNecessario());
+        t.setHoraInicio(d.horaInicio() != null ? d.horaInicio() : LocalTime.of(8, 0));
+        t.setDuracaoHoras(d.duracaoHoras() != null ? d.duracaoHoras() : 24);
+    }
+```
+(Se a Task 7 ainda não tiver sido feita, o `cadastrar` fica sem a linha da `RegraEscala`.)
+
+`QualificacaoService`:
+```java
+    @Transactional
+    public Qualificacao cadastrar(DadosQualificacao d) {
+        qualificacaoRepository.findByNome(d.nome().trim()).ifPresent(q -> {
+            throw new IllegalArgumentException("Já existe um curso com esse nome");
+        });
+        return qualificacaoRepository.save(Qualificacao.builder().nome(d.nome().trim()).descricao(d.descricao()).build());
+    }
+
+    @Transactional
+    public Qualificacao atualizar(Long id, DadosQualificacao d) {
+        Qualificacao existente = qualificacaoRepository.findById(id)
+                .orElseThrow(() -> new NoSuchElementException("Qualificacao nao encontrada"));
+        qualificacaoRepository.findByNome(d.nome().trim())
+                .filter(outra -> !outra.getId().equals(id))
+                .ifPresent(outra -> { throw new IllegalArgumentException("Já existe um curso com esse nome"); });
+        existente.setNome(d.nome().trim());
+        existente.setDescricao(d.descricao());
+        return qualificacaoRepository.save(existente);
+    }
+```
+
+`FeriadoService.cadastrar(DadosFeriado d)` valida as datas como hoje e salva `Feriado.builder().dataInicio(...).dataFim(...).descricao(...).tipo(d.tipo()).build()`.
+
+- [ ] **Step 4: Controllers** — trocar `@RequestBody Militar militar` / `TipoServico tipo` / `Qualificacao q` / `Feriado f` por `@Valid @RequestBody DadosMilitar dados` / `DadosTipoServico` / `DadosQualificacao` / `DadosFeriado`, passando o record ao service. O `MilitarController.atualizar` devolve `MilitarDetalheResponse.completo(...)`.
+
+- [ ] **Step 5: Ajustar testes existentes** que montam `Militar`/`TipoServico` para `cadastrar(...)`, como o `MilitarCadastroIntegrationTest` (Task 5) e o `TipoServicoRequisitoIntegrationTest` (Task 7). Exemplo: `new DadosMilitar("Novo Recem", "Recem", "123.456.789-09", null, null, null, null, null, null, postoId, subunidadeId)`; `new DadosTipoServico("Sentinela Extra", null, 1, null, null)`.
+
+- [ ] **Step 6: Frontend envia ids**
+
+`pages/Militares.tsx` (no `NovoMilitarForm`) e `pages/FichaMilitar.tsx` (no `EditarForm`): `posto: { id: postoId }` → `postoId`, e `subunidade: { id: subunidadeId }` → `subunidadeId`. Na Ficha, o nome da variável é `dados.postoId` / `dados.subunidadeId`.
+
+Run: `cd backend && mvn -q test` → PASS; `cd frontend && npm test && npm run build` → PASS.
+
+- [ ] **Step 7: Teste manual** — cadastrar militar pela tela, editar pela Ficha, criar e editar tipo de serviço, curso e feriado. Tudo funciona igual a antes.
+
+- [ ] **Step 8: Checkpoint** — diff, sugerir `fix(seguranca): cadastros recebem so campos editaveis (sem mass assignment)` e aguardar o usuário commitar.
+
+---
+
+### Task 13: Nenhuma conta (`Usuario`) embutida no JSON
+
+**Achado da revisão:**
+- **O que vaza:** `Afastamento.usuarioRegistro`, `Escala.usuarioGeracao` e `Notificacao.destinatario` são serializados com o `Usuario` completo, que traz o `login` (que é o **CPF**) e o `militar` inteiro.
+- **Por onde vaza:**
+  - `GET /api/militares/{id}/afastamento-atual` e `GET /api/escalas/{id}` estão abertos a vários perfis;
+  - a lista de avisos traz os afastamentos.
+- **Consequência:** o CPF de quem registrou ou gerou fica visível. O `senhaHash` já é `@JsonIgnore`.
+
+**Files:**
+- Modify: `domain/Afastamento.java`, `domain/Escala.java`, `domain/Notificacao.java`
+- Test: `backend/src/test/java/br/com/milscale/milscale/adapters/web/UsuarioNaoVazaIntegrationTest.java`
+
+- [ ] **Step 1: Escrever o teste que falha**
+
+```java
+package br.com.milscale.milscale.adapters.web;
+
+import br.com.milscale.milscale.adapters.persistence.UsuarioRepository;
+import br.com.milscale.milscale.application.AfastamentoService;
+import br.com.milscale.milscale.domain.TipoAfastamento;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.security.test.context.support.WithUserDetails;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDate;
+import java.util.List;
+
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.not;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+@SpringBootTest
+@AutoConfigureMockMvc
+@ActiveProfiles("test")
+@Transactional
+class UsuarioNaoVazaIntegrationTest {
+
+    @Autowired private MockMvc mvc;
+    @Autowired private AfastamentoService afastamentoService;
+    @Autowired private UsuarioRepository usuarioRepository;
+
+    @Test
+    @WithUserDetails("00000000002")
+    void afastamentos_naoTrazemAContaDeQuemRegistrou() throws Exception {
+        Long militarId = usuarioRepository.findByLogin("00000000004").orElseThrow().getMilitar().getId();
+        LocalDate dia = LocalDate.now().plusMonths(2);
+        afastamentoService.cadastrarMissao(List.of(militarId), TipoAfastamento.DISPENSA, "teste", dia, dia, "00000000001");
+
+        mvc.perform(get("/api/afastamentos"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(not(containsString("usuarioRegistro"))))
+                .andExpect(content().string(not(containsString("\"login\""))));
+    }
+}
+```
+
+Run → FAIL (`usuarioRegistro` aparece no JSON).
+
+- [ ] **Step 2: Esconder as contas** — em cada um dos três campos (`Afastamento.usuarioRegistro`, `Escala.usuarioGeracao`, `Notificacao.destinatario`), acrescentar `@JsonIgnore` (`com.fasterxml.jackson.annotation.JsonIgnore`). O frontend não usa esses campos (conferido em `src/api/types.ts`).
+
+- [ ] **Step 3: Rodar tudo** — `mvn -q test` → PASS; `npm run build` → PASS.
+
+- [ ] **Step 4: Checkpoint** — diff, sugerir `fix(seguranca): conta de usuario nao aparece mais embutida no JSON` e aguardar o usuário commitar.
+
+---
+
+### Task 14: Limite de tentativas de login e mensagens de login claras
+
+**Achados da revisão:**
+- **Força bruta:** o login aceita tentativas ilimitadas. Com CPF previsível e senha fraca, a força bruta é trivial.
+- **Mensagem enganosa:** o frontend mostra "Usuário ou senha inválidos" para **qualquer** falha. Com o backend fora do ar, parece erro de senha; o usuário caiu nisso em 25/09/2026.
+
+**Correção:**
+- **Bloqueio:** depois de 5 falhas seguidas, o CPF fica bloqueado por 15 minutos e o login responde 423 com mensagem.
+- **Mensagens por tipo de falha:** o frontend passa a mostrar a mensagem do servidor e "Servidor indisponível" quando não houver resposta.
+
+**Files:**
+- Create: `adapters/config/ProtecaoContraForcaBruta.java`, `adapters/config/RelogioConfig.java`
+- Modify: `adapters/config/SecurityConfig.java`, `adapters/config/MilScaleUserDetailsService.java`
+- Modify (front): `src/api/client.ts`, `src/pages/Login.tsx`
+- Test: `backend/src/test/java/br/com/milscale/milscale/adapters/config/ProtecaoContraForcaBrutaTest.java`, `backend/src/test/java/br/com/milscale/milscale/adapters/config/LoginIntegrationTest.java`
+
+**Interfaces:**
+- Produces:
+  - bean `Clock`, reusado pelas próximas tarefas e pelo Plano 5;
+  - `ProtecaoContraForcaBruta.bloqueado(String cpf)`, `registrarFalha(String cpf)` e `limpar(String cpf)`;
+  - login: 401 `{"erro":"CPF ou senha inválidos"}` e 423 `{"erro":"Muitas tentativas erradas. Tente de novo em 15 minutos."}`.
+
+- [ ] **Step 1: Escrever os testes que falham**
+
+```java
+package br.com.milscale.milscale.adapters.config;
+
+import org.junit.jupiter.api.Test;
+
+import java.time.*;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
+class ProtecaoContraForcaBrutaTest {
+
+    static class RelogioAjustavel extends Clock {
+        Instant agora = Instant.parse("2030-01-10T12:00:00Z");
+        @Override public ZoneId getZone() { return ZoneOffset.UTC; }
+        @Override public Clock withZone(ZoneId zone) { return this; }
+        @Override public Instant instant() { return agora; }
+    }
+
+    @Test
+    void bloqueiaNaQuintaFalhaELiberaDepoisDe15Minutos() {
+        RelogioAjustavel relogio = new RelogioAjustavel();
+        ProtecaoContraForcaBruta protecao = new ProtecaoContraForcaBruta(relogio);
+        for (int i = 0; i < 4; i++) protecao.registrarFalha("123");
+        assertThat(protecao.bloqueado("123")).isFalse();
+        protecao.registrarFalha("123");
+        assertThat(protecao.bloqueado("123")).isTrue();
+        relogio.agora = relogio.agora.plus(Duration.ofMinutes(15));
+        assertThat(protecao.bloqueado("123")).isFalse();
+    }
+
+    @Test
+    void loginCertoZeraAsFalhas() {
+        ProtecaoContraForcaBruta protecao = new ProtecaoContraForcaBruta(new RelogioAjustavel());
+        for (int i = 0; i < 4; i++) protecao.registrarFalha("123");
+        protecao.limpar("123");
+        protecao.registrarFalha("123");
+        assertThat(protecao.bloqueado("123")).isFalse();
+    }
+}
+```
+```java
+package br.com.milscale.milscale.adapters.config;
+
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.web.servlet.MockMvc;
+
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+@SpringBootTest
+@AutoConfigureMockMvc
+@ActiveProfiles("test")
+class LoginIntegrationTest {
+
+    private static final String CPF = "00000000003";
+
+    @Autowired private MockMvc mvc;
+    @Autowired private ProtecaoContraForcaBruta protecao;
+
+    @AfterEach
+    void limpar() { protecao.limpar(CPF); }
+
+    @Test
+    void senhaErrada_volta401ComMensagem() throws Exception {
+        mvc.perform(post("/api/auth/login").param("username", CPF).param("password", "errada"))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.erro").value("CPF ou senha inválidos"));
+    }
+
+    @Test
+    void cincoFalhas_bloqueiaMesmoComSenhaCerta() throws Exception {
+        for (int i = 0; i < 5; i++) {
+            mvc.perform(post("/api/auth/login").param("username", CPF).param("password", "errada"));
+        }
+        mvc.perform(post("/api/auth/login").param("username", CPF).param("password", "milscale123"))
+                .andExpect(status().is(423))
+                .andExpect(jsonPath("$.erro").value("Muitas tentativas erradas. Tente de novo em 15 minutos."));
+    }
+}
+```
+
+Run → FAIL de compilação (`ProtecaoContraForcaBruta` não existe).
+
+- [ ] **Step 2: `RelogioConfig` e `ProtecaoContraForcaBruta`**
+
+```java
+package br.com.milscale.milscale.adapters.config;
+
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
+import java.time.Clock;
+
+@Configuration
+public class RelogioConfig {
+
+    @Bean
+    public Clock relogio() {
+        return Clock.systemDefaultZone();
+    }
+}
+```
+```java
+package br.com.milscale.milscale.adapters.config;
+
+import org.springframework.stereotype.Component;
+
+import java.time.Clock;
+import java.time.Duration;
+import java.time.Instant;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+
+@Component
+public class ProtecaoContraForcaBruta {
+
+    static final int MAXIMO_DE_FALHAS = 5;
+    static final Duration TEMPO_DE_BLOQUEIO = Duration.ofMinutes(15);
+    private static final int LIMITE_DE_REGISTROS = 10_000;
+
+    private record Falhas(int quantidade, Instant ultima) {}
+
+    private final Map<String, Falhas> falhasPorCpf = new ConcurrentHashMap<>();
+    private final Clock relogio;
+
+    public ProtecaoContraForcaBruta(Clock relogio) {
+        this.relogio = relogio;
+    }
+
+    public boolean bloqueado(String cpf) {
+        Falhas f = falhasPorCpf.get(cpf);
+        if (f == null || f.quantidade() < MAXIMO_DE_FALHAS) return false;
+        if (expirou(f)) {
+            falhasPorCpf.remove(cpf);
+            return false;
+        }
+        return true;
+    }
+
+    public void registrarFalha(String cpf) {
+        if (falhasPorCpf.size() > LIMITE_DE_REGISTROS) falhasPorCpf.values().removeIf(this::expirou);
+        Instant agora = relogio.instant();
+        falhasPorCpf.merge(cpf, new Falhas(1, agora), (atual, nova) -> new Falhas(atual.quantidade() + 1, agora));
+    }
+
+    public void limpar(String cpf) {
+        falhasPorCpf.remove(cpf);
+    }
+
+    private boolean expirou(Falhas f) {
+        return Duration.between(f.ultima(), relogio.instant()).compareTo(TEMPO_DE_BLOQUEIO) >= 0;
+    }
+}
+```
+
+- [ ] **Step 3: Conta bloqueada no `MilScaleUserDetailsService`**
+
+Injetar `ProtecaoContraForcaBruta protecao` e acrescentar no builder: `.accountLocked(protecao.bloqueado(cpfNormalizado))`. O Spring checa o bloqueio **antes** da senha, então a resposta não revela se a senha estava certa.
+
+- [ ] **Step 4: Handlers do login no `SecurityConfig`** (injetar `ProtecaoContraForcaBruta`)
+
+```java
+            .formLogin(form -> form
+                .loginProcessingUrl("/api/auth/login")
+                .successHandler((req, res, a) -> {
+                    protecao.limpar(a.getName());
+                    res.setStatus(HttpServletResponse.SC_OK);
+                })
+                .failureHandler((req, res, e) -> {
+                    if (e instanceof LockedException) {
+                        responderErro(res, 423, "Muitas tentativas erradas. Tente de novo em 15 minutos.");
+                        return;
+                    }
+                    protecao.registrarFalha(somenteDigitos(req.getParameter("username")));
+                    responderErro(res, HttpServletResponse.SC_UNAUTHORIZED, "CPF ou senha inválidos");
+                })
+            )
+```
+```java
+    private static String somenteDigitos(String valor) {
+        return valor == null ? "" : valor.replaceAll("\\D", "");
+    }
+
+    private static void responderErro(HttpServletResponse res, int status, String mensagem) throws IOException {
+        res.setStatus(status);
+        res.setCharacterEncoding("UTF-8");
+        res.setContentType("application/json");
+        res.getWriter().write("{\"erro\":\"" + mensagem + "\"}");
+    }
+```
+(imports `org.springframework.security.authentication.LockedException`, `java.io.IOException`.)
+
+- [ ] **Step 5: Frontend mostra a mensagem certa**
+
+`src/api/client.ts`, no `login`:
+```ts
+    if (!res.ok) {
+      const corpo = await res.json().catch(() => null);
+      const padrao = res.status === 401 ? "CPF ou senha inválidos." : "Servidor indisponível. Tente de novo em instantes.";
+      throw new ApiError(res.status, corpo?.erro ?? padrao);
+    }
+```
+`src/pages/Login.tsx`: importar `ApiError` de `../api/client` e trocar o `catch { setErro("CPF ou senha inválidos."); }` por:
+```tsx
+    } catch (e) {
+      setErro(e instanceof ApiError ? e.message : "Servidor indisponível. Tente de novo em instantes.");
+```
+
+- [ ] **Step 6: Rodar tudo** — `mvn -q test` → PASS; `npm test && npm run build` → PASS.
+  Teste manual:
+  1. Senha errada: aparece "CPF ou senha inválidos".
+  2. Com o backend desligado: aparece "Servidor indisponível".
+  3. 5 senhas erradas seguidas: aparece a mensagem de bloqueio.
+
+- [ ] **Step 7: Checkpoint** — diff, sugerir `fix(seguranca): limite de tentativas de login e mensagens claras` e aguardar o usuário commitar.
+
+---
+
+### Task 15: Fuso horário fixo em America/Sao_Paulo
+
+**Achado da revisão:** a imagem `eclipse-temurin` roda em **UTC**. No Docker, três coisas usam o relógio da JVM:
+- `ServicoEscalado.isJaComecou()`: "o serviço das 08h já começou";
+- `Militar.getContadorRodizio()`: dias sem serviço;
+- o cron do lembrete, às 18h.
+
+Tudo passa a acontecer 3 horas antes do horário de Brasília. Por exemplo, um dia vira "sólido" às 05h, e o lembrete sai às 15h. Na máquina de desenvolvimento isso não aparece, porque ela já está em Brasília.
+
+**Correção:**
+- **JVM:** fixar o fuso padrão ao iniciar a aplicação;
+- **Container:** declarar `TZ` no Docker;
+- **Testes:** rodar em UTC, para provar que a aplicação corrige o fuso sozinha.
+
+**Files:**
+- Modify: `backend/src/main/java/br/com/milscale/milscale/MilScaleApplication.java`, `backend/Dockerfile`, `backend/pom.xml` (surefire), `backend/src/main/resources/application.properties`
+- Test: `backend/src/test/java/br/com/milscale/milscale/FusoHorarioTest.java`
+
+- [ ] **Step 1: Testes rodando em UTC** — no `pom.xml`, dentro de `<build><plugins>`:
+
+```xml
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <configuration>
+          <argLine>-Duser.timezone=UTC</argLine>
+        </configuration>
+      </plugin>
+```
+
+- [ ] **Step 2: Escrever o teste que falha**
+
+```java
+package br.com.milscale.milscale;
+
+import org.junit.jupiter.api.Test;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
+
+import java.util.TimeZone;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
+@SpringBootTest
+@ActiveProfiles("test")
+class FusoHorarioTest {
+
+    @Test
+    void aplicacaoRodaNoHorarioDeBrasiliaMesmoComJvmEmUtc() {
+        assertThat(TimeZone.getDefault().getID()).isEqualTo("America/Sao_Paulo");
+    }
+}
+```
+
+Run: `mvn -q test -Dtest=FusoHorarioTest` → FAIL (`UTC`).
+
+- [ ] **Step 3: Fixar o fuso**
+
+`MilScaleApplication.java`:
+```java
+public class MilScaleApplication {
+
+    public static final String FUSO_HORARIO = "America/Sao_Paulo";
+
+    static {
+        TimeZone.setDefault(TimeZone.getTimeZone(FUSO_HORARIO));
+    }
+
+    public static void main(String[] args) {
+        SpringApplication.run(MilScaleApplication.class, args);
+    }
+}
+```
+O bloco estático roda quando a classe é carregada: no `main` e também nos testes, porque o `@SpringBootTest` carrega essa classe como configuração.
+
+`backend/Dockerfile`, no estágio final:
+```dockerfile
+ENV TZ=America/Sao_Paulo
+ENTRYPOINT ["java", "-Duser.timezone=America/Sao_Paulo", "-jar", "app.jar", "--spring.profiles.active=mysql"]
+```
+`application.properties`: `spring.jackson.time-zone=America/Sao_Paulo`
+
+- [ ] **Step 4: Rodar tudo** — `mvn -q test` → PASS. **Todos** os testes agora rodam com a JVM em UTC e a aplicação corrigindo o fuso.
+
+- [ ] **Step 5: Checkpoint** — diff, sugerir `fix: fuso horario fixo em America/Sao_Paulo (JVM e container)` e aguardar o usuário commitar.
+
+---
+
+### Task 16: Trocas — sem pedido duplicado, revalidação na autorização e travamento otimista
+
+**Achados da revisão:**
+- **Pedidos duplicados:** o mesmo serviço pode ter **vários pedidos de troca em andamento** ao mesmo tempo. Se dois forem autorizados, vale o último e o outro substituto é descartado sem aviso.
+- **Autorização sem revalidar:** `autorizar` efetiva a troca sem conferir de novo nada do que pode ter mudado desde o pedido:
+  - o serviço pode já ter começado;
+  - o serviço pode ter trocado de dono (realocação por afastamento);
+  - o substituto pode ter entrado de afastamento;
+  - pode ter surgido um serviço a 2 dias (1x1).
+- **Decisões simultâneas:** duas decisões ao mesmo tempo sobre a mesma solicitação se sobrescrevem, porque não há controle de versão.
+
+**Files:**
+- Create: `backend/src/main/resources/db/migration/V3__versao_otimista.sql` (ou o próximo número livre)
+- Modify: `domain/SituacaoSolicitacao.java`, `domain/Solicitacao.java`, `domain/ServicoEscalado.java`, `adapters/persistence/SolicitacaoRepository.java`, `application/SolicitacaoService.java`, `adapters/web/TratadorDeErros.java`
+- Test: `backend/src/test/java/br/com/milscale/milscale/application/TrocaConsistenciaIntegrationTest.java`
+
+**Interfaces:**
+- Produces: `SituacaoSolicitacao.EM_ANDAMENTO` (`Set`), `SituacaoSolicitacao.emAndamento()`; colunas `versao`; 409 `{"erro":"Esse registro foi alterado por outra pessoa. Recarregue e tente de novo."}`.
+
+- [ ] **Step 1: Escrever os testes que falham**
+
+```java
+package br.com.milscale.milscale.application;
+
+import br.com.milscale.milscale.adapters.persistence.*;
+import br.com.milscale.milscale.domain.*;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDate;
+import java.util.List;
+
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+
+@SpringBootTest
+@ActiveProfiles("test")
+@Transactional
+class TrocaConsistenciaIntegrationTest {
+
+    @Autowired private SolicitacaoService solicitacaoService;
+    @Autowired private EscalaRepository escalaRepository;
+    @Autowired private ServicoEscaladoRepository servicoEscaladoRepository;
+    @Autowired private TipoServicoRepository tipoServicoRepository;
+    @Autowired private MilitarRepository militarRepository;
+    @Autowired private UsuarioRepository usuarioRepository;
+
+    private Militar a, b, c;
+    private String loginA, loginB;
+    private ServicoEscalado servicoDeA;
+
+    @BeforeEach
+    void montar() {
+        Usuario sargenteante = usuarioRepository.findByLogin("00000000001").orElseThrow();
+        TipoServico caboDaGuarda = tipoServicoRepository.findAll().stream()
+                .filter(t -> t.getNome().equals("Cabo da Guarda")).findFirst().orElseThrow();
+        List<Militar> cabos = militarRepository.findAll().stream()
+                .filter(m -> "Cb".equals(m.getPosto().getSigla()) && !"Aprov".equals(m.getSubunidade().getSigla()))
+                .limit(3).toList();
+        a = cabos.get(0); b = cabos.get(1); c = cabos.get(2);
+        loginA = usuarioRepository.findByMilitar_Id(a.getId()).orElseThrow().getLogin();
+        loginB = usuarioRepository.findByMilitar_Id(b.getId()).orElseThrow().getLogin();
+        LocalDate dia = LocalDate.now().plusMonths(2).withDayOfMonth(10);
+        Escala escala = escalaRepository.save(Escala.builder().descricao("t").dataInicio(dia.withDayOfMonth(1))
+                .dataFim(dia.withDayOfMonth(28)).situacao(SituacaoEscala.PUBLICADA).usuarioGeracao(sargenteante).build());
+        servicoDeA = servicoEscaladoRepository.save(ServicoEscalado.builder()
+                .escala(escala).data(dia).tipoServico(caboDaGuarda).militar(a).build());
+    }
+
+    @Test
+    void segundoPedidoParaOMesmoServico_eRecusado() {
+        solicitacaoService.criar(servicoDeA.getId(), b.getId(), "primeiro", loginA);
+        assertThatThrownBy(() -> solicitacaoService.criar(servicoDeA.getId(), c.getId(), "segundo", loginA))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("em andamento");
+    }
+
+    @Test
+    void autorizar_servicoQueMudouDeDono_eRecusado() {
+        Solicitacao s = solicitacaoService.criar(servicoDeA.getId(), b.getId(), "t", loginA);
+        solicitacaoService.confirmarSubstituto(s.getId(), true, null, loginB);
+        solicitacaoService.triagem(s.getId(), true, "ok");
+        servicoDeA.setMilitar(c);
+        servicoEscaladoRepository.save(servicoDeA);
+
+        assertThatThrownBy(() -> solicitacaoService.autorizar(s.getId(), true, "ok"))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("mudou de dono");
+    }
+
+    @Test
+    void autorizar_servicoQueJaComecou_eRecusado() {
+        Solicitacao s = solicitacaoService.criar(servicoDeA.getId(), b.getId(), "t", loginA);
+        solicitacaoService.confirmarSubstituto(s.getId(), true, null, loginB);
+        solicitacaoService.triagem(s.getId(), true, "ok");
+        servicoDeA.setData(LocalDate.now().minusDays(1));
+        servicoEscaladoRepository.save(servicoDeA);
+
+        assertThatThrownBy(() -> solicitacaoService.autorizar(s.getId(), true, "ok"))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("já começou");
+    }
+}
+```
+
+Run → FAIL (o segundo pedido é aceito; as autorizações passam).
+
+- [ ] **Step 2: Situações "em andamento"** — em `SituacaoSolicitacao`, depois das constantes:
+
+```java
+    public static final Set<SituacaoSolicitacao> EM_ANDAMENTO =
+            EnumSet.of(AGUARDANDO_SUBSTITUTO, EM_TRIAGEM, AGUARDANDO_AUTORIZACAO);
+
+    public boolean emAndamento() {
+        return EM_ANDAMENTO.contains(this);
+    }
+```
+(imports `java.util.EnumSet`, `java.util.Set`.)
+
+- [ ] **Step 3: Consultas** — em `SolicitacaoRepository`:
+
+```java
+    boolean existsByServicoOrigem_IdAndSituacaoIn(Long servicoId, Collection<SituacaoSolicitacao> situacoes);
+    boolean existsByServicoDestino_IdAndSituacaoIn(Long servicoId, Collection<SituacaoSolicitacao> situacoes);
+```
+
+- [ ] **Step 4: `SolicitacaoService`** — injetar `AfastamentoRepository afastamentoRepository` e acrescentar:
+
+```java
+    private void exigirServicoSemPedidoEmAndamento(ServicoEscalado servico) {
+        boolean ocupado = solicitacaoRepository.existsByServicoOrigem_IdAndSituacaoIn(servico.getId(), SituacaoSolicitacao.EM_ANDAMENTO)
+                || solicitacaoRepository.existsByServicoDestino_IdAndSituacaoIn(servico.getId(), SituacaoSolicitacao.EM_ANDAMENTO);
+        if (ocupado) {
+            throw new IllegalArgumentException("Já existe um pedido de troca em andamento para esse serviço");
+        }
+    }
+
+    private void exigirAindaValido(Solicitacao s) {
+        ServicoEscalado origem = s.getServicoOrigem();
+        exigirQueNaoComecou(origem);
+        exigirDono(origem, s.getSolicitante());
+        exigirSemAfastamento(s.getSubstituto(), origem.getData());
+        if (s.getTipoTroca() == TipoTroca.TROCA_MUTUA) {
+            ServicoEscalado destino = s.getServicoDestino();
+            exigirQueNaoComecou(destino);
+            exigirDono(destino, s.getSubstituto());
+            exigirSemAfastamento(s.getSolicitante(), destino.getData());
+            if (ficariaEm1x1(s.getSolicitante().getId(), destino.getData(), origem.getId())
+                    || ficariaEm1x1(s.getSubstituto().getId(), origem.getData(), destino.getId())) {
+                throw new IllegalArgumentException("A troca deixaria alguém em 1x1 — a escala mudou desde o pedido");
+            }
+        } else if (ficariaEm1x1(s.getSubstituto().getId(), origem.getData(), origem.getId())) {
+            throw new IllegalArgumentException("A troca deixaria o substituto em 1x1 — a escala mudou desde o pedido");
+        }
+    }
+
+    private static void exigirQueNaoComecou(ServicoEscalado servico) {
+        if (servico.isJaComecou()) {
+            throw new IllegalArgumentException("Esse serviço já começou — não dá mais pra autorizar a troca");
+        }
+    }
+
+    private static void exigirDono(ServicoEscalado servico, Militar esperado) {
+        if (servico.getMilitar() == null || !servico.getMilitar().getId().equals(esperado.getId())) {
+            throw new IllegalArgumentException("O serviço mudou de dono desde o pedido — peça a troca de novo");
+        }
+    }
+
+    private void exigirSemAfastamento(Militar militar, LocalDate dia) {
+        if (afastamentoRepository.existsByMilitar_IdAndDataInicioLessThanEqualAndDataFimGreaterThanEqual(militar.getId(), dia, dia)) {
+            throw new IllegalArgumentException(militar.getNomeExibicao() + " está afastado nesse dia");
+        }
+    }
+```
+Chamadas:
+- em `criar`, logo depois de buscar o serviço: `exigirServicoSemPedidoEmAndamento(servico);`;
+- em `criarTrocaMutua`: `exigirServicoSemPedidoEmAndamento(servicoOrigem); exigirServicoSemPedidoEmAndamento(servicoDestino);`;
+- em `autorizar`, dentro do `if (aprovado)`, **antes** de mexer nos serviços: `exigirAindaValido(s);`. As checagens de "travado" que já existem continuam.
+
+- [ ] **Step 5: Travamento otimista**
+
+`V3__versao_otimista.sql`:
+```sql
+alter table solicitacao add column versao bigint not null default 0;
+alter table servico_escalado add column versao bigint not null default 0;
+```
+Em `Solicitacao` e `ServicoEscalado`: `@Version private Long versao;` (`jakarta.persistence.Version`).
+`TratadorDeErros`:
+```java
+    @ExceptionHandler(ObjectOptimisticLockingFailureException.class)
+    public ResponseEntity<ErroResposta> conflitoDeVersao(ObjectOptimisticLockingFailureException ex) {
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(new ErroResposta("Esse registro foi alterado por outra pessoa. Recarregue e tente de novo."));
+    }
+```
+
+- [ ] **Step 6: Rodar tudo** — `mvn -q test` → PASS. O `TrocaIntervaloIntegrationTest` continua verde: cada teste dele cria um pedido só.
+
+- [ ] **Step 7: Checkpoint** — diff, sugerir `fix: trocas sem pedido duplicado, revalidadas na autorizacao, com versao otimista` e aguardar o usuário commitar.
+
+---
+
+### Task 17: Regerar período com histórico de trocas encerradas
+
+**Achado da revisão:** `GerarEscalaService.gerar` recusa regerar um período se existir **qualquer** solicitação ligada a ele, inclusive uma troca cancelada ou negada meses atrás. O período fica bloqueado para sempre. E não basta relaxar a checagem: as solicitações encerradas apontam por FK para os serviços que a regeneração apaga, então apagar daria erro de integridade.
+
+**Decisão:** só pedidos **em andamento** bloqueiam. As solicitações encerradas guardam uma fotografia do serviço (data e tipo), e na regeneração perdem o vínculo (FK nula). Assim o histórico de trocas continua legível.
+
+**Files:**
+- Create: `backend/src/main/resources/db/migration/V4__solicitacao_historico.sql` (ou o próximo número livre)
+- Modify: `domain/Solicitacao.java`, `adapters/persistence/SolicitacaoRepository.java`, `application/SolicitacaoService.java`, `application/GerarEscalaService.java`
+- Modify (front): `src/api/types.ts`, `pages/Trocas.tsx`, `pages/Historico.tsx`, `pages/FichaMilitar.tsx`, `pages/Painel.tsx`
+- Test: `backend/src/test/java/br/com/milscale/milscale/application/RegeracaoComHistoricoIntegrationTest.java`
+
+**Interfaces:**
+- Consumes: `SituacaoSolicitacao.emAndamento()` (Task 16).
+- Produces: `Solicitacao.servicoOrigemData` (`LocalDate`), `servicoOrigemTipo` (`String`), `servicoDestinoData` (`LocalDate`); `servicoOrigem` passa a aceitar `null`; `SolicitacaoRepository.findByServicoDestino_DataBetween(LocalDate, LocalDate)`.
+
+- [ ] **Step 1: Escrever os testes que falham**
+
+```java
+package br.com.milscale.milscale.application;
+
+import br.com.milscale.milscale.adapters.persistence.*;
+import br.com.milscale.milscale.domain.*;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDate;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+
+@SpringBootTest
+@ActiveProfiles("test")
+@Transactional
+class RegeracaoComHistoricoIntegrationTest {
+
+    @Autowired private GerarEscalaService gerarEscalaService;
+    @Autowired private SolicitacaoService solicitacaoService;
+    @Autowired private SolicitacaoRepository solicitacaoRepository;
+    @Autowired private ServicoEscaladoRepository servicoEscaladoRepository;
+    @Autowired private EscalaRepository escalaRepository;
+    @Autowired private UsuarioRepository usuarioRepository;
+
+    private Solicitacao pedidoNoPeriodo(LocalDate inicio, LocalDate fim) {
+        Usuario sargenteante = usuarioRepository.findByLogin("00000000001").orElseThrow();
+        Escala escala = gerarEscalaService.gerar(inicio, fim, sargenteante);
+        escala.setSituacao(SituacaoEscala.PUBLICADA);
+        escalaRepository.save(escala);
+        ServicoEscalado servico = servicoEscaladoRepository.findByEscala_Id(escala.getId()).stream()
+                .filter(s -> s.getTipoServico().getNome().equals("Guardas ao Quartel")).findFirst().orElseThrow();
+        String login = usuarioRepository.findByMilitar_Id(servico.getMilitar().getId()).orElseThrow().getLogin();
+        Long substituto = solicitacaoService.listarElegiveisParaTroca(servico.getId(), servico.getMilitar().getId()).get(0).getId();
+        return solicitacaoService.criar(servico.getId(), substituto, "teste", login);
+    }
+
+    @Test
+    void trocaCancelada_naoImpedeRegerar_eGuardaAFotografia() {
+        Usuario sargenteante = usuarioRepository.findByLogin("00000000001").orElseThrow();
+        LocalDate inicio = LocalDate.now().plusMonths(2).withDayOfMonth(1);
+        LocalDate fim = inicio.plusDays(4);
+        Solicitacao s = pedidoNoPeriodo(inicio, fim);
+        LocalDate dataOriginal = s.getServicoOrigem().getData();
+        solicitacaoService.cancelar(s.getId(), usuarioRepository.findByMilitar_Id(s.getSolicitante().getId()).orElseThrow().getLogin());
+
+        gerarEscalaService.gerar(inicio, fim, sargenteante);
+
+        Solicitacao depois = solicitacaoRepository.findById(s.getId()).orElseThrow();
+        assertThat(depois.getServicoOrigem()).isNull();
+        assertThat(depois.getServicoOrigemData()).isEqualTo(dataOriginal);
+        assertThat(depois.getServicoOrigemTipo()).isEqualTo("Guardas ao Quartel");
+    }
+
+    @Test
+    void trocaEmAndamento_continuaImpedindoRegerar() {
+        Usuario sargenteante = usuarioRepository.findByLogin("00000000001").orElseThrow();
+        LocalDate inicio = LocalDate.now().plusMonths(2).withDayOfMonth(1);
+        LocalDate fim = inicio.plusDays(4);
+        pedidoNoPeriodo(inicio, fim);
+
+        assertThatThrownBy(() -> gerarEscalaService.gerar(inicio, fim, sargenteante))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("em andamento");
+    }
+}
+```
+
+Run → FAIL (a troca cancelada bloqueia a regeneração, e os campos de fotografia não existem).
+
+- [ ] **Step 2: Migration** — `V4__solicitacao_historico.sql`:
+
+```sql
+alter table solicitacao add column servico_origem_data date;
+alter table solicitacao add column servico_origem_tipo varchar(60);
+alter table solicitacao add column servico_destino_data date;
+
+update solicitacao set
+    servico_origem_data = (select se.data from servico_escalado se where se.id_servico_escalado = solicitacao.id_servico_escalado),
+    servico_origem_tipo = (select ts.nome from servico_escalado se join tipo_servico ts on ts.id_tipo_servico = se.id_tipo_servico
+                           where se.id_servico_escalado = solicitacao.id_servico_escalado),
+    servico_destino_data = (select se.data from servico_escalado se where se.id_servico_escalado = solicitacao.id_servico_destino);
+
+alter table solicitacao modify column id_servico_escalado bigint null;
+```
+Se o H2 recusar o `modify column` ao rodar os testes, separe essa **última linha** por banco:
+- configure `spring.flyway.locations=classpath:db/migration,classpath:db/migration/{vendor}`;
+- crie `db/migration/mysql/V5__solicitacao_origem_opcional.sql` com a linha acima;
+- crie `db/migration/h2/V5__solicitacao_origem_opcional.sql` com `alter table solicitacao alter column id_servico_escalado set null;`;
+- registre o ajuste na nota de execução.
+
+- [ ] **Step 3: Entidade** — em `Solicitacao`:
+  - `@ManyToOne(optional = false)` do `servicoOrigem` passa a ser `@ManyToOne`;
+  - acrescentar:
+```java
+    @Column(name = "servico_origem_data")
+    private LocalDate servicoOrigemData;
+
+    @Column(name = "servico_origem_tipo", length = 60)
+    private String servicoOrigemTipo;
+
+    @Column(name = "servico_destino_data")
+    private LocalDate servicoDestinoData;
+```
+
+- [ ] **Step 4: Preencher a fotografia na criação** — no `SolicitacaoService`:
+  - em `criar`, no builder: `.servicoOrigemData(servico.getData()).servicoOrigemTipo(servico.getTipoServico().getNome())`;
+  - em `criarTrocaMutua`: `.servicoOrigemData(servicoOrigem.getData()).servicoOrigemTipo(servicoOrigem.getTipoServico().getNome()).servicoDestinoData(servicoDestino.getData())`.
+
+- [ ] **Step 5: Regeneração só bloqueia pedido em andamento** — `SolicitacaoRepository`: `List<Solicitacao> findByServicoDestino_DataBetween(LocalDate inicio, LocalDate fim);`.
+  Em `GerarEscalaService.gerar`, trocar o bloco que busca `solicitacoesNoPeriodo` e lança "Há pedidos de troca vinculados…" por:
+
+```java
+            List<Solicitacao> vinculadas = new ArrayList<>(solicitacaoRepository.findByServicoOrigem_DataBetween(dataInicio, dataFim));
+            vinculadas.addAll(solicitacaoRepository.findByServicoDestino_DataBetween(dataInicio, dataFim));
+            if (vinculadas.stream().anyMatch(s -> s.getSituacao().emAndamento())) {
+                throw new IllegalArgumentException(
+                        "Há pedidos de troca em andamento nesse período — resolva-os antes de gerar de novo");
+            }
+            for (Solicitacao s : vinculadas) {
+                if (s.getServicoOrigem() != null && dentroDoPeriodo(s.getServicoOrigem().getData(), dataInicio, dataFim)) s.setServicoOrigem(null);
+                if (s.getServicoDestino() != null && dentroDoPeriodo(s.getServicoDestino().getData(), dataInicio, dataFim)) s.setServicoDestino(null);
+            }
+            solicitacaoRepository.saveAll(vinculadas);
+```
+```java
+    private static boolean dentroDoPeriodo(LocalDate dia, LocalDate inicio, LocalDate fim) {
+        return !dia.isBefore(inicio) && !dia.isAfter(fim);
+    }
+```
+O Hibernate executa os `UPDATE` antes dos `DELETE` no flush, então a FK é liberada antes de o serviço ser apagado.
+
+- [ ] **Step 6: Frontend usa a fotografia**
+  - `src/api/types.ts`, na interface `Solicitacao`: `servicoOrigem: ServicoEscalado;` → `servicoOrigem?: ServicoEscalado | null;`, e acrescentar `servicoOrigemData: string; servicoOrigemTipo: string; servicoDestinoData?: string | null;`.
+  - Em `Trocas.tsx`, `Historico.tsx`, `FichaMilitar.tsx` e `Painel.tsx`, trocar:
+    - `s.servicoOrigem.tipoServico.nome` → `s.servicoOrigemTipo`;
+    - `s.servicoOrigem.data` → `s.servicoOrigemData`;
+    - `s.servicoDestino.data` → `s.servicoDestinoData`, e a condição `s.servicoDestino &&` → `s.servicoDestinoData &&`.
+  - Nas páginas que usam `t` em vez de `s`, o mesmo, com `t.`.
+  - Conferir: `grep -rn "servicoOrigem\.\|servicoDestino\." frontend/src` → nenhuma linha.
+
+- [ ] **Step 7: Rodar tudo** — `mvn -q test` → PASS; `npm test && npm run build` → PASS.
+
+- [ ] **Step 8: Checkpoint** — diff, sugerir `fix: regerar periodo com historico de trocas encerradas preservado` e aguardar o usuário commitar.
+
+---
+
+### Task 18: Escala do mês por mês (todas as escalas) e listagem leve
+
+**Achados da revisão:**
+- **Mostra só uma escala:** a tela Escala do mês busca `GET /api/escalas`, pega **só a primeira** (`lista[0]`) e mostra os serviços dela. Se o mês foi gerado em duas partes (dias 1–15 e 16–30), metade some da tela, e os botões de mês anterior/próximo só navegam dentro dessa escala.
+- **Payload pesado:** `GET /api/escalas` devolve **todas** as escalas com **todos** os serviços dentro, e de cada uma o frontend usa só o `id`.
+
+**Correção:**
+- **Mês inteiro:** novo `GET /api/escalas/mes?mes=AAAA-MM`, com os serviços do mês de todas as escalas e o resumo das escalas que tocam o mês.
+- **Listagem leve:** `GET /api/escalas` passa a devolver só resumos.
+- **Travar por data:** travar/destravar passa a ser por data, sem precisar do id da escala.
+
+**Files:**
+- Create: `application/EscalaResumo.java`, `application/EscalaDoMes.java`
+- Modify: `adapters/persistence/EscalaRepository.java`, `adapters/persistence/ServicoEscaladoRepository.java`, `application/ConsultaEscalaService.java`, `application/BloqueioDiaService.java`, `adapters/web/EscalaController.java`
+- Modify (front): `src/api/types.ts`, `pages/EscalaDoMes.tsx`, `pages/Painel.tsx`
+- Test: `backend/src/test/java/br/com/milscale/milscale/adapters/web/EscalaDoMesIntegrationTest.java`
+
+**Interfaces:**
+- Produces:
+  - `record EscalaResumo(Long id, String descricao, LocalDate dataInicio, LocalDate dataFim, SituacaoEscala situacao, LocalDateTime dataPublicacao, long totalServicos, long vagasAbertas)`
+  - `record EscalaDoMes(List<EscalaResumo> escalas, List<ServicoEscalado> servicos)`
+  - `GET /api/escalas` → `List<EscalaResumo>`; `GET /api/escalas/mes?mes=` → `EscalaDoMes`
+  - `POST /api/escalas/dias/{data}/travar|destravar`
+  - `BloqueioDiaService.travar(LocalDate)`, `destravar(LocalDate)`
+
+- [ ] **Step 1: Escrever os testes que falham**
+
+```java
+package br.com.milscale.milscale.adapters.web;
+
+import br.com.milscale.milscale.adapters.persistence.UsuarioRepository;
+import br.com.milscale.milscale.application.GerarEscalaService;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.security.test.context.support.WithUserDetails;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDate;
+import java.time.YearMonth;
+
+import static org.hamcrest.Matchers.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+
+@SpringBootTest
+@AutoConfigureMockMvc
+@ActiveProfiles("test")
+@Transactional
+class EscalaDoMesIntegrationTest {
+
+    @Autowired private MockMvc mvc;
+    @Autowired private GerarEscalaService gerarEscalaService;
+    @Autowired private UsuarioRepository usuarioRepository;
+
+    @Test
+    @WithUserDetails("00000000001")
+    void mesGeradoEmDuasPartes_mostraAsDuas() throws Exception {
+        var sargenteante = usuarioRepository.findByLogin("00000000001").orElseThrow();
+        YearMonth mes = YearMonth.now().plusMonths(2);
+        gerarEscalaService.gerar(mes.atDay(1), mes.atDay(3), sargenteante);
+        gerarEscalaService.gerar(mes.atDay(4), mes.atDay(6), sargenteante);
+
+        mvc.perform(get("/api/escalas/mes").param("mes", mes.toString()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.escalas", hasSize(2)))
+                .andExpect(jsonPath("$.servicos[*].data", hasItems(mes.atDay(1).toString(), mes.atDay(6).toString())));
+    }
+
+    @Test
+    @WithUserDetails("00000000001")
+    void listaDeEscalas_naoTrazOsServicos() throws Exception {
+        var sargenteante = usuarioRepository.findByLogin("00000000001").orElseThrow();
+        LocalDate inicio = LocalDate.now().plusMonths(2).withDayOfMonth(1);
+        gerarEscalaService.gerar(inicio, inicio.plusDays(2), sargenteante);
+
+        mvc.perform(get("/api/escalas"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(not(containsString("\"servicos\""))))
+                .andExpect(jsonPath("$[0].totalServicos", greaterThan(0)));
+    }
+}
+```
+
+Run → FAIL (`/api/escalas/mes` não existe e a lista traz `servicos`).
+
+- [ ] **Step 2: Records e consultas**
+
+```java
+package br.com.milscale.milscale.application;
+
+import br.com.milscale.milscale.domain.SituacaoEscala;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+
+public record EscalaResumo(Long id, String descricao, LocalDate dataInicio, LocalDate dataFim,
+                           SituacaoEscala situacao, LocalDateTime dataPublicacao,
+                           long totalServicos, long vagasAbertas) {}
+```
+```java
+package br.com.milscale.milscale.application;
+
+import br.com.milscale.milscale.domain.ServicoEscalado;
+import java.util.List;
+
+public record EscalaDoMes(List<EscalaResumo> escalas, List<ServicoEscalado> servicos) {}
+```
+`EscalaRepository`: `List<Escala> findByDataInicioLessThanEqualAndDataFimGreaterThanEqualOrderByDataInicioAsc(LocalDate fim, LocalDate inicio);`
+`ServicoEscaladoRepository`: `long countByEscala_Id(Long escalaId);` e `long countByEscala_IdAndMilitarIsNull(Long escalaId);`
+
+- [ ] **Step 3: `ConsultaEscalaService`**
+
+```java
+    public List<EscalaResumo> listar() {
+        return escalaRepository.findAllByOrderByDataInicioDesc().stream().map(this::resumo).toList();
+    }
+
+    public EscalaDoMes doMes(YearMonth mes) {
+        LocalDate inicio = mes.atDay(1);
+        LocalDate fim = mes.atEndOfMonth();
+        List<EscalaResumo> escalas = escalaRepository
+                .findByDataInicioLessThanEqualAndDataFimGreaterThanEqualOrderByDataInicioAsc(fim, inicio)
+                .stream().map(this::resumo).toList();
+        return new EscalaDoMes(escalas, servicoEscaladoRepository.findByDataBetween(inicio, fim));
+    }
+
+    private EscalaResumo resumo(Escala e) {
+        return new EscalaResumo(e.getId(), e.getDescricao(), e.getDataInicio(), e.getDataFim(), e.getSituacao(),
+                e.getDataPublicacao(), servicoEscaladoRepository.countByEscala_Id(e.getId()),
+                servicoEscaladoRepository.countByEscala_IdAndMilitarIsNull(e.getId()));
+    }
+```
+`GET /api/escalas/{id}` (`buscar`) continua existindo.
+
+- [ ] **Step 4: Travamento por data** — `BloqueioDiaService`:
+  - `travar(LocalDate data)` / `destravar(LocalDate data)` usam `servicoEscaladoRepository.findByData(data)`;
+  - a checagem de "dia já começou" da Task 9 continua, se ela já tiver sido feita;
+  - atualizar o `BloqueioDiaIntegrationTest` (Task 9) para `travar(ontem)` / `travar(amanha)`.
+
+- [ ] **Step 5: `EscalaController`**
+
+```java
+    @PreAuthorize("hasAnyRole('CABO_SARGENTEACAO', 'SD_EP_SARGENTEACAO', 'SARGENTEANTE')")
+    @GetMapping
+    public List<EscalaResumo> listar() {
+        return consultaEscalaService.listar();
+    }
+
+    @PreAuthorize("hasAnyRole('CABO_SARGENTEACAO', 'SD_EP_SARGENTEACAO', 'SARGENTEANTE')")
+    @GetMapping("/mes")
+    public EscalaDoMes doMes(@RequestParam String mes) {
+        return consultaEscalaService.doMes(YearMonth.parse(mes));
+    }
+
+    @PreAuthorize("hasRole('SARGENTEANTE')")
+    @PostMapping("/dias/{data}/travar")
+    public List<ServicoEscalado> travarDia(@PathVariable String data, Authentication auth) {
+        List<ServicoEscalado> resultado = bloqueioDiaService.travar(LocalDate.parse(data));
+        auditoriaService.registrar(auth.getName(), "DIA_TRAVADO", data);
+        return resultado;
+    }
+```
+(`destravarDia` no mesmo formato; remover as rotas antigas `/{id}/dias/{data}/...`. A rota `/mes` fica declarada antes de `/{id}` no arquivo, só por legibilidade: o Spring resolve pela especificidade.)
+
+- [ ] **Step 6: Frontend**
+  - **`src/api/types.ts`:** acrescentar:
+```ts
+export interface EscalaResumo {
+  id: number;
+  descricao: string;
+  dataInicio: string;
+  dataFim: string;
+  situacao: "RASCUNHO" | "PUBLICADA" | "ENCERRADA";
+  dataPublicacao?: string;
+  totalServicos: number;
+  vagasAbertas: number;
+}
+
+export interface EscalaDoMes {
+  escalas: EscalaResumo[];
+  servicos: ServicoEscalado[];
+}
+```
+  - **`pages/EscalaDoMes.tsx`, carregamento:**
+    - estado `mesExibido` começa no mês atual;
+    - `carregar()` busca `/api/escalas/mes?mes=AAAA-MM` e guarda `escalas` e `servicos`;
+    - os botões de mês anterior/próximo trocam `mesExibido` e recarregam;
+    - `selecionada` e `totalEscalas` saem.
+  - **`pages/EscalaDoMes.tsx`, cartão de resumo:**
+    - vira uma lista das `escalas` do mês, com descrição, período, situação e "Publicar" (só nas `RASCUNHO`, só para quem pode publicar);
+    - as métricas passam a vir de `servicos`: "Vagas previstas", "Vagas em aberto" e "Dias com escala".
+  - **`pages/EscalaDoMes.tsx`, calendário e dia:**
+    - no calendário, `dentroDaEscala` vira "o dia tem serviços" (`servicosPorDia.has(dataStr)`);
+    - travar/destravar chamam `/api/escalas/dias/${diaEscolhido}/travar` e depois `carregar()`;
+    - depois de gerar, `mesExibido` vai para o mês da `dataInicio` gerada.
+  - **`pages/Painel.tsx`:** trocar a busca de `/api/escalas` + detalhe por `/api/escalas/mes?mes=<mês atual>` e calcular `vagasAbertas` em `servicos.filter(s => !s.militar).length`. O rótulo usa o nome do mês atual.
+
+- [ ] **Step 7: Rodar tudo** — `mvn -q test` → PASS; `npm test && npm run build` → PASS.
+  Teste manual:
+  1. Gerar os dias 1–10 e depois os dias 11–20 do mês que vem.
+  2. Na Escala do mês, os 20 dias aparecem e as duas escalas estão listadas, cada uma com seu botão "Publicar".
+  3. Travar um dia futuro funciona.
+
+- [ ] **Step 8: Checkpoint** — diff, sugerir `fix: escala do mes mostra o mes inteiro; listagem de escalas leve` e aguardar o usuário commitar.
 
 ---
 
