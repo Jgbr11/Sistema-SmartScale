@@ -42,8 +42,8 @@
 | 4 | 3 — Singleton ×2 e variabilidade por configuração | ✅ Concluída | `86c5ec8` | `CatalogoDeCriterios` (núcleo) e `IdentidadeDaOrganizacao` (enum); `VariabilidadeConfig` + `milscale.lps.criterio-ordenacao`; `GET /api/organizacao` público; front usa `useOrganizacao`; core 7, backend 60, front 9 verdes |
 | 5 | 4 — Template Method ×3: relatórios CSV | ✅ Concluída | `f7c3067` | `RelatorioCsv` (`gerar()` final) + 3 relatórios; proteção contra injeção de fórmula; `/api/relatorios/*` para a sargenteação; botão "Baixar CSV" em 4 telas; backend 69, front 9 verdes |
 | 6 | 5 — CRUDs completos | ✅ Concluída | `15aadf3` | Excluir qualificação (recusa se em uso), editar feriado (`DadosFeriado` + `TipoFeriado`), editar afastamento (lote inteiro, com reconciliação); backend 80, front 9 verdes |
-| 7 | 6 — CRUD de Postos e graduações e de Subunidades | 🟡 Aguardando commit | — | `PostoGraduacaoService`/`SubunidadeService` + controllers (substituem o `CadastroApoioController`); 2 telas novas no menu Configuração; subunidade em uso é desativada; backend 91, front 9 verdes |
-| 8 | 7 — Documentação de padrões e variabilidade | ⬜ Pendente | — | — |
+| 7 | 6 — CRUD de Postos e graduações e de Subunidades | ✅ Concluída | `f007df0` | `PostoGraduacaoService`/`SubunidadeService` + controllers (substituem o `CadastroApoioController`); 2 telas novas no menu Configuração; subunidade em uso é desativada; backend 91, front 9 verdes |
+| 8 | 7 — Documentação de padrões e variabilidade | 🟡 Aguardando commit | — | `docs/PADROES_DE_PROJETO.md` (classes principais, 3 padrões com código real, perguntas da prova de autoria) e `docs/VARIABILIDADE.md` (modelo de features, binding time, demonstração com resultado real) |
 | 9 | 8 — Release 1.0.0 e roteiro da gravação | ⬜ Pendente | — | — |
 
 ## Como o plano cobre o PDF
@@ -1732,7 +1732,7 @@ Apagar `CadastroApoioController.java`.
 **Files:**
 - Create: `docs/PADROES_DE_PROJETO.md`, `docs/VARIABILIDADE.md`
 
-- [ ] **Step 1: `docs/PADROES_DE_PROJETO.md`** — para cada padrão:
+- [x] **Step 1: `docs/PADROES_DE_PROJETO.md`** — para cada padrão:
   - o problema que ele resolve **neste sistema**;
   - os arquivos (links relativos);
   - um trecho de 10 a 20 linhas do código real;
@@ -1766,7 +1766,7 @@ Apagar `CadastroApoioController.java`.
 ```
 Preencher cada seção com o conteúdo real das Tasks 2–4. Para o Singleton, explicar a diferença entre as duas implementações: o *holder* preguiçoso do `CatalogoDeCriterios` e o `enum` da `IdentidadeDaOrganizacao`. O enum é à prova de reflexão e de serialização.
 
-- [ ] **Step 2: `docs/VARIABILIDADE.md`** — o exemplo de variabilidade planejada, com o modelo de features em texto:
+- [x] **Step 2: `docs/VARIABILIDADE.md`** — o exemplo de variabilidade planejada, com o modelo de features em texto:
 ```markdown
 # Variabilidade planejada — linha de produto SmartScale
 
@@ -1791,7 +1791,22 @@ MILSCALE_CRITERIO_ORDENACAO=menor-carga   →   VariabilidadeConfig registra os 
 3. escolhe ou cria um CriterioDeOrdenacao;
 4. chama MotorDeRodizio.preencherVagas — sem alterar o núcleo (ver MotorDeRodizioTest.outroProdutoDaLinha_...).
 ```
-- [ ] **Step 3: Checkpoint** — diff, sugerir `docs: padroes de projeto e variabilidade da linha de produto` e aguardar o usuário commitar.
+- [x] **Step 3: Checkpoint** — diff, sugerir `docs: padroes de projeto e variabilidade da linha de produto` e aguardar o usuário commitar.
+
+**Notas de execução (2026-10-02):**
+- **`PADROES_DE_PROJETO.md`:**
+  - os trechos de código são copiados dos arquivos reais;
+  - a tabela de classes principais foi conferida contra o código: atributos e métodos públicos existentes;
+  - **seções a mais:**
+    - a comparação entre as duas formas de Singleton;
+    - passo abstrato × gancho no Template Method;
+    - os comandos para rodar os testes de cada padrão;
+    - 6 perguntas prováveis na prova de autoria, com a resposta.
+- **`VARIABILIDADE.md`:**
+  - modelo de features com 4 tipos: obrigatória, alternativa, opcional e ponto de adaptação. Postos e Subunidades entram como ponto de adaptação;
+  - *binding time* na inicialização, com a falha imediata quando o nome do critério não existe;
+  - tabela da demonstração com o resultado real da Task 3;
+  - passo a passo de reuso para um novo produto.
 
 ---
 
