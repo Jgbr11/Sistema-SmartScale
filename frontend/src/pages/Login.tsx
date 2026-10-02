@@ -1,10 +1,12 @@
 import { useState, type FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import { useOrganizacao } from "../hooks/useOrganizacao";
 import { mascararCpf, somenteDigitos } from "../utils/mascaras";
 
 export function LoginPage() {
   const { entrar } = useAuth();
+  const organizacao = useOrganizacao();
   const navigate = useNavigate();
   const [login, setLogin] = useState("");
   const [senha, setSenha] = useState("");
@@ -31,7 +33,7 @@ export function LoginPage() {
       <div className="login-ident">
         <h1>MilScale</h1>
         <p style={{ fontSize: 20, fontWeight: 500, color: "#c7d2ba" }}>
-          Escala de serviço do batalhão
+          {organizacao ? `Escala de serviço do ${organizacao.nome}` : "Escala de serviço"}
         </p>
         <div className="rule" />
         <p>

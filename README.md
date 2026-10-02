@@ -125,6 +125,7 @@ Pra recomeçar do zero: `docker compose down -v`.
 | `MILSCALE_CORS_ORIGENS` | backend | origens aceitas pelo CORS (padrão `http://localhost:*`) — só importa se o front estiver em outro domínio |
 | `VITE_API_URL` | frontend (build) | endereço do backend; vazio = mesmo domínio |
 | `MAIL_*`, `MILSCALE_EMAIL_HABILITADO`, `MILSCALE_LEMBRETE_CRON` | backend | lembrete de serviço por email |
+| `MILSCALE_CRITERIO_ORDENACAO` | backend / `.env` | critério da fila da escala (variabilidade da linha de produto): `maior-folga` (padrão), `menor-carga` ou `mais-moderno` |
 
 ## Testes
 

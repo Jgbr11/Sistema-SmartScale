@@ -1,6 +1,7 @@
 package br.com.milscale.milscale.application;
 
 import br.com.milscale.milscale.adapters.persistence.ServicoEscaladoRepository;
+import br.com.milscale.milscale.domain.IdentidadeDaOrganizacao;
 import br.com.milscale.milscale.domain.ServicoEscalado;
 import br.com.milscale.milscale.domain.SituacaoEscala;
 import org.slf4j.Logger;
@@ -55,7 +56,7 @@ public class LembreteServicoScheduler {
             String corpo = "Olá, " + s.getMilitar().getNomeExibicao() + ".\n\n"
                     + "Você está escalado para \"" + s.getTipoServico().getNome() + "\" no dia " + dia.format(DATA_BR) + ".\n\n"
                     + "Qualquer imprevisto, procure o Cabo ou o Sargenteante com antecedência.\n\n"
-                    + "— MilScale, 5º Batalhão de Suprimento";
+                    + "— " + IdentidadeDaOrganizacao.INSTANCIA.assinatura();
             emailService.enviar(email, assunto, corpo);
             processados++;
         }

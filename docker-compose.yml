@@ -32,6 +32,7 @@ services:
       DB_NAME: ${MYSQL_DATABASE:-milscale}
       DB_USER: ${MYSQL_USER:-milscale}
       DB_PASSWORD: ${MYSQL_PASSWORD:?defina MYSQL_PASSWORD no .env}
+      MILSCALE_CRITERIO_ORDENACAO: ${MILSCALE_CRITERIO_ORDENACAO:-maior-folga}
     ports:
       - "8080:8080"
     depends_on:

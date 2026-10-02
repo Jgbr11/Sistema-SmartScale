@@ -1,5 +1,6 @@
 package br.com.milscale.milscale.application;
 
+import br.com.smartscale.core.CriterioDeOrdenacao;
 import br.com.smartscale.core.MotorDeRodizio;
 import br.com.smartscale.core.SituacaoPessoa;
 import br.com.smartscale.core.TipoTurno;
@@ -37,7 +38,7 @@ public class GerarEscalaService {
     private final SolicitacaoRepository solicitacaoRepository;
     private final ElegibilidadeService elegibilidadeService;
     private final MotorDeRodizio<MilitarEmGeracao, TipoTurno> motor = new MotorDeRodizio<>();
-    private final CriterioOrdenacaoMilitar<MilitarEmGeracao> criterio = new CriterioOrdenacaoMilitar<>();
+    private final CriterioDeOrdenacao<MilitarEmGeracao> criterio;
 
     public GerarEscalaService(TipoServicoRepository tipoServicoRepository,
                                RequisitoServicoRepository requisitoServicoRepository,
@@ -47,7 +48,8 @@ public class GerarEscalaService {
                                EscalaRepository escalaRepository,
                                ServicoEscaladoRepository servicoEscaladoRepository,
                                SolicitacaoRepository solicitacaoRepository,
-                               ElegibilidadeService elegibilidadeService) {
+                               ElegibilidadeService elegibilidadeService,
+                               CriterioDeOrdenacao<MilitarEmGeracao> criterio) {
         this.tipoServicoRepository = tipoServicoRepository;
         this.requisitoServicoRepository = requisitoServicoRepository;
         this.regraEscalaRepository = regraEscalaRepository;
@@ -57,6 +59,7 @@ public class GerarEscalaService {
         this.servicoEscaladoRepository = servicoEscaladoRepository;
         this.solicitacaoRepository = solicitacaoRepository;
         this.elegibilidadeService = elegibilidadeService;
+        this.criterio = criterio;
     }
 
     @Transactional

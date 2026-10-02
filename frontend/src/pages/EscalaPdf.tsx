@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { api } from "../api/client";
 import type { ServicoEscalado } from "../api/types";
+import { useOrganizacao } from "../hooks/useOrganizacao";
 import { ordenarPorTipo } from "../utils/ordemTipos";
 
 /**
@@ -14,6 +15,7 @@ import { ordenarPorTipo } from "../utils/ordemTipos";
 export function EscalaPdfPage() {
   const { data } = useParams<{ data: string }>();
   const [servicos, setServicos] = useState<ServicoEscalado[] | null>(null);
+  const organizacao = useOrganizacao();
 
   useEffect(() => {
     if (!data) return;
@@ -43,7 +45,7 @@ export function EscalaPdfPage() {
       <div style={{ padding: "30px 40px", fontFamily: "'IBM Plex Sans Condensed', sans-serif" }}>
         <h1 style={{ fontSize: 20, marginBottom: 2 }}>MilScale — Escala do dia</h1>
         <p style={{ fontSize: 13, color: "#555", marginBottom: 20 }}>
-          5º Batalhão de Suprimento — {formatarDataExtensa(data)}
+          {organizacao ? `${organizacao.nome} — ` : ""}{formatarDataExtensa(data)}
         </p>
 
         {servicos.length === 0 ? (

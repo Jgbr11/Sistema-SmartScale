@@ -1,11 +1,13 @@
 import { useEffect, useState } from "react";
 import { api } from "../api/client";
 import type { Afastamento, Militar, TipoServico } from "../api/types";
+import { useOrganizacao } from "../hooks/useOrganizacao";
 import { TIPO_AFASTAMENTO_LABEL } from "../utils/afastamentoTipos";
 import { formatarCpf, formatarDataBR } from "../utils/formatadores";
 
 export function MilitarDetalheOverlay({ militarId, onFechar }: { militarId: number | null; onFechar: () => void }) {
   const [militar, setMilitar] = useState<Militar | null>(null);
+  const organizacao = useOrganizacao();
   const [funcoes, setFuncoes] = useState<TipoServico[]>([]);
   const [afastamento, setAfastamento] = useState<Afastamento | null>(null);
   const [carregando, setCarregando] = useState(true);
@@ -45,7 +47,7 @@ export function MilitarDetalheOverlay({ militarId, onFechar }: { militarId: numb
             <div style={{ color: "#fff", fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 13, letterSpacing: 0.5 }}>
               CARTEIRA DE IDENTIDADE MILITAR
             </div>
-            <div style={{ color: "var(--sidebar-sub)", fontSize: 10.5 }}>5º Batalhão de Suprimento</div>
+            <div style={{ color: "var(--sidebar-sub)", fontSize: 10.5 }}>{organizacao?.nome ?? ""}</div>
           </div>
           <button
             onClick={onFechar}

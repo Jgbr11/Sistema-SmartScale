@@ -38,8 +38,8 @@
 |---|---|---|---|---|
 | 1 | 0 — Preparação e confirmações com a equipe | ✅ Concluída | — (sem código) | 4 integrantes; Opção 01; Plano 5 antes dos Planos 2–4; branch `entrega/componentes-reuso`; linha de base verde (backend 51, frontend 9, build ok) |
 | 2 | 1 — Módulo `smartscale-core` (empacotamento) | ✅ Concluída | `5c921c8` | Núcleo movido para `smartscale-core` (`br.com.smartscale.core`), POM agregador na raiz, JAR 1.0.0 + sources instalado; core 4 testes, backend 51 verdes; Docker com contexto na raiz |
-| 3 | 2 — Strategy ×3: critérios de ordenação da fila | 🟡 Aguardando commit | — | `MilitarEmGeracao` extraída para `application/`; `CriterioMenorCargaNaGeracao` e `CriterioMaisModernoPrimeiro` criados; 4 testes novos, backend 55 verdes |
-| 4 | 3 — Singleton ×2 e variabilidade por configuração | ⬜ Pendente | — | — |
+| 3 | 2 — Strategy ×3: critérios de ordenação da fila | ✅ Concluída | `b42ab55` | `MilitarEmGeracao` extraída para `application/`; `CriterioMenorCargaNaGeracao` e `CriterioMaisModernoPrimeiro` criados; 4 testes novos, backend 55 verdes |
+| 4 | 3 — Singleton ×2 e variabilidade por configuração | 🟡 Aguardando commit | — | `CatalogoDeCriterios` (núcleo) e `IdentidadeDaOrganizacao` (enum); `VariabilidadeConfig` + `milscale.lps.criterio-ordenacao`; `GET /api/organizacao` público; front usa `useOrganizacao`; core 7, backend 60, front 9 verdes |
 | 5 | 4 — Template Method ×3: relatórios CSV | ⬜ Pendente | — | — |
 | 6 | 5 — CRUDs completos | ⬜ Pendente | — | — |
 | 7 | 6 — CRUD de Postos e graduações e de Subunidades | ⬜ Pendente | — | — |
@@ -534,7 +534,7 @@ public class CriterioMaisModernoPrimeiro implements CriterioDeOrdenacao<MilitarE
   - propriedade `milscale.lps.criterio-ordenacao` (`maior-folga` | `menor-carga` | `mais-moderno`)
   - `GET /api/organizacao` → `{ "nome", "sigla", "sistema" }` (público)
 
-- [ ] **Step 1: Testes (falham)**
+- [x] **Step 1: Testes (falham)**
 ```java
 package br.com.smartscale.core;
 
@@ -610,7 +610,7 @@ class VariabilidadeIntegrationTest {
 ```
 Run → FAIL de compilação.
 
-- [ ] **Step 2: Singleton clássico no núcleo** (*holder* preguiçoso: seguro entre threads sem `synchronized`)
+- [x] **Step 2: Singleton clássico no núcleo** (*holder* preguiçoso: seguro entre threads sem `synchronized`)
 ```java
 package br.com.smartscale.core;
 
@@ -651,7 +651,7 @@ public final class CatalogoDeCriterios {
 }
 ```
 
-- [ ] **Step 3: Singleton por enum no produto**
+- [x] **Step 3: Singleton por enum no produto**
 ```java
 package br.com.milscale.milscale.domain;
 
@@ -666,7 +666,7 @@ public enum IdentidadeDaOrganizacao {
 ```
 Usar no texto do e-mail de lembrete: trocar o literal `"— MilScale, 5º Batalhão de Suprimento"` por `"— " + IdentidadeDaOrganizacao.INSTANCIA.assinatura()`.
 
-- [ ] **Step 4: Variabilidade por configuração** — o ponto de variação RN01 é resolvido na engenharia da aplicação:
+- [x] **Step 4: Variabilidade por configuração** — o ponto de variação RN01 é resolvido na engenharia da aplicação:
 ```java
 package br.com.milscale.milscale.adapters.config;
 
@@ -705,7 +705,7 @@ milscale.lps.criterio-ordenacao=${MILSCALE_CRITERIO_ORDENACAO:maior-folga}
 ```
 Acrescentar `MILSCALE_CRITERIO_ORDENACAO` na tabela de variáveis do `README.md`.
 
-- [ ] **Step 5: Identidade exposta ao frontend**
+- [x] **Step 5: Identidade exposta ao frontend**
 ```java
 package br.com.milscale.milscale.adapters.web;
 
@@ -731,8 +731,20 @@ No frontend:
 - `Login.tsx` e `EscalaPdf.tsx` buscam `/api/organizacao` e usam `nome` no lugar do texto fixo "5º Batalhão de Suprimento";
 - enquanto a busca não volta, mostram só "MilScale".
 
-- [ ] **Step 6: Rodar** — `mvn -q install` → PASS; `npm run build` → PASS. Teste manual: subir com `MILSCALE_CRITERIO_ORDENACAO=mais-moderno`, gerar 3 dias e conferir na tela que os escalados mudam em relação ao `maior-folga`.
-- [ ] **Step 7: Checkpoint** — diff, sugerir `feat: catalogo de criterios e identidade da organizacao (Singleton) e criterio da fila por configuracao` e aguardar o usuário commitar.
+- [x] **Step 6: Rodar** — `mvn -q install` → PASS; `npm run build` → PASS. Teste manual: subir com `MILSCALE_CRITERIO_ORDENACAO=mais-moderno`, gerar 3 dias e conferir na tela que os escalados mudam em relação ao `maior-folga`.
+- [x] **Step 7: Checkpoint** — diff, sugerir `feat: catalogo de criterios e identidade da organizacao (Singleton) e criterio da fila por configuracao` e aguardar o usuário commitar.
+
+**Notas de execução (2026-10-02):**
+- **Steps 1–6 feitos.** Diferenças em relação ao texto acima:
+  - `CatalogoDeCriterios.nomes()` devolve os nomes em ordem alfabética (`TreeSet`), para a mensagem de erro sair estável;
+  - testes a mais: `asTresVariantesFicamRegistradasNoCatalogo` e `OrganizacaoControllerIntegrationTest` (endpoint público, sem login);
+  - `MILSCALE_CRITERIO_ORDENACAO` também entrou no `docker-compose.yml` e no `.env.example`;
+  - o `Login.tsx` não tinha o nome da OM, só "Escala de serviço do batalhão", que agora mostra o nome vindo da API. A carteira do militar (`MilitarDetalheOverlay`) também passou a usar a identidade;
+  - o hook `useOrganizacao` (`frontend/src/hooks/`) faz uma única requisição e a compartilha entre as telas.
+- **Verificação:**
+  - `mvn install` na raiz: núcleo 7/7 e backend 60/60; frontend com build ok e 9/9;
+  - teste de variabilidade com duas instâncias em memória, gerando 02–04/11/2026. Com `maior-folga`, o Graduado de Dia foi o 2 Sgt Zeni e o Cozinheiro de Dia, o Cb Fagundes; com `mais-moderno`, foram o 3 Sgt Lima e o Sd EP Cauan;
+  - os serviços em que só um posto é elegível não mudam.
 
 ---
 
