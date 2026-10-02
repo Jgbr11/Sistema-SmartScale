@@ -300,7 +300,7 @@ function EditarForm({ militar, onSalvou, onCancelar }: { militar: Militar; onSal
         <div className="field">
           <label>Subunidade</label>
           <select value={dados.subunidadeId} onChange={(e) => campo("subunidadeId", Number(e.target.value))}>
-            {subunidades.map((s) => <option key={s.id} value={s.id}>{s.nome}</option>)}
+            {subunidades.filter((s) => s.ativo || s.id === dados.subunidadeId).map((s) => <option key={s.id} value={s.id}>{s.nome}</option>)}
           </select>
         </div>
         <div className="field">

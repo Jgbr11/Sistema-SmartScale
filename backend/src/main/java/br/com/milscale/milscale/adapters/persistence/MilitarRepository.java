@@ -17,4 +17,8 @@ public interface MilitarRepository extends JpaRepository<Militar, Long> {
     List<Militar> findBySituacao(SituacaoPessoa situacao);
 
     boolean existsByQualificacoes_Id(Long qualificacaoId);
+
+    boolean existsByPosto_Id(Long postoId);
+
+    boolean existsBySubunidade_Id(Long subunidadeId);
 }

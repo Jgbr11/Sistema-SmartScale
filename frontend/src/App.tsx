@@ -10,6 +10,8 @@ import { EscalaDoDiaPage } from "./pages/EscalaDoDia";
 import { MinhaEscalaPage } from "./pages/MinhaEscala";
 
 import { QualificacoesPage } from "./pages/Qualificacoes";
+import { PostosGraduacaoPage } from "./pages/PostosGraduacao";
+import { SubunidadesPage } from "./pages/Subunidades";
 import { MissoesDispensasPage } from "./pages/MissoesDispensas";
 import { TrocasPage } from "./pages/Trocas";
 import { FeriadosPage } from "./pages/Feriados";
@@ -81,6 +83,8 @@ function App() {
           <Route path="/missoes" element={<RotaProtegida><MissoesDispensasPage /></RotaProtegida>} />
           <Route path="/bloqueio" element={<RotaProtegida><EscalaDoMesPage /></RotaProtegida>} />
           <Route path="/feriados" element={<RotaProtegida><FeriadosPage /></RotaProtegida>} />
+          <Route path="/postos-graduacao" element={<RotaProtegida><PostosGraduacaoPage /></RotaProtegida>} />
+          <Route path="/subunidades" element={<RotaProtegida><SubunidadesPage /></RotaProtegida>} />
           <Route path="/perfis" element={<RotaProtegida><PerfisPermissoesPage /></RotaProtegida>} />
           <Route path="/minha-conta" element={<RotaProtegida><MinhaContaPage /></RotaProtegida>} />
           <Route path="/militares/:id" element={<RotaProtegida><FichaMilitarPage /></RotaProtegida>} />

@@ -34,6 +34,8 @@ const MENU_POR_PERFIL: Record<string, { topo?: Item[]; grupos: Grupo[]; rodape?:
         { label: "Regras da escala", to: "/regras" },
         { label: "Bloqueio de dias", to: "/bloqueio" },
         { label: "Feriados", to: "/feriados" },
+        { label: "Postos e graduações", to: "/postos-graduacao" },
+        { label: "Subunidades", to: "/subunidades" },
       ]},
       { label: "ADMINISTRAÇÃO", itens: [
         { label: "Perfis e permissões", to: "/perfis" },

@@ -41,8 +41,8 @@
 | 3 | 2 — Strategy ×3: critérios de ordenação da fila | ✅ Concluída | `b42ab55` | `MilitarEmGeracao` extraída para `application/`; `CriterioMenorCargaNaGeracao` e `CriterioMaisModernoPrimeiro` criados; 4 testes novos, backend 55 verdes |
 | 4 | 3 — Singleton ×2 e variabilidade por configuração | ✅ Concluída | `86c5ec8` | `CatalogoDeCriterios` (núcleo) e `IdentidadeDaOrganizacao` (enum); `VariabilidadeConfig` + `milscale.lps.criterio-ordenacao`; `GET /api/organizacao` público; front usa `useOrganizacao`; core 7, backend 60, front 9 verdes |
 | 5 | 4 — Template Method ×3: relatórios CSV | ✅ Concluída | `f7c3067` | `RelatorioCsv` (`gerar()` final) + 3 relatórios; proteção contra injeção de fórmula; `/api/relatorios/*` para a sargenteação; botão "Baixar CSV" em 4 telas; backend 69, front 9 verdes |
-| 6 | 5 — CRUDs completos | 🟡 Aguardando commit | — | Excluir qualificação (recusa se em uso), editar feriado (`DadosFeriado` + `TipoFeriado`), editar afastamento (lote inteiro, com reconciliação); backend 80, front 9 verdes |
-| 7 | 6 — CRUD de Postos e graduações e de Subunidades | ⬜ Pendente | — | — |
+| 6 | 5 — CRUDs completos | ✅ Concluída | `15aadf3` | Excluir qualificação (recusa se em uso), editar feriado (`DadosFeriado` + `TipoFeriado`), editar afastamento (lote inteiro, com reconciliação); backend 80, front 9 verdes |
+| 7 | 6 — CRUD de Postos e graduações e de Subunidades | 🟡 Aguardando commit | — | `PostoGraduacaoService`/`SubunidadeService` + controllers (substituem o `CadastroApoioController`); 2 telas novas no menu Configuração; subunidade em uso é desativada; backend 91, front 9 verdes |
 | 8 | 7 — Documentação de padrões e variabilidade | ⬜ Pendente | — | — |
 | 9 | 8 — Release 1.0.0 e roteiro da gravação | ⬜ Pendente | — | — |
 
@@ -1263,7 +1263,7 @@ Hoje os dois cadastros só têm `GET`, no `CadastroApoioController`, que devolve
   - `POST /api/subunidades`, `PUT /api/subunidades/{id}` e `DELETE /api/subunidades/{id}`: o `DELETE` remove se a subunidade não estiver em uso e, se estiver, só desativa. A resposta é `{ "desativada": boolean }`.
 - **Validação:** a sigla é única nos dois cadastros, e o nível hierárquico é único nos postos. Repetir um deles dá 400 com mensagem clara.
 
-- [ ] **Step 1: Testes (falham)**
+- [x] **Step 1: Testes (falham)**
 ```java
 package br.com.milscale.milscale.application;
 
@@ -1347,7 +1347,7 @@ class CadastrosDeOrganizacaoIntegrationTest {
 ```
 A premissa do último teste é que a primeira subunidade do seed, em ordem de sigla, tem militares, o que vale para o seed atual. Rodar → falha de compilação.
 
-- [ ] **Step 2: DTOs**
+- [x] **Step 2: DTOs**
 ```java
 package br.com.milscale.milscale.application;
 
@@ -1376,7 +1376,7 @@ public record DadosSubunidade(
 }
 ```
 
-- [ ] **Step 3: Consultas nos repositórios**
+- [x] **Step 3: Consultas nos repositórios**
 ```java
 // PostoGraduacaoRepository
 List<PostoGraduacao> findAllByOrderByNivelHierarquicoAsc();
@@ -1400,7 +1400,7 @@ boolean existsBySubunidade_Id(Long subunidadeId);
 ```
 No cadastro, o `id` ainda não existe. Por isso a checagem de duplicidade passa `-1L` como `id`.
 
-- [ ] **Step 4: Services**
+- [x] **Step 4: Services**
 ```java
 package br.com.milscale.milscale.application;
 
@@ -1568,7 +1568,7 @@ public class SubunidadeService {
 ```
 `excluir` devolve `true` quando só desativou. O controller usa isso para dizer na tela o que aconteceu.
 
-- [ ] **Step 5: Controllers** (substituem o `CadastroApoioController`; a escrita fica registrada na auditoria)
+- [x] **Step 5: Controllers** (substituem o `CadastroApoioController`; a escrita fica registrada na auditoria)
 ```java
 package br.com.milscale.milscale.adapters.web;
 
@@ -1685,7 +1685,7 @@ public class SubunidadeController {
 ```
 Apagar `CadastroApoioController.java`.
 
-- [ ] **Step 6: Telas** — `PostosGraduacao.tsx` e `Subunidades.tsx`, no mesmo formato de `Qualificacoes.tsx`:
+- [x] **Step 6: Telas** — `PostosGraduacao.tsx` e `Subunidades.tsx`, no mesmo formato de `Qualificacoes.tsx`:
   - **Tabela:**
     - Postos: Nível, Sigla e Descrição;
     - Subunidades: Sigla, Nome e Situação ("Ativa"/"Inativa").
@@ -1695,11 +1695,35 @@ Apagar `CadastroApoioController.java`.
   - **Perfis:** as ações só aparecem para o Sargenteante (`usuario?.perfil === "SARGENTEANTE"`).
   - **Rotas e menu:** em `App.tsx`, `/postos-graduacao` e `/subunidades`. Em `Shell.tsx`, no grupo CONFIGURAÇÃO do Sargenteante, `{ label: "Postos e graduações", to: "/postos-graduacao" }` e `{ label: "Subunidades", to: "/subunidades" }`.
   - **Combos do cadastro de militar:** seguem usando as mesmas URLs de `GET`. O combo de subunidade deve mostrar só as ativas (`filter((s) => s.ativo)`).
-- [ ] **Step 7:** `mvn -q install` → PASS; `npm run build` → PASS. Teste manual, como Sargenteante:
+- [x] **Step 7:** `mvn -q install` → PASS; `npm run build` → PASS. Teste manual, como Sargenteante:
   - criar, editar e excluir um posto novo;
   - tentar excluir "Cb" (a tela deve recusar);
   - excluir uma subunidade em uso (ela deve ser desativada) e conferir que ela sai do combo de militares.
-- [ ] **Step 8: Checkpoint** — diff, sugerir `feat: CRUD de postos e graduacoes e de subunidades` e aguardar o usuário commitar.
+- [x] **Step 8: Checkpoint** — diff, sugerir `feat: CRUD de postos e graduacoes e de subunidades` e aguardar o usuário commitar.
+
+**Notas de execução (2026-10-02):**
+- **Steps 1–7 feitos.** Diferenças em relação ao texto acima:
+  - `PostoGraduacaoService.excluir` devolve o posto excluído, para a auditoria registrar a sigla;
+  - os DTOs ganharam mensagens de validação em português;
+  - testes a mais:
+    - `editarPostoMantendoAPropriaSigla_aceita` e `subunidadeComSiglaRepetida_recusa`;
+    - a unicidade também vale com maiúsculas e minúsculas diferentes (`cb`, `ccap`);
+    - o teste de "subunidade em uso" usa a CCAp pela sigla, sem depender da ordem;
+    - `CadastrosDeOrganizacaoWebIntegrationTest` (3): o militar escalado consulta, o Cabo recebe 403 ao cadastrar e um posto sem nível dá 400.
+- **Telas:**
+  - a edição é feita na própria linha;
+  - os erros do backend aparecem na tela;
+  - excluir uma subunidade em uso mostra um aviso de que ela foi desativada.
+- **Combos de subunidade:**
+  - no cadastro de militar, só aparecem as ativas;
+  - na edição da ficha, aparecem as ativas e a atual do militar.
+- **Verificação:**
+  - backend 80 → 91, frontend com build ok e 9/9;
+  - teste manual pelo proxy:
+    - criar, editar e excluir um posto;
+    - excluir "Cb" (recusado);
+    - criar e excluir uma subunidade (`desativada: false`);
+    - excluir a Aprov (`desativada: true`) e reativá-la em seguida.
 
 ---
 

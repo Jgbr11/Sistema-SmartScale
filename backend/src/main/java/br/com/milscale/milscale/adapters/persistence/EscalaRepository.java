@@ -7,4 +7,6 @@ import java.util.List;
 
 public interface EscalaRepository extends JpaRepository<Escala, Long> {
     List<Escala> findAllByOrderByDataInicioDesc();
+
+    boolean existsBySubunidade_Id(Long subunidadeId);
 }

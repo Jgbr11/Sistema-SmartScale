@@ -11,4 +11,8 @@ public interface RequisitoServicoRepository extends JpaRepository<RequisitoServi
     boolean existsByQualificacao_Id(Long qualificacaoId);
 
     boolean existsByQualificacoesExcluidas_Id(Long qualificacaoId);
+
+    boolean existsByPosto_Id(Long postoId);
+
+    boolean existsBySubunidade_IdOrSubunidadeExcluida_Id(Long subunidadeId, Long mesmaSubunidadeId);
 }

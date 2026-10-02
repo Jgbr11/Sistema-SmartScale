@@ -288,7 +288,7 @@ function NovoMilitarForm({
               <label>Subunidade</label>
               <select value={subunidadeId} onChange={(e) => setSubunidadeId(Number(e.target.value))}>
                 <option value="">Selecione</option>
-                {subunidades.map((s) => (
+                {subunidades.filter((s) => s.ativo).map((s) => (
                   <option key={s.id} value={s.id}>
                     {s.nome}
                   </option>
