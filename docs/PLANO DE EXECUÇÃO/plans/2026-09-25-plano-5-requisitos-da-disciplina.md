@@ -43,8 +43,8 @@
 | 5 | 4 — Template Method ×3: relatórios CSV | ✅ Concluída | `f7c3067` | `RelatorioCsv` (`gerar()` final) + 3 relatórios; proteção contra injeção de fórmula; `/api/relatorios/*` para a sargenteação; botão "Baixar CSV" em 4 telas; backend 69, front 9 verdes |
 | 6 | 5 — CRUDs completos | ✅ Concluída | `15aadf3` | Excluir qualificação (recusa se em uso), editar feriado (`DadosFeriado` + `TipoFeriado`), editar afastamento (lote inteiro, com reconciliação); backend 80, front 9 verdes |
 | 7 | 6 — CRUD de Postos e graduações e de Subunidades | ✅ Concluída | `f007df0` | `PostoGraduacaoService`/`SubunidadeService` + controllers (substituem o `CadastroApoioController`); 2 telas novas no menu Configuração; subunidade em uso é desativada; backend 91, front 9 verdes |
-| 8 | 7 — Documentação de padrões e variabilidade | 🟡 Aguardando commit | — | `docs/PADROES_DE_PROJETO.md` (classes principais, 3 padrões com código real, perguntas da prova de autoria) e `docs/VARIABILIDADE.md` (modelo de features, binding time, demonstração com resultado real) |
-| 9 | 8 — Release 1.0.0 e roteiro da gravação | ⬜ Pendente | — | — |
+| 8 | 7 — Documentação de padrões e variabilidade | ✅ Concluída | `748bdd8` | `docs/PADROES_DE_PROJETO.md` (classes principais, 3 padrões com código real, perguntas da prova de autoria) e `docs/VARIABILIDADE.md` (modelo de features, binding time, demonstração com resultado real) |
+| 9 | 8 — Release 1.0.0 e roteiro da gravação | 🟡 Aguardando commit | — | README, LICENSE e CHANGELOG do núcleo, embutidos em `META-INF/` do JAR; `docs/ROTEIRO_GRAVACAO.md` com 9 etapas; tag e gravação ficam com a equipe |
 
 ## Como o plano cobre o PDF
 
@@ -1815,9 +1815,9 @@ MILSCALE_CRITERIO_ORDENACAO=menor-carga   →   VariabilidadeConfig registra os 
 **Files:**
 - Create: `smartscale-core/README.md`, `smartscale-core/LICENSE`, `smartscale-core/CHANGELOG.md`, `docs/ROTEIRO_GRAVACAO.md`
 
-- [ ] **Step 1: `smartscale-core/README.md`** — descrição, instalação (`mvn install` ou dependência), exemplo mínimo de uso (o do `MotorDeRodizioTest`), contratos públicos e versão.
-- [ ] **Step 2: `smartscale-core/LICENSE`** — texto da licença MIT com `Copyright (c) 2026 Equipe SmartScale — PUCPR`. Se a equipe preferir outra licença, trocar aqui e no `pom.xml`.
-- [ ] **Step 3: `smartscale-core/CHANGELOG.md`**
+- [x] **Step 1: `smartscale-core/README.md`** — descrição, instalação (`mvn install` ou dependência), exemplo mínimo de uso (o do `MotorDeRodizioTest`), contratos públicos e versão.
+- [x] **Step 2: `smartscale-core/LICENSE`** — texto da licença MIT com `Copyright (c) 2026 Equipe SmartScale — PUCPR`. Se a equipe preferir outra licença, trocar aqui e no `pom.xml`.
+- [x] **Step 3: `smartscale-core/CHANGELOG.md`**
 ```markdown
 # Changelog — smartscale-core
 Formato: Keep a Changelog. Versionamento: SemVer.
@@ -1828,7 +1828,7 @@ Formato: Keep a Changelog. Versionamento: SemVer.
 - Contratos `PessoaEscalada`, `TipoTurno`, `CriterioDeOrdenacao` e `SituacaoPessoa`.
 - `CatalogoDeCriterios`: registro único de critérios de ordenação (ponto de variação RN01).
 ```
-- [ ] **Step 4: `docs/ROTEIRO_GRAVACAO.md`** — o passo a passo que a equipe grava, com as falas-guia:
+- [x] **Step 4: `docs/ROTEIRO_GRAVACAO.md`** — o passo a passo que a equipe grava, com as falas-guia:
   1. **O problema:** mostrar o README e a pasta `smartscale-core`. "O núcleo não sabe o que é um militar."
   2. **O empacotamento:** mostrar o `smartscale-core/pom.xml`, com coordenadas, versão, licença e manifesto.
   3. **Os testes do núcleo:** na raiz, rodar `mvn -pl smartscale-core clean install`. Mostrar os 3 testes passando e o JAR em `~/.m2/repository/br/com/smartscale/smartscale-core/1.0.0/`, junto com o `-sources.jar`.
@@ -1837,12 +1837,24 @@ Formato: Keep a Changelog. Versionamento: SemVer.
   6. **A variabilidade:** subir com `MILSCALE_CRITERIO_ORDENACAO=maior-folga`, gerar 3 dias; repetir com `mais-moderno` e comparar.
   7. **O fechamento:** mostrar o `CHANGELOG.md` e explicar como uma versão 1.1.0 seria publicada.
 - [ ] **Step 5: Tag** (ação do usuário, depois do commit): `git tag -a smartscale-core-v1.0.0 -m "smartscale-core 1.0.0"` e `git push origin smartscale-core-v1.0.0`.
-- [ ] **Step 6: Checkpoint** — diff, sugerir `docs: release 1.0.0 do smartscale-core e roteiro da gravacao` e aguardar o usuário commitar.
+- [x] **Step 6: Checkpoint** — diff, sugerir `docs: release 1.0.0 do smartscale-core e roteiro da gravacao` e aguardar o usuário commitar.
+
+**Notas de execução (2026-10-02):**
+- **Documentação dentro do JAR:** o `pom.xml` do núcleo ganhou um `<resources>` que copia README, LICENSE e CHANGELOG para `META-INF/`, como o slide "Documentação e metadados integrados" pede. O `backend/Dockerfile` passou a copiar esses três arquivos.
+- **Documentos do componente:**
+  - o README do núcleo tem API pública, exemplo de uso com `Enfermeiro`/`Plantao`, ponto de variação e regras de SemVer;
+  - o CHANGELOG registra a 1.0.0 com a data de 2026-10-02, que inclui o `CatalogoDeCriterios`.
+- **`docs/ROTEIRO_GRAVACAO.md`:** 9 etapas com comandos e falas, mais um checklist pós-gravação. O README principal ganhou a seção "Documentação da disciplina".
+- **Verificação:**
+  - `mvn install` na raiz: núcleo 7/7 e backend 91/91;
+  - frontend 9/9 e build ok;
+  - o JAR contém as 6 classes e `META-INF/{README.md,LICENSE,CHANGELOG.md}`, e o `-sources.jar` tem os 6 `.java`.
+- **Step 5 (tag) fica com o usuário,** depois do commit.
 
 ---
 
 ## Fechamento do Plano 5
 
-- [ ] Rodar na raiz `mvn clean install`, e no frontend `npm test && npm run build`.
-- [ ] Conferir a tabela "Como o plano cobre o PDF", item por item, contra o código.
+- [x] Rodar na raiz `mvn clean install`, e no frontend `npm test && npm run build`: núcleo 7, backend 91, frontend 9, todos verdes (2026-10-02).
+- [x] Conferir a tabela "Como o plano cobre o PDF", item por item, contra o código: todos os itens do código estão atendidos (8 padrões, 8 telas CRUD, 19 tabelas, variabilidade, componente empacotado). Faltam só a gravação e a tag, que ficam com a equipe.
 - [ ] A equipe grava o vídeo seguindo `docs/ROTEIRO_GRAVACAO.md` e declara o uso de IA conforme a regra PUCPR.

@@ -6,6 +6,7 @@ COPY smartscale-core/pom.xml smartscale-core/
 COPY backend/pom.xml backend/
 RUN mvn -q -B -pl backend -am dependency:go-offline -DexcludeGroupIds=br.com.smartscale
 COPY smartscale-core/src smartscale-core/src
+COPY smartscale-core/README.md smartscale-core/LICENSE smartscale-core/CHANGELOG.md smartscale-core/
 COPY backend/src backend/src
 RUN mvn -q -B -pl backend -am package
 

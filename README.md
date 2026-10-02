@@ -189,6 +189,13 @@ de qualquer um dos ~200 militares gerados.
 - **Afastamento cadastrado depois da escala pronta** realoca
   automaticamente só as vagas afetadas.
 
+## Documentação da disciplina
+
+- [Padrões de projeto](docs/PADROES_DE_PROJETO.md): Strategy, Singleton e Template Method no código, com as classes principais.
+- [Variabilidade](docs/VARIABILIDADE.md): modelo de features da linha SmartScale e escolha do critério da fila por configuração.
+- [Roteiro da gravação](docs/ROTEIRO_GRAVACAO.md): passo a passo do empacotamento do `smartscale-core`.
+- [smartscale-core](smartscale-core/README.md): README, [licença](smartscale-core/LICENSE) e [changelog](smartscale-core/CHANGELOG.md) do componente.
+
 ## Histórico
 
 O registro detalhado de cada entrega (decisões, bugs encontrados, como cada
