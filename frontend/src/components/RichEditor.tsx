@@ -1,11 +1,6 @@
 import { useEffect, useRef } from "react";
 
-/**
- * Editor simples de texto rico: permite colar imagem direto (Ctrl+V)
- * ou inserir por arquivo, misturado com texto normal. O conteúdo vira
- * HTML com as imagens embutidas como data URI — mesma lógica da foto
- * do militar, só que dentro do corpo do texto em vez de um campo à parte.
- */
+
 export function RichEditor({ valorInicial, onChange }: { valorInicial: string; onChange: (html: string) => void }) {
   const ref = useRef<HTMLDivElement>(null);
   const iniciou = useRef(false);

@@ -14,7 +14,7 @@ import java.util.Comparator;
  *
  * Generico sobre qualquer {@link PessoaEscalada} (nao só {@code Militar})
  * porque, durante a geracao, o motor trabalha com um wrapper mutavel
- * (ver GerarEscalaService.MilitarEmGeracao) que tambem implementa essa
+ * (ver application.MilitarEmGeracao) que tambem implementa essa
  * interface - o criterio nao precisa saber disso.
  */
 public class CriterioOrdenacaoMilitar<P extends PessoaEscalada> implements CriterioDeOrdenacao<P> {

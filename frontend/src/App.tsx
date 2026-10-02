@@ -30,8 +30,7 @@ function RotaProtegida({ children }: { children: React.ReactNode }) {
   return <Shell>{children}</Shell>;
 }
 
-/** Igual à protegida, mas sem o Shell (sem menu lateral) — usada pela
- *  página de impressão, que precisa ficar limpa pro PDF sair sem o menu. */
+
 function RotaProtegidaSemMenu({ children }: { children: React.ReactNode }) {
   const { usuario, carregando } = useAuth();
   if (carregando) return <div style={{ padding: 40 }}>Carregando…</div>;

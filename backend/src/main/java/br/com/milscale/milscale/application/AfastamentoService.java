@@ -12,20 +12,7 @@ import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 
-/**
- * RF26 - missoes, dispensas, ferias e licencas. Um afastamento impede a
- * escalacao do militar no periodo informado (RN15), ja aplicado em
- * GerarEscalaService.temImpedimento para GERACOES FUTURAS.
- *
- * Mas se a pessoa JA estava escalada num dia dentro do novo periodo de
- * afastamento (a escala foi gerada antes do afastamento existir), essa
- * vaga fica orfa se ninguem cuidar dela. Por isso, ao cadastrar um
- * afastamento, esta classe tambem RECONCILIA os servicos ja marcados
- * dentro do periodo: tenta achar outra pessoa elegivel e disponivel pra
- * cobrir a vaga (mesmo criterio de justica do motor - RN01), e corrige
- * o contador de rodizio de quem foi afastado (ele nao "gastou" o
- * proprio lugar na fila por um servico que nao vai cumprir).
- */
+
 @Service
 public class AfastamentoService {
 

@@ -9,15 +9,7 @@ import java.time.LocalDate;
 import java.util.HashSet;
 import java.util.Set;
 
-/**
- * Especializacao MilScale de {@link PessoaEscalada} (RF04).
- * "Pessoa escalada" do nucleo -> "militar" aqui.
- *
- * O contador de rodizio do MilScale e "dias sem tirar servico", calculado
- * a partir da data do ultimo servico (ver {@link #getContadorRodizio()}).
- * Por simplicidade nesta primeira fatia, guardamos a data do ultimo
- * servico diretamente no militar e calculamos o contador sob demanda.
- */
+
 @Entity
 @Table(name = "militar")
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder

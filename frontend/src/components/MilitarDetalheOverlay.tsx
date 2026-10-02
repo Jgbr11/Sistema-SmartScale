@@ -4,12 +4,6 @@ import type { Afastamento, Militar, TipoServico } from "../api/types";
 import { TIPO_AFASTAMENTO_LABEL } from "../utils/afastamentoTipos";
 import { formatarCpf, formatarDataBR } from "../utils/formatadores";
 
-/**
- * Tela sobreposta (não é um alert/popup nativo) com os dados do militar,
- * inspirada na carteira de identidade militar oficial: crachá com foto,
- * nome completo, nome de guerra, posto, cursos e em que funções da
- * escala ele pode servir.
- */
 export function MilitarDetalheOverlay({ militarId, onFechar }: { militarId: number | null; onFechar: () => void }) {
   const [militar, setMilitar] = useState<Militar | null>(null);
   const [funcoes, setFuncoes] = useState<TipoServico[]>([]);

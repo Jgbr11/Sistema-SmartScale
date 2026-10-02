@@ -1,7 +1,6 @@
 package br.com.milscale.milscale.application;
 
 import br.com.smartscale.core.MotorDeRodizio;
-import br.com.smartscale.core.PessoaEscalada;
 import br.com.smartscale.core.SituacaoPessoa;
 import br.com.smartscale.core.TipoTurno;
 import br.com.milscale.milscale.adapters.persistence.*;
@@ -10,7 +9,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
-import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -127,7 +125,7 @@ public class GerarEscalaService {
         // ultimo servico conhecido no banco, e vai avancando conforme escalamos.
         Map<Long, MilitarEmGeracao> estado = new HashMap<>();
         for (Militar m : ativos) {
-            estado.put(m.getId(), new MilitarEmGeracao(m, m.getDataUltimoServico()));
+            estado.put(m.getId(), new MilitarEmGeracao(m));
         }
 
         Escala escala = Escala.builder()
@@ -171,10 +169,10 @@ public class GerarEscalaService {
                 // tempo dentre os poucos disponiveis, nunca escolha arbitraria.
                 int faltantesAntesDoAperto = tipo.getEfetivoNecessario() - escolhidos.size();
                 if (faltantesAntesDoAperto > 0) {
-                    Set<Long> jaEscolhidosNesteTipo = escolhidos.stream().map(e -> e.militar.getId()).collect(Collectors.toSet());
+                    Set<Long> jaEscolhidosNesteTipo = escolhidos.stream().map(e -> e.militar().getId()).collect(Collectors.toSet());
                     // RN05, RF06 e RN15 continuam valendo - so o intervalo minimo e relaxado.
                     List<MilitarEmGeracao> poolRelaxado = disponiveis.stream()
-                            .filter(em -> !jaEscolhidosNesteTipo.contains(em.militar.getId()))
+                            .filter(em -> !jaEscolhidosNesteTipo.contains(em.militar().getId()))
                             .toList();
                     TipoTurnoComEfetivo turnoRestante = new TipoTurnoComEfetivo(tipo, faltantesAntesDoAperto);
                     List<MilitarEmGeracao> extras = motor.preencherVagas(poolRelaxado, turnoRestante, criterio);
@@ -182,11 +180,11 @@ public class GerarEscalaService {
                 }
 
                 for (MilitarEmGeracao escolhido : escolhidos) {
-                    escaladosHoje.add(escolhido.militar.getId());
+                    escaladosHoje.add(escolhido.militar().getId());
                     escolhido.marcarServico(dia);
                     gerados.add(ServicoEscalado.builder()
                             .escala(escala).data(dia).tipoServico(tipo)
-                            .militar(escolhido.militar).situacao(SituacaoServico.PREVISTO).build());
+                            .militar(escolhido.militar()).situacao(SituacaoServico.PREVISTO).build());
                 }
                 // Vagas que sobraram sem gente elegível/disponível também viram
                 // registro (id_militar NULL) - uma linha por vaga em aberto, não
@@ -209,8 +207,8 @@ public class GerarEscalaService {
         // Persiste o novo "ultimo servico" de quem foi escalado, para as proximas geracoes.
         for (MilitarEmGeracao em : estado.values()) {
             if (em.foiAtualizado()) {
-                em.militar.setDataUltimoServico(em.getUltimoServico());
-                militarRepository.save(em.militar);
+                em.militar().setDataUltimoServico(em.getUltimoServico());
+                militarRepository.save(em.militar());
             }
         }
 
@@ -229,38 +227,6 @@ public class GerarEscalaService {
         @Override public String getNome() { return original.getNome(); }
         @Override public int getEfetivoNecessario() { return efetivoRestante; }
         @Override public boolean isAtivo() { return original.isAtivo(); }
-    }
-
-    /**
-     * Wrapper que implementa {@link PessoaEscalada} do nucleo, mas com um
-     * "ultimo servico" mutavel durante a geracao - assim o motor sempre
-     * enxerga o contador de rodizio atualizado a cada vaga preenchida,
-     * sem precisar tocar o Militar gerenciado pelo JPA a cada iteracao.
-     */
-    private static class MilitarEmGeracao implements PessoaEscalada {
-        final Militar militar;
-        private LocalDate ultimoServico;
-        private boolean atualizado = false;
-
-        MilitarEmGeracao(Militar militar, LocalDate ultimoServico) {
-            this.militar = militar;
-            this.ultimoServico = ultimoServico;
-        }
-
-        LocalDate getUltimoServico() { return ultimoServico; }
-        boolean foiAtualizado() { return atualizado; }
-
-        void marcarServico(LocalDate data) {
-            this.ultimoServico = data;
-            this.atualizado = true;
-        }
-
-        @Override public Long getId() { return militar.getId(); }
-        @Override public String getNomeExibicao() { return militar.getNomeExibicao(); }
-        @Override public SituacaoPessoa getSituacao() { return militar.getSituacao(); }
-        @Override public long getContadorRodizio() {
-            return ultimoServico == null ? Integer.MAX_VALUE : ChronoUnit.DAYS.between(ultimoServico, LocalDate.now());
-        }
     }
 
     private static String nomeMesPtBr(LocalDate data) {

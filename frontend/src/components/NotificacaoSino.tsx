@@ -3,12 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { api } from "../api/client";
 import type { Notificacao } from "../api/types";
 
-/**
- * O sininho — badge com a contagem de não lidas, atualizado a cada
- * 30s (sem websocket nesse projeto, então é sondagem mesmo). Clicar
- * abre um painel com as mais recentes; clicar numa notificação marca
- * como lida e leva pra tela relacionada.
- */
+
 export function NotificacaoSino() {
   const [contagem, setContagem] = useState(0);
   const [notificacoes, setNotificacoes] = useState<Notificacao[]>([]);

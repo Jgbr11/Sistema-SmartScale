@@ -37,8 +37,8 @@
 | Ordem | Task | Status | Commit | Resumo |
 |---|---|---|---|---|
 | 1 | 0 — Preparação e confirmações com a equipe | ✅ Concluída | — (sem código) | 4 integrantes; Opção 01; Plano 5 antes dos Planos 2–4; branch `entrega/componentes-reuso`; linha de base verde (backend 51, frontend 9, build ok) |
-| 2 | 1 — Módulo `smartscale-core` (empacotamento) | 🟡 Aguardando commit | — | Núcleo movido para `smartscale-core` (`br.com.smartscale.core`), POM agregador na raiz, JAR 1.0.0 + sources instalado; core 4 testes, backend 51 verdes; Docker com contexto na raiz |
-| 3 | 2 — Strategy ×3: critérios de ordenação da fila | ⬜ Pendente | — | — |
+| 2 | 1 — Módulo `smartscale-core` (empacotamento) | ✅ Concluída | `5c921c8` | Núcleo movido para `smartscale-core` (`br.com.smartscale.core`), POM agregador na raiz, JAR 1.0.0 + sources instalado; core 4 testes, backend 51 verdes; Docker com contexto na raiz |
+| 3 | 2 — Strategy ×3: critérios de ordenação da fila | 🟡 Aguardando commit | — | `MilitarEmGeracao` extraída para `application/`; `CriterioMenorCargaNaGeracao` e `CriterioMaisModernoPrimeiro` criados; 4 testes novos, backend 55 verdes |
 | 4 | 3 — Singleton ×2 e variabilidade por configuração | ⬜ Pendente | — | — |
 | 5 | 4 — Template Method ×3: relatórios CSV | ⬜ Pendente | — | — |
 | 6 | 5 — CRUDs completos | ⬜ Pendente | — | — |
@@ -353,7 +353,7 @@ cd backend && mvn spring-boot:run
   - `public class MilitarEmGeracao implements PessoaEscalada`, com os métodos `militar()`, `getUltimoServico()`, `getServicosNaGeracao()`, `getNivelHierarquico()`, `marcarServico(LocalDate)` e `foiAtualizado()`;
   - `CriterioMenorCargaNaGeracao` e `CriterioMaisModernoPrimeiro`, que implementam `CriterioDeOrdenacao<MilitarEmGeracao>`.
 
-- [ ] **Step 1: Teste (falha)**
+- [x] **Step 1: Teste (falha)**
 ```java
 package br.com.milscale.milscale.application;
 
@@ -408,7 +408,7 @@ class CriteriosDeOrdenacaoTest {
 ```
 Run → FAIL de compilação.
 
-- [ ] **Step 2: Extrair `MilitarEmGeracao`** (hoje é classe privada dentro do `GerarEscalaService`)
+- [x] **Step 2: Extrair `MilitarEmGeracao`** (hoje é classe privada dentro do `GerarEscalaService`)
 ```java
 package br.com.milscale.milscale.application;
 
@@ -460,7 +460,7 @@ No `GerarEscalaService`:
 
 Mudança de comportamento: `marcarServico` agora também soma `servicosNaGeracao`, e só os novos critérios usam esse número. Os testes existentes provam que a geração continua igual.
 
-- [ ] **Step 3: As duas estratégias novas**
+- [x] **Step 3: As duas estratégias novas**
 ```java
 package br.com.milscale.milscale.application;
 
@@ -493,8 +493,18 @@ public class CriterioMaisModernoPrimeiro implements CriterioDeOrdenacao<MilitarE
     }
 }
 ```
-- [ ] **Step 4:** `mvn -q install` (raiz) → PASS: 3 testes novos, e os de geração continuam verdes.
-- [ ] **Step 5: Checkpoint** — diff, sugerir `feat: tres estrategias de ordenacao da fila (Strategy)` e aguardar o usuário commitar.
+- [x] **Step 4:** `mvn -q install` (raiz) → PASS: 3 testes novos, e os de geração continuam verdes.
+- [x] **Step 5: Checkpoint** — diff, sugerir `feat: tres estrategias de ordenacao da fila (Strategy)` e aguardar o usuário commitar.
+
+**Notas de execução (2026-10-02):**
+- **Steps 1–4 feitos.** Diferenças em relação ao texto acima:
+  - o teste importa `CriterioDeOrdenacao` em vez de usar o nome qualificado;
+  - um 4º teste cobre `marcarServico`: conta os serviços da geração, avança o último serviço e marca o militar como atualizado.
+- **`GerarEscalaService`:**
+  - perdeu a classe interna e os imports que só ela usava (`PessoaEscalada`, `ChronoUnit`);
+  - o critério ainda é o `CriterioOrdenacaoMilitar` fixo, e passa a ser injetado na Task 3;
+  - a referência a `GerarEscalaService.MilitarEmGeracao` no comentário do `CriterioOrdenacaoMilitar` foi atualizada.
+- **Verificação:** `mvn test` no backend, 55/55: os 51 anteriores, inclusive os de geração de escala, e os 4 novos.
 
 ---
 

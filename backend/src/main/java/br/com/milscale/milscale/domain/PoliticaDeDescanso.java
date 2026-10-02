@@ -3,11 +3,7 @@ package br.com.milscale.milscale.domain;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 
-/**
- * RN06 num lugar so. Antes cada service (geracao, realocacao por
- * afastamento, troca) tinha a propria janela de datas e o proprio
- * default - qualquer ajuste de regra precisava ser replicado em tres.
- */
+
 public final class PoliticaDeDescanso {
 
     /** Usado so quando o tipo de servico nao tem RegraEscala cadastrada. */

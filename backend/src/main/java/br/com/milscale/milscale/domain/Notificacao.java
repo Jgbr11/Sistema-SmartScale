@@ -5,12 +5,6 @@ import lombok.*;
 
 import java.time.LocalDateTime;
 
-/**
- * Notificação dentro do sistema - o sininho. Diferente do log de
- * auditoria (que é histórico pro Sargenteante ver "quem fez o quê"),
- * isso é um aviso direcionado a UMA pessoa específica, sobre algo que
- * precisa da atenção dela (ex.: uma troca esperando decisão).
- */
 @Entity
 @Table(name = "notificacao")
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
