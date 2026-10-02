@@ -1,9 +1,11 @@
 package br.com.milscale.milscale.adapters.web;
 
+import br.com.milscale.milscale.application.AuditoriaService;
 import br.com.milscale.milscale.application.QualificacaoService;
 import br.com.milscale.milscale.domain.Militar;
 import br.com.milscale.milscale.domain.Qualificacao;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -13,9 +15,11 @@ import java.util.List;
 public class QualificacaoController {
 
     private final QualificacaoService qualificacaoService;
+    private final AuditoriaService auditoriaService;
 
-    public QualificacaoController(QualificacaoService qualificacaoService) {
+    public QualificacaoController(QualificacaoService qualificacaoService, AuditoriaService auditoriaService) {
         this.qualificacaoService = qualificacaoService;
+        this.auditoriaService = auditoriaService;
     }
 
     @GetMapping("/qualificacoes")
@@ -34,6 +38,13 @@ public class QualificacaoController {
     @PutMapping("/qualificacoes/{id}")
     public Qualificacao atualizar(@PathVariable Long id, @RequestBody Qualificacao q) {
         return qualificacaoService.atualizar(id, q);
+    }
+
+    @PreAuthorize("hasRole('SARGENTEANTE')")
+    @DeleteMapping("/qualificacoes/{id}")
+    public void excluir(@PathVariable Long id, Authentication auth) {
+        Qualificacao excluida = qualificacaoService.excluir(id);
+        auditoriaService.registrar(auth.getName(), "QUALIFICACAO_EXCLUIDA", excluida.getNome() + " (id " + id + ")");
     }
 
     /** Vincular um curso a uma pessoa e cadastro (RF04) - Cabo ou Sargenteante. */

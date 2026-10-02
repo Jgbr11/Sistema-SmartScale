@@ -21,4 +21,6 @@ public interface AfastamentoRepository extends JpaRepository<Afastamento, Long> 
 
     /** RF04 - historico completo de afastamentos da pessoa, pra Ficha do Militar. */
     List<Afastamento> findByMilitar_IdOrderByDataInicioDesc(Long militarId);
+
+    List<Afastamento> findByLoteMissao(String loteMissao);
 }

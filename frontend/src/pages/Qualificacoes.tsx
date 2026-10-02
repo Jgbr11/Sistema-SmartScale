@@ -29,6 +29,16 @@ export function QualificacoesPage() {
     setRascunho({ nome: q.nome, descricao: q.descricao ?? "" });
   }
 
+  async function excluir(q: Qualificacao) {
+    if (!confirm(`Excluir o curso "${q.nome}"?`)) return;
+    try {
+      await api.delete(`/api/qualificacoes/${q.id}`);
+      carregar();
+    } catch (e) {
+      alert(e instanceof ApiError ? e.message : "Não foi possível excluir.");
+    }
+  }
+
   async function salvarEdicao(q: Qualificacao) {
     await api.put(`/api/qualificacoes/${q.id}`, { ...q, ...rascunho });
     setEditandoId(null);
@@ -105,9 +115,14 @@ export function QualificacoesPage() {
                               </button>
                             </>
                           ) : (
-                            <button className="btn btn-outline" onClick={() => iniciarEdicao(q)}>
-                              Editar
-                            </button>
+                            <>
+                              <button className="btn btn-outline" style={{ marginRight: 6 }} onClick={() => iniciarEdicao(q)}>
+                                Editar
+                              </button>
+                              <button className="btn btn-outline" onClick={() => excluir(q)}>
+                                Excluir
+                              </button>
+                            </>
                           )}
                         </td>
                       )}

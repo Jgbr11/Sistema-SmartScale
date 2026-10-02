@@ -42,4 +42,9 @@ class EnumsContratoTest {
     void tipoAfastamento() {
         assertThat(nomes(TipoAfastamento.values())).containsExactly("MISSAO", "DISPENSA", "FERIAS", "LICENCA", "CURSO", "OUTRO");
     }
+
+    @Test
+    void tipoFeriado() {
+        assertThat(nomes(TipoFeriado.values())).containsExactly("NACIONAL", "MILITAR", "OM");
+    }
 }

@@ -18,6 +18,7 @@ export function FeriadosPage() {
   const [feriados, setFeriados] = useState<Feriado[]>([]);
   const [carregando, setCarregando] = useState(true);
   const [mostrarForm, setMostrarForm] = useState(false);
+  const [editando, setEditando] = useState<Feriado | null>(null);
 
   async function carregar() {
     setCarregando(true);
@@ -31,7 +32,22 @@ export function FeriadosPage() {
 
   async function remover(id: number) {
     if (!confirm("Remover este feriado?")) return;
-    await api.delete(`/api/feriados/${id}`);
+    try {
+      await api.delete(`/api/feriados/${id}`);
+      carregar();
+    } catch (e) {
+      alert(e instanceof ApiError ? e.message : "Não foi possível remover.");
+    }
+  }
+
+  function abrirEdicao(f: Feriado) {
+    setMostrarForm(false);
+    setEditando(f);
+  }
+
+  function fecharFormularios() {
+    setMostrarForm(false);
+    setEditando(null);
     carregar();
   }
 
@@ -44,14 +60,16 @@ export function FeriadosPage() {
       <div className="body">
         {podeEditar && (
           <div style={{ display: "flex", justifyContent: "flex-end" }}>
-            <button className="btn btn-primary" onClick={() => setMostrarForm((v) => !v)}>
+            <button className="btn btn-primary" onClick={() => { setEditando(null); setMostrarForm((v) => !v); }}>
               {mostrarForm ? "Cancelar" : "Novo feriado"}
             </button>
           </div>
         )}
 
-        {mostrarForm && podeEditar && (
-          <NovoFeriadoForm onCriado={() => { setMostrarForm(false); carregar(); }} />
+        {mostrarForm && podeEditar && <FeriadoForm onSalvo={fecharFormularios} />}
+
+        {editando && podeEditar && (
+          <FeriadoForm key={editando.id} feriado={editando} onSalvo={fecharFormularios} onCancelar={() => setEditando(null)} />
         )}
 
         <div className="card" style={{ padding: 0 }}>
@@ -80,7 +98,8 @@ export function FeriadosPage() {
                       </span>
                     </td>
                     {podeEditar && (
-                      <td>
+                      <td style={{ whiteSpace: "nowrap" }}>
+                        <button className="btn btn-outline" style={{ marginRight: 6 }} onClick={() => abrirEdicao(f)}>Editar</button>
                         <button className="btn btn-outline" onClick={() => remover(f.id)}>Remover</button>
                       </td>
                     )}
@@ -95,11 +114,11 @@ export function FeriadosPage() {
   );
 }
 
-function NovoFeriadoForm({ onCriado }: { onCriado: () => void }) {
-  const [dataInicio, setDataInicio] = useState("");
-  const [dataFim, setDataFim] = useState("");
-  const [descricao, setDescricao] = useState("");
-  const [tipo, setTipo] = useState<Feriado["tipo"]>("NACIONAL");
+function FeriadoForm({ feriado, onSalvo, onCancelar }: { feriado?: Feriado; onSalvo: () => void; onCancelar?: () => void }) {
+  const [dataInicio, setDataInicio] = useState(feriado?.dataInicio ?? "");
+  const [dataFim, setDataFim] = useState(feriado?.dataFim ?? "");
+  const [descricao, setDescricao] = useState(feriado?.descricao ?? "");
+  const [tipo, setTipo] = useState<Feriado["tipo"]>(feriado?.tipo ?? "NACIONAL");
   const [salvando, setSalvando] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
 
@@ -111,8 +130,10 @@ function NovoFeriadoForm({ onCriado }: { onCriado: () => void }) {
     setSalvando(true);
     setErro(null);
     try {
-      await api.post("/api/feriados", { dataInicio, dataFim, descricao, tipo });
-      onCriado();
+      const dados = { dataInicio, dataFim, descricao, tipo };
+      if (feriado) await api.put(`/api/feriados/${feriado.id}`, dados);
+      else await api.post("/api/feriados", dados);
+      onSalvo();
     } catch (e) {
       setErro(e instanceof ApiError ? e.message : "Não foi possível salvar.");
     } finally {
@@ -122,7 +143,7 @@ function NovoFeriadoForm({ onCriado }: { onCriado: () => void }) {
 
   return (
     <div className="card">
-      <h3>Novo feriado</h3>
+      <h3>{feriado ? "Editar feriado" : "Novo feriado"}</h3>
       <p className="sub">Escolha um período — para um único dia, use a mesma data nos dois campos</p>
       {erro && <div className="error-box">{erro}</div>}
       <div className="form-grid">
@@ -145,9 +166,12 @@ function NovoFeriadoForm({ onCriado }: { onCriado: () => void }) {
         <label>Descrição</label>
         <input value={descricao} onChange={(e) => setDescricao(e.target.value)} placeholder="Ex.: Recesso de fim de ano" />
       </div>
-      <button className="btn btn-primary" onClick={salvar} disabled={salvando}>
-        {salvando ? "Salvando…" : "Salvar"}
-      </button>
+      <div style={{ display: "flex", gap: 8 }}>
+        <button className="btn btn-primary" onClick={salvar} disabled={salvando}>
+          {salvando ? "Salvando…" : feriado ? "Salvar alterações" : "Salvar"}
+        </button>
+        {onCancelar && <button className="btn btn-outline" onClick={onCancelar}>Cancelar</button>}
+      </div>
     </div>
   );
 }

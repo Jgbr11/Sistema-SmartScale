@@ -78,6 +78,24 @@ public class AfastamentoService {
     }
 
     @Transactional
+    public List<Afastamento> atualizar(Long id, TipoAfastamento tipo, String descricao, LocalDate dataInicio, LocalDate dataFim) {
+        if (dataFim.isBefore(dataInicio)) {
+            throw new IllegalArgumentException("A data final não pode ser antes da data inicial");
+        }
+        Afastamento base = afastamentoRepository.findById(id).orElseThrow(() -> new NoSuchElementException("Afastamento nao encontrado"));
+        List<Afastamento> doLote = base.getLoteMissao() == null ? List.of(base) : afastamentoRepository.findByLoteMissao(base.getLoteMissao());
+        for (Afastamento afastamento : doLote) {
+            afastamento.setTipo(tipo);
+            afastamento.setDescricao(descricao);
+            afastamento.setDataInicio(dataInicio);
+            afastamento.setDataFim(dataFim);
+            afastamentoRepository.save(afastamento);
+            reconciliarServicosJaMarcados(afastamento);
+        }
+        return doLote;
+    }
+
+    @Transactional
     public void cancelar(Long id) {
         if (!afastamentoRepository.existsById(id)) throw new NoSuchElementException("Afastamento nao encontrado");
         afastamentoRepository.deleteById(id);

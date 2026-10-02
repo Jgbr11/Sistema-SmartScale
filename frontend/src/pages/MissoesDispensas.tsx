@@ -25,6 +25,7 @@ export function MissoesDispensasPage() {
   const [militares, setMilitares] = useState<Militar[]>([]);
   const [carregando, setCarregando] = useState(true);
   const [mostrarForm, setMostrarForm] = useState(false);
+  const [editando, setEditando] = useState<GrupoAfastamento | null>(null);
   const [ofertaRegenerar, setOfertaRegenerar] = useState<{ dataInicio: string; dataFim: string } | null>(null);
   const [regenerando, setRegenerando] = useState(false);
   const [erroRegenerar, setErroRegenerar] = useState<string | null>(null);
@@ -113,7 +114,7 @@ export function MissoesDispensasPage() {
         <div style={{ display: "flex", justifyContent: "flex-end", gap: 8 }}>
           <BotaoBaixarCsv caminho={`afastamentos.csv?mes=${hoje.slice(0, 7)}`} rotulo="Baixar CSV do mês" />
           {podeEditar && (
-            <button className="btn btn-primary" onClick={() => setMostrarForm((v) => !v)}>
+            <button className="btn btn-primary" onClick={() => { setEditando(null); setMostrarForm((v) => !v); }}>
               {mostrarForm ? "Cancelar" : "Novo afastamento"}
             </button>
           )}
@@ -121,6 +122,15 @@ export function MissoesDispensasPage() {
 
         {mostrarForm && podeEditar && (
           <NovoAfastamentoForm militares={militares} onCriado={() => { setMostrarForm(false); carregar(); }} />
+        )}
+
+        {editando && podeEditar && (
+          <EditarAfastamentoForm
+            key={editando.loteOuId}
+            grupo={editando}
+            onSalvo={() => { setEditando(null); carregar(); }}
+            onCancelar={() => setEditando(null)}
+          />
         )}
 
         <div className="card" style={{ padding: 0 }}>
@@ -156,7 +166,8 @@ export function MissoesDispensasPage() {
                         </span>
                       </td>
                       {podeEditar && (
-                        <td>
+                        <td style={{ whiteSpace: "nowrap" }}>
+                          <button className="btn btn-outline" style={{ marginRight: 6 }} onClick={() => { setMostrarForm(false); setEditando(g); }}>Editar</button>
                           <button className="btn btn-outline" onClick={() => cancelarGrupo(g.ids, g.dataInicio, g.dataFim)}>Cancelar</button>
                         </td>
                       )}
@@ -264,6 +275,72 @@ function NovoAfastamentoForm({ militares, onCriado }: { militares: Militar[]; on
       <button className="btn btn-primary" onClick={salvar} disabled={salvando}>
         {salvando ? "Salvando…" : "Registrar afastamento"}
       </button>
+    </div>
+  );
+}
+
+function EditarAfastamentoForm({ grupo, onSalvo, onCancelar }: { grupo: GrupoAfastamento; onSalvo: () => void; onCancelar: () => void }) {
+  const [tipo, setTipo] = useState<Afastamento["tipo"]>(grupo.tipo);
+  const [descricao, setDescricao] = useState(grupo.descricao);
+  const [dataInicio, setDataInicio] = useState(grupo.dataInicio);
+  const [dataFim, setDataFim] = useState(grupo.dataFim);
+  const [salvando, setSalvando] = useState(false);
+  const [erro, setErro] = useState<string | null>(null);
+
+  async function salvar() {
+    if (!descricao || !dataInicio || !dataFim) {
+      setErro("Preencha todos os campos.");
+      return;
+    }
+    if (dataFim < dataInicio) {
+      setErro("A data final não pode ser antes da data inicial.");
+      return;
+    }
+    setSalvando(true);
+    setErro(null);
+    try {
+      await api.put(`/api/afastamentos/${grupo.ids[0]}`, { tipo, descricao, dataInicio, dataFim });
+      onSalvo();
+    } catch (e) {
+      setErro(e instanceof ApiError ? e.message : "Não foi possível salvar.");
+    } finally {
+      setSalvando(false);
+    }
+  }
+
+  return (
+    <div className="card">
+      <h3>Editar afastamento</h3>
+      <p className="sub">
+        Vale para {grupo.militares.length === 1 ? "o militar" : `os ${grupo.militares.length} militares`}: {grupo.militares.map((m) => m.nomeExibicao).join(", ")}
+      </p>
+      {erro && <div className="error-box">{erro}</div>}
+      <div className="form-grid">
+        <div className="field">
+          <label>Tipo</label>
+          <select value={tipo} onChange={(e) => setTipo(e.target.value as Afastamento["tipo"])}>
+            {TIPOS.map((t) => <option key={t.valor} value={t.valor}>{t.label}</option>)}
+          </select>
+        </div>
+        <div className="field">
+          <label>De</label>
+          <input type="date" value={dataInicio} onChange={(e) => setDataInicio(e.target.value)} />
+        </div>
+        <div className="field">
+          <label>Até</label>
+          <input type="date" value={dataFim} onChange={(e) => setDataFim(e.target.value)} />
+        </div>
+      </div>
+      <div className="field">
+        <label>Descrição</label>
+        <input value={descricao} onChange={(e) => setDescricao(e.target.value)} />
+      </div>
+      <div style={{ display: "flex", gap: 8 }}>
+        <button className="btn btn-primary" onClick={salvar} disabled={salvando}>
+          {salvando ? "Salvando…" : "Salvar alterações"}
+        </button>
+        <button className="btn btn-outline" onClick={onCancelar}>Cancelar</button>
+      </div>
     </div>
   );
 }

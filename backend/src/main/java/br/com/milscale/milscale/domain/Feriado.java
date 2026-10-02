@@ -26,8 +26,9 @@ public class Feriado {
     @Column(nullable = false, length = 100)
     private String descricao;
 
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 15)
-    private String tipo; // NACIONAL, MILITAR, OM
+    private TipoFeriado tipo;
 
     public boolean cobre(LocalDate dia) {
         return !dia.isBefore(dataInicio) && !dia.isAfter(dataFim);

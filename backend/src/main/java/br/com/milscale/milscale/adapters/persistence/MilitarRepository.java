@@ -15,4 +15,6 @@ public interface MilitarRepository extends JpaRepository<Militar, Long> {
 
     /** Efetivo numa situacao (ex.: so ATIVO) - filtra no banco em vez de findAll() + filter. */
     List<Militar> findBySituacao(SituacaoPessoa situacao);
+
+    boolean existsByQualificacoes_Id(Long qualificacaoId);
 }

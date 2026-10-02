@@ -40,8 +40,8 @@
 | 2 | 1 — Módulo `smartscale-core` (empacotamento) | ✅ Concluída | `5c921c8` | Núcleo movido para `smartscale-core` (`br.com.smartscale.core`), POM agregador na raiz, JAR 1.0.0 + sources instalado; core 4 testes, backend 51 verdes; Docker com contexto na raiz |
 | 3 | 2 — Strategy ×3: critérios de ordenação da fila | ✅ Concluída | `b42ab55` | `MilitarEmGeracao` extraída para `application/`; `CriterioMenorCargaNaGeracao` e `CriterioMaisModernoPrimeiro` criados; 4 testes novos, backend 55 verdes |
 | 4 | 3 — Singleton ×2 e variabilidade por configuração | ✅ Concluída | `86c5ec8` | `CatalogoDeCriterios` (núcleo) e `IdentidadeDaOrganizacao` (enum); `VariabilidadeConfig` + `milscale.lps.criterio-ordenacao`; `GET /api/organizacao` público; front usa `useOrganizacao`; core 7, backend 60, front 9 verdes |
-| 5 | 4 — Template Method ×3: relatórios CSV | 🟡 Aguardando commit | — | `RelatorioCsv` (`gerar()` final) + 3 relatórios; proteção contra injeção de fórmula; `/api/relatorios/*` para a sargenteação; botão "Baixar CSV" em 4 telas; backend 69, front 9 verdes |
-| 6 | 5 — CRUDs completos | ⬜ Pendente | — | — |
+| 5 | 4 — Template Method ×3: relatórios CSV | ✅ Concluída | `f7c3067` | `RelatorioCsv` (`gerar()` final) + 3 relatórios; proteção contra injeção de fórmula; `/api/relatorios/*` para a sargenteação; botão "Baixar CSV" em 4 telas; backend 69, front 9 verdes |
+| 6 | 5 — CRUDs completos | 🟡 Aguardando commit | — | Excluir qualificação (recusa se em uso), editar feriado (`DadosFeriado` + `TipoFeriado`), editar afastamento (lote inteiro, com reconciliação); backend 80, front 9 verdes |
 | 7 | 6 — CRUD de Postos e graduações e de Subunidades | ⬜ Pendente | — | — |
 | 8 | 7 — Documentação de padrões e variabilidade | ⬜ Pendente | — | — |
 | 9 | 8 — Release 1.0.0 e roteiro da gravação | ⬜ Pendente | — | — |
@@ -1092,7 +1092,7 @@ Com elas completas, o sistema fica com 6 telas de CRUD completo: Militares (excl
   - `PUT /api/feriados/{id}`;
   - `PUT /api/afastamentos/{id}`: altera o lote inteiro, se houver lote.
 
-- [ ] **Step 1: Testes (falham)**
+- [x] **Step 1: Testes (falham)**
 ```java
 package br.com.milscale.milscale.application;
 
@@ -1163,7 +1163,7 @@ class CrudsCompletosIntegrationTest {
 ```
 (`TipoFeriado`/`DadosFeriado` vêm do Plano 2, Task 12. Se ela ainda não tiver sido feita, crie os dois aqui, com o código daquela tarefa.)
 
-- [ ] **Step 2: Backend**
+- [x] **Step 2: Backend**
   - **Consultas de uso do curso:**
     - `MilitarRepository`: `boolean existsByQualificacoes_Id(Long qualificacaoId);`
     - `RequisitoServicoRepository`: `boolean existsByQualificacao_Id(Long qualificacaoId);` e `boolean existsByQualificacoesExcluidas_Id(Long qualificacaoId);`
@@ -1204,12 +1204,37 @@ class CrudsCompletosIntegrationTest {
     - `FeriadoController`: `@PutMapping("/{id}")`, só Sargenteante, com `@Valid @RequestBody DadosFeriado`;
     - `AfastamentoController`: `@PutMapping("/{id}")`, Cabo e Sargenteante, com um record `EditarAfastamentoRequest(@NotNull TipoAfastamento tipo, @NotBlank @Size(max=150) String descricao, @NotNull LocalDate dataInicio, @NotNull LocalDate dataFim)`.
 
-- [ ] **Step 3: Frontend**
+- [x] **Step 3: Frontend**
   - **`Qualificacoes.tsx`:** botão "Excluir" em cada linha, para o Sargenteante. Antes, pede confirmação (`useFeedback().confirmar` do Plano 3, ou `confirm` se o Plano 3 ainda não existir). O erro de "curso em uso" aparece para a pessoa.
   - **`Feriados.tsx`:** botão "Editar" na linha, que abre o mesmo formulário do cadastro já preenchido; ao salvar, chama `PUT`.
   - **`MissoesDispensas.tsx`:** botão "Editar" no grupo, que abre o `NovoAfastamentoForm` em modo edição. Nesse modo, a seleção de militares fica só leitura, porque a edição muda o lote e não a equipe. Ao salvar, chama `PUT /api/afastamentos/{primeiroId}`.
-- [ ] **Step 4:** `mvn -q install` → PASS; `npm run build` → PASS. Teste manual: as operações de criar, ver, editar e excluir funcionam nas 6 telas.
-- [ ] **Step 5: Checkpoint** — diff, sugerir `feat: CRUD completo em qualificacoes, feriados e missoes` e aguardar o usuário commitar.
+- [x] **Step 4:** `mvn -q install` → PASS; `npm run build` → PASS. Teste manual: as operações de criar, ver, editar e excluir funcionam nas 6 telas.
+- [x] **Step 5: Checkpoint** — diff, sugerir `feat: CRUD completo em qualificacoes, feriados e missoes` e aguardar o usuário commitar.
+
+**Notas de execução (2026-10-02):**
+- **Feriado, adiantado do Plano 2, Task 12:** `TipoFeriado` (enum), `DadosFeriado` (record com Bean Validation) e `Feriado.tipo` como `@Enumerated(STRING)`.
+  - Os valores gravados continuam os mesmos, então não há migration.
+  - O `POST` também passou a receber `DadosFeriado`, e não só o `PUT`.
+  - O `EnumsContratoTest` ganhou `tipoFeriado`.
+- **Qualificação:**
+  - `DELETE /api/qualificacoes/{id}` devolve 400 se o curso estiver em uso: militar, requisito exigido ou requisito excluído;
+  - a exclusão fica registrada na auditoria (`QUALIFICACAO_EXCLUIDA`). Para isso, o `QualificacaoController` passou a receber o `AuditoriaService`.
+- **Afastamento:**
+  - `PUT /api/afastamentos/{id}` altera todos os afastamentos do lote e reconcilia a escala em cada um;
+  - o corpo é validado por `EditarAfastamentoRequest` (`adapters/web/dto`);
+  - fica registrado na auditoria (`AFASTAMENTO_EDITADO`).
+- **Telas:**
+  - Feriados: `NovoFeriadoForm` virou `FeriadoForm`, que cadastra e edita, e o remover passou a mostrar o erro;
+  - Missões e dispensas: `EditarAfastamentoForm`, que mostra quem está no lote e não muda a equipe;
+  - Qualificações: botão "Excluir" com confirmação e a mensagem do backend.
+- **Testes:** `CrudsCompletosIntegrationTest` (6) e `CrudsCompletosWebIntegrationTest` (4): tipo ausente dá 400, feriado inexistente dá 404, Cabo excluindo curso dá 403 e militar editando afastamento dá 403.
+- **Verificação:**
+  - backend 69 → 80, frontend com build ok e 9/9;
+  - teste manual pelo proxy:
+    - criar, editar e remover feriado;
+    - excluir CFC (recusado) e excluir um curso sem uso;
+    - editar um lote de 2 militares, que mudou os dois;
+  - os dados de teste foram removidos depois.
 
 ---
 

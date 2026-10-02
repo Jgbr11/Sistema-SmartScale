@@ -2755,6 +2755,8 @@ MILSCALE_ADMIN_SENHA=
 **Correção:** um record de entrada por cadastro, só com os campos editáveis e validados. O service monta a entidade a partir dele.
 
 **Files:**
+> **Já feito pelo Plano 5, Task 5 (2026-10-02):** `DadosFeriado`, `TipoFeriado`, `Feriado.tipo` como enum e `FeriadoService`/`FeriadoController` recebendo o record. Aqui falta só o restante: militar, tipo de serviço e qualificação.
+
 - Create: `application/DadosMilitar.java`, `application/DadosTipoServico.java`, `application/DadosQualificacao.java`, `application/DadosFeriado.java`, `domain/TipoFeriado.java`
 - Modify: `domain/Feriado.java`; services `MilitarService`, `TipoServicoService`, `QualificacaoService`, `FeriadoService`; controllers `MilitarController`, `TipoServicoController`, `QualificacaoController`, `FeriadoController`; testes que chamam `cadastrar(Militar)` / `cadastrar(TipoServico)`
 - Modify (front): `pages/Militares.tsx`, `pages/FichaMilitar.tsx` (enviar `postoId`/`subunidadeId`)
