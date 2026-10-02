@@ -3,6 +3,7 @@ import { useParams, Link } from "react-router-dom";
 import { api, ApiError } from "../api/client";
 import type { Afastamento, Militar, PostoGraduacao, ServicoEscalado, Solicitacao, Subunidade, TipoServico } from "../api/types";
 import { PageHeader } from "../components/Shell";
+import { BotaoBaixarCsv } from "../components/BotaoBaixarCsv";
 import { useAuth } from "../context/AuthContext";
 import { mascararCpf, mascararFusex, mascararTelefone, somenteDigitos } from "../utils/mascaras";
 import { TIPO_AFASTAMENTO_LABEL } from "../utils/afastamentoTipos";
@@ -109,7 +110,10 @@ export function FichaMilitarPage() {
         </div>
 
         <div className="card" style={{ padding: 0 }}>
-          <h3 style={{ padding: "16px 16px 0" }}>Histórico de serviços ({servicos.length})</h3>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "16px 16px 0" }}>
+            <h3>Histórico de serviços ({servicos.length})</h3>
+            <BotaoBaixarCsv caminho={`militares/${militar.id}/servicos.csv`} />
+          </div>
           {servicos.length === 0 ? (
             <div style={{ padding: 16, color: "var(--grey)", fontSize: 13 }}>Nenhum serviço registrado ainda.</div>
           ) : (

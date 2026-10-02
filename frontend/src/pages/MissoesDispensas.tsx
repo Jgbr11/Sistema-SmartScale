@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { api, ApiError } from "../api/client";
 import type { Afastamento, Militar } from "../api/types";
 import { PageHeader } from "../components/Shell";
+import { BotaoBaixarCsv } from "../components/BotaoBaixarCsv";
 import { useAuth } from "../context/AuthContext";
 import { TIPOS_AFASTAMENTO as TIPOS } from "../utils/afastamentoTipos";
 import { formatarDataBR } from "../utils/formatadores";
@@ -109,13 +110,14 @@ export function MissoesDispensasPage() {
           </div>
         )}
 
-        {podeEditar && (
-          <div style={{ display: "flex", justifyContent: "flex-end" }}>
+        <div style={{ display: "flex", justifyContent: "flex-end", gap: 8 }}>
+          <BotaoBaixarCsv caminho={`afastamentos.csv?mes=${hoje.slice(0, 7)}`} rotulo="Baixar CSV do mês" />
+          {podeEditar && (
             <button className="btn btn-primary" onClick={() => setMostrarForm((v) => !v)}>
               {mostrarForm ? "Cancelar" : "Novo afastamento"}
             </button>
-          </div>
-        )}
+          )}
+        </div>
 
         {mostrarForm && podeEditar && (
           <NovoAfastamentoForm militares={militares} onCriado={() => { setMostrarForm(false); carregar(); }} />

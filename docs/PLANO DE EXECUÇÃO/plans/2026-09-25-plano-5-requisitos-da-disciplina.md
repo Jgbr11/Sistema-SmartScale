@@ -39,8 +39,8 @@
 | 1 | 0 — Preparação e confirmações com a equipe | ✅ Concluída | — (sem código) | 4 integrantes; Opção 01; Plano 5 antes dos Planos 2–4; branch `entrega/componentes-reuso`; linha de base verde (backend 51, frontend 9, build ok) |
 | 2 | 1 — Módulo `smartscale-core` (empacotamento) | ✅ Concluída | `5c921c8` | Núcleo movido para `smartscale-core` (`br.com.smartscale.core`), POM agregador na raiz, JAR 1.0.0 + sources instalado; core 4 testes, backend 51 verdes; Docker com contexto na raiz |
 | 3 | 2 — Strategy ×3: critérios de ordenação da fila | ✅ Concluída | `b42ab55` | `MilitarEmGeracao` extraída para `application/`; `CriterioMenorCargaNaGeracao` e `CriterioMaisModernoPrimeiro` criados; 4 testes novos, backend 55 verdes |
-| 4 | 3 — Singleton ×2 e variabilidade por configuração | 🟡 Aguardando commit | — | `CatalogoDeCriterios` (núcleo) e `IdentidadeDaOrganizacao` (enum); `VariabilidadeConfig` + `milscale.lps.criterio-ordenacao`; `GET /api/organizacao` público; front usa `useOrganizacao`; core 7, backend 60, front 9 verdes |
-| 5 | 4 — Template Method ×3: relatórios CSV | ⬜ Pendente | — | — |
+| 4 | 3 — Singleton ×2 e variabilidade por configuração | ✅ Concluída | `86c5ec8` | `CatalogoDeCriterios` (núcleo) e `IdentidadeDaOrganizacao` (enum); `VariabilidadeConfig` + `milscale.lps.criterio-ordenacao`; `GET /api/organizacao` público; front usa `useOrganizacao`; core 7, backend 60, front 9 verdes |
+| 5 | 4 — Template Method ×3: relatórios CSV | 🟡 Aguardando commit | — | `RelatorioCsv` (`gerar()` final) + 3 relatórios; proteção contra injeção de fórmula; `/api/relatorios/*` para a sargenteação; botão "Baixar CSV" em 4 telas; backend 69, front 9 verdes |
 | 6 | 5 — CRUDs completos | ⬜ Pendente | — | — |
 | 7 | 6 — CRUD de Postos e graduações e de Subunidades | ⬜ Pendente | — | — |
 | 8 | 7 — Documentação de padrões e variabilidade | ⬜ Pendente | — | — |
@@ -771,7 +771,7 @@ No frontend:
 
   Os três são só para a sargenteação.
 
-- [ ] **Step 1: Teste do método-modelo (falha)**
+- [x] **Step 1: Teste do método-modelo (falha)**
 ```java
 package br.com.milscale.milscale.application.relatorios;
 
@@ -810,7 +810,7 @@ class RelatoriosCsvTest {
 }
 ```
 
-- [ ] **Step 2: A classe abstrata com o método-modelo**
+- [x] **Step 2: A classe abstrata com o método-modelo**
 ```java
 package br.com.milscale.milscale.application.relatorios;
 
@@ -858,7 +858,7 @@ public abstract class RelatorioCsv<T> {
 }
 ```
 
-- [ ] **Step 3: Os três relatórios concretos**
+- [x] **Step 3: Os três relatórios concretos**
 ```java
 package br.com.milscale.milscale.application.relatorios;
 
@@ -946,7 +946,7 @@ public class RelatorioAfastamentosDoMes extends RelatorioCsv<Afastamento> {
 }
 ```
 
-- [ ] **Step 4: Service e controller**
+- [x] **Step 4: Service e controller**
 ```java
 package br.com.milscale.milscale.application.relatorios;
 
@@ -1043,7 +1043,7 @@ Teste de integração, com o mesmo padrão MockMvc dos anteriores:
 - como `00000000001`, `GET /api/relatorios/escala-do-dia.csv?data=<dia com escala>` → 200, `Content-Type` `text/csv`, e o `Content-Disposition` contém `escala-`;
 - como `00000000004` → 403.
 
-- [ ] **Step 5: Botões "Baixar CSV"** — em `client.ts`, `export const BASE_URL = …`. Nas páginas, um link simples (o cookie de sessão vai junto porque é o mesmo domínio):
+- [x] **Step 5: Botões "Baixar CSV"** — em `client.ts`, `export const BASE_URL = …`. Nas páginas, um link simples (o cookie de sessão vai junto porque é o mesmo domínio):
 ```tsx
 <a className="btn btn-outline" href={`${BASE_URL}/api/relatorios/escala-do-dia.csv?data=${data}`} download>Baixar CSV</a>
 ```
@@ -1052,8 +1052,23 @@ Teste de integração, com o mesmo padrão MockMvc dos anteriores:
   - **Missões e dispensas:** `afastamentos.csv?mes=` do mês atual.
 
   Os botões aparecem só para a sargenteação (`usePermissoes().daSargenteacao` do Plano 3, ou a checagem de perfil atual).
-- [ ] **Step 6:** `mvn -q install` → PASS; `npm run build` → PASS. Teste manual: baixar os três CSVs e abrir no Excel. Os acentos aparecem certos, graças ao BOM, e as colunas vêm separadas.
-- [ ] **Step 7: Checkpoint** — diff, sugerir `feat: relatorios CSV com Template Method` e aguardar o usuário commitar.
+- [x] **Step 6:** `mvn -q install` → PASS; `npm run build` → PASS. Teste manual: baixar os três CSVs e abrir no Excel. Os acentos aparecem certos, graças ao BOM, e as colunas vêm separadas.
+- [x] **Step 7: Checkpoint** — diff, sugerir `feat: relatorios CSV com Template Method` e aguardar o usuário commitar.
+
+**Notas de execução (2026-10-02):**
+- **Segurança, além do plano:**
+  - **Injeção de fórmula:** `RelatorioCsv` neutraliza o início de fórmula. Um valor que começa com `=`, `+`, `-`, `@`, tab ou CR ganha um `'` na frente, para o Excel não executá-lo; a descrição de um afastamento é texto livre e chega ao CSV. Quem cobre é o teste `textoQueComecaComoFormula_eNeutralizado`.
+  - **Transação:** o `RelatorioService` devolve um `RelatorioArquivo(nomeDoArquivo, conteudo)` já gerado, dentro de `@Transactional(readOnly = true)`, e não o `RelatorioCsv`. Assim os relacionamentos LAZY (tipo de serviço, posto) são lidos dentro da transação, sem depender do open-in-view.
+- **Outras diferenças em relação ao texto acima:**
+  - os parâmetros usam `@DateTimeFormat`, ISO para a data e `yyyy-MM` para o mês. Um mês inválido dá 400 pelo `TratadorDeErros`;
+  - a escala do dia sai ordenada por tipo de serviço e os afastamentos, por data de início;
+  - o nome do arquivo do militar troca qualquer caractere que não seja letra ou número por `-`;
+  - o botão virou o componente `BotaoBaixarCsv`, que só aparece para os 3 perfis da sargenteação, e `BASE_URL` passou a ser exportado de `client.ts`;
+  - no CSS, `.btn` ganhou `display: inline-block` e `text-decoration: none`, para funcionar em `<a>`.
+- **Testes:** `RelatoriosCsvTest` (5) e `RelatorioControllerIntegrationTest` (4): download, Cabo, 404, 400 e 403 para o militar escalado.
+- **Verificação:**
+  - backend 60 → 69, frontend com build ok e 9/9;
+  - teste manual pelo proxy do Vite: os 3 CSVs baixaram com `Content-Disposition` e acentos corretos.
 
 ---
 

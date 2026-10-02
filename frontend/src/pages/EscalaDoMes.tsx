@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { api, ApiError } from "../api/client";
 import type { Escala, ServicoEscalado } from "../api/types";
 import { PageHeader } from "../components/Shell";
+import { BotaoBaixarCsv } from "../components/BotaoBaixarCsv";
 import { MilitarDetalheOverlay } from "../components/MilitarDetalheOverlay";
 import { useAuth } from "../context/AuthContext";
 import { ordenarPorTipo } from "../utils/ordemTipos";
@@ -257,6 +258,7 @@ export function EscalaDoMesPage() {
                   <h3>Escala de {formatarDataBR(diaEscolhido)}</h3>
                   <div style={{ display: "flex", gap: 8 }}>
                     <button className="btn btn-outline" onClick={() => window.open(`/escala/pdf/${diaEscolhido}`, "_blank")}>Gerar PDF</button>
+                    <BotaoBaixarCsv caminho={`escala-do-dia.csv?data=${diaEscolhido}`} />
                     {podePublicar && servicosDoDiaEscolhido.length > 0 && (
                       diaTravado ? (
                         <button className="btn btn-outline" onClick={destravarDiaEscolhido} disabled={travando}>

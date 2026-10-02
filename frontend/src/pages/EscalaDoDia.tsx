@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { api } from "../api/client";
 import type { ServicoEscalado } from "../api/types";
 import { PageHeader } from "../components/Shell";
+import { BotaoBaixarCsv } from "../components/BotaoBaixarCsv";
 import { MilitarDetalheOverlay } from "../components/MilitarDetalheOverlay";
 import { ordenarPorTipo } from "../utils/ordemTipos";
 
@@ -50,6 +51,7 @@ export function EscalaDoDiaPage() {
               <button className="btn btn-outline" onClick={() => mudarDia(-1)}>← Dia anterior</button>
               <button className="btn btn-outline" onClick={() => mudarDia(1)}>Próximo dia →</button>
               <button className="btn btn-outline" onClick={() => window.open(`/escala/pdf/${data}`, "_blank")}>Gerar PDF</button>
+              <BotaoBaixarCsv caminho={`escala-do-dia.csv?data=${data}`} />
             </div>
           </div>
 

@@ -202,6 +202,9 @@ tbody tr:nth-child(even) { background: var(--row-alt); }
   font-size: 13px;
   font-family: var(--font-display);
   cursor: pointer;
+  display: inline-block;
+  text-decoration: none;
+  line-height: normal;
 }
 .btn-primary { background: var(--sidebar-active); color: #fff; }
 .btn-primary:hover { background: var(--sidebar); }
