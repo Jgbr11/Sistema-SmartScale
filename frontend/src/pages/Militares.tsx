@@ -206,8 +206,8 @@ function NovoMilitarForm({
         fusex: fusex || null,
         telefone: telefone ? somenteDigitos(telefone) : null,
         fotoBase64,
-        posto: { id: postoId },
-        subunidade: { id: subunidadeId },
+        postoId,
+        subunidadeId,
       });
       alert(
         `Conta criada para ${r.militar.nomeExibicao}.\n\n` +

@@ -53,18 +53,18 @@ Atualizado ao fim de cada tarefa, como no Plano 1. Os detalhes de cada uma ficam
 
 | Ordem | Task | Status | Commit | Testes | Resumo |
 |---|---|---|---|---|---|
-| 1 | 0 — Preparação | 🟡 Lote 1, aguardando commit | — | verde (backend 124) | Branch `melhoria/implementacoes` criado a partir de `entrega/componentes-reuso` (que já tem o Plano 5); linha de base 91 testes |
-| 2 | 10 — Rotas de autenticação e cookie de sessão | 🟡 Lote 1, aguardando commit | — | verde (backend 124) | Só `/api/auth/login` e `/api/organizacao` públicos; logout 204; cookie HttpOnly + SameSite=Strict + `MILSCALE_COOKIE_SEGURO` |
-| 3 | 13 — Nenhuma conta embutida no JSON | 🟡 Lote 1, aguardando commit | — | verde (backend 124) | `@JsonIgnore` em `usuarioRegistro`, `usuarioGeracao` e `destinatario` |
-| 4 | 2 — Privacidade + foto sob demanda | 🟡 Lote 1, aguardando commit | — | verde (backend 124) | Campos pessoais WRITE_ONLY; `MilitarDetalheResponse` completo/público; `GET /api/militares/{id}/foto`; popup busca a foto |
-| 5 | 3 — Boletim sem XSS | 🟡 Lote 1, aguardando commit | — | verde (backend 124) | `SanitizadorHtml` (jsoup 1.18.1) ao gravar; DOMPurify ao exibir e ao editar |
-| 6 | 4 — Senha temporária | 🟡 Lote 1, aguardando commit | — | verde (backend 124) | V2 `senha_temporaria`; `GeradorDeSenha`; `SenhaTemporariaFilter` (403 fora de `/api/auth`); front força Minha conta; aviso de contas demo só em dev |
-| 7 | 5 — Conta criada no cadastro | 🟡 Lote 1, aguardando commit | — | verde (backend 124) | Cadastro cria conta MILITAR_ESCALADO com senha temporária; CPF normalizado e único; desligar desativa a conta |
-| 8 | 11 — Seed de demonstração só quando habilitado | 🟡 Lote 1, aguardando commit | — | verde (backend 124) | `DataSeeder` dividido em `DadosDeReferenciaSeeder`, `DemoSeeder` (`milscale.seed.demo`) e `AdministradorInicialSeeder` (`MILSCALE_ADMIN_CPF/SENHA`) |
-| 9 | 12 — Cadastros sem *mass assignment* | ⬜ Pendente | — | — | — |
-| 10 | 14 — Limite de tentativas de login | ⬜ Pendente | — | — | — |
-| 11 | 15 — Fuso horário fixo | ⬜ Pendente | — | — | — |
-| 12 | 1 — Rascunho só para a sargenteação | 🟡 Lote 1, aguardando commit | — | verde (backend 124) | `PerfisSargenteacao`; escala do dia, minha escala e histórico só PUBLICADA para quem não é da sargenteação; troca exige escala publicada |
+| 1 | 0 — Preparação | ✅ Lote 1 | `61b4e32` | verde (backend 124) | Branch `melhoria/implementacoes` criado a partir de `entrega/componentes-reuso` (que já tem o Plano 5); linha de base 91 testes |
+| 2 | 10 — Rotas de autenticação e cookie de sessão | ✅ Lote 1 | `61b4e32` | verde (backend 124) | Só `/api/auth/login` e `/api/organizacao` públicos; logout 204; cookie HttpOnly + SameSite=Strict + `MILSCALE_COOKIE_SEGURO` |
+| 3 | 13 — Nenhuma conta embutida no JSON | ✅ Lote 1 | `61b4e32` | verde (backend 124) | `@JsonIgnore` em `usuarioRegistro`, `usuarioGeracao` e `destinatario` |
+| 4 | 2 — Privacidade + foto sob demanda | ✅ Lote 1 | `61b4e32` | verde (backend 124) | Campos pessoais WRITE_ONLY; `MilitarDetalheResponse` completo/público; `GET /api/militares/{id}/foto`; popup busca a foto |
+| 5 | 3 — Boletim sem XSS | ✅ Lote 1 | `61b4e32` | verde (backend 124) | `SanitizadorHtml` (jsoup 1.18.1) ao gravar; DOMPurify ao exibir e ao editar |
+| 6 | 4 — Senha temporária | ✅ Lote 1 | `61b4e32` | verde (backend 124) | V2 `senha_temporaria`; `GeradorDeSenha`; `SenhaTemporariaFilter` (403 fora de `/api/auth`); front força Minha conta; aviso de contas demo só em dev |
+| 7 | 5 — Conta criada no cadastro | ✅ Lote 1 | `61b4e32` | verde (backend 124) | Cadastro cria conta MILITAR_ESCALADO com senha temporária; CPF normalizado e único; desligar desativa a conta |
+| 8 | 11 — Seed de demonstração só quando habilitado | ✅ Lote 1 | `61b4e32` | verde (backend 124) | `DataSeeder` dividido em `DadosDeReferenciaSeeder`, `DemoSeeder` (`milscale.seed.demo`) e `AdministradorInicialSeeder` (`MILSCALE_ADMIN_CPF/SENHA`) |
+| 9 | 12 — Cadastros sem *mass assignment* | 🟡 Lote 2, aguardando commit | — | verde (backend 132) | `DadosMilitar`, `DadosTipoServico`, `DadosQualificacao` (feriado já feito no Plano 5); front envia `postoId`/`subunidadeId`; curso com nome repetido recusado |
+| 10 | 14 — Limite de tentativas de login | 🟡 Lote 2, aguardando commit | — | verde (backend 132) | `ProtecaoContraForcaBruta` (5 falhas → 423 por 15 min) + bean `Clock`; login responde `{"erro"}`; front mostra "Servidor indisponível" sem resposta |
+| 11 | 15 — Fuso horário fixo | 🟡 Lote 2, aguardando commit | — | verde (backend 132) | `TimeZone` fixo em America/Sao_Paulo no `MilScaleApplication`; `TZ` no Dockerfile; testes rodam com JVM em UTC |
+| 12 | 1 — Rascunho só para a sargenteação | ✅ Lote 1 | `61b4e32` | verde (backend 124) | `PerfisSargenteacao`; escala do dia, minha escala e histórico só PUBLICADA para quem não é da sargenteação; troca exige escala publicada |
 | 13 | 16 — Trocas: sem duplicidade, revalidação, travamento otimista | ⬜ Pendente | — | — | — |
 | 14 | 17 — Regerar período com histórico de trocas | ⬜ Pendente | — | — | — |
 | 15 | 18 — Escala do mês por mês + listagem leve | ⬜ Pendente | — | — | — |

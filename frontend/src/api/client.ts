@@ -50,7 +50,11 @@ export const api = {
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
       body: new URLSearchParams({ username: login, password: senha }),
     });
-    if (!res.ok) throw new ApiError(res.status, "Usuário ou senha inválidos");
+    if (!res.ok) {
+      const corpo = await res.json().catch(() => null);
+      const padrao = res.status === 401 ? "CPF ou senha inválidos." : "Servidor indisponível. Tente de novo em instantes.";
+      throw new ApiError(res.status, corpo?.erro ?? padrao);
+    }
   },
   logout: async () => {
     await fetch(`${BASE_URL}/api/auth/logout`, { method: "POST", credentials: "include" });

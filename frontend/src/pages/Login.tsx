@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
+import { ApiError } from "../api/client";
 import { useAuth } from "../context/AuthContext";
 import { useOrganizacao } from "../hooks/useOrganizacao";
 import { mascararCpf, somenteDigitos } from "../utils/mascaras";
@@ -21,8 +22,8 @@ export function LoginPage() {
       // Aceita com ou sem formatação — só os números importam pro login.
       await entrar(somenteDigitos(login), senha);
       navigate("/");
-    } catch {
-      setErro("CPF ou senha inválidos.");
+    } catch (e) {
+      setErro(e instanceof ApiError ? e.message : "Servidor indisponível. Tente de novo em instantes.");
     } finally {
       setEnviando(false);
     }

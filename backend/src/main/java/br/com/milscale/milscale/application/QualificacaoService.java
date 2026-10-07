@@ -32,17 +32,22 @@ public class QualificacaoService {
 
     /** Privativo do Sargenteante (catalogo, mesmo nivel de Tipos de Servico - RN11). */
     @Transactional
-    public Qualificacao cadastrar(Qualificacao q) {
-        q.setId(null);
-        return qualificacaoRepository.save(q);
+    public Qualificacao cadastrar(DadosQualificacao dados) {
+        qualificacaoRepository.findByNome(dados.nome().trim()).ifPresent(q -> {
+            throw new IllegalArgumentException("Já existe um curso com esse nome");
+        });
+        return qualificacaoRepository.save(Qualificacao.builder().nome(dados.nome().trim()).descricao(dados.descricao()).build());
     }
 
     @Transactional
-    public Qualificacao atualizar(Long id, Qualificacao dados) {
+    public Qualificacao atualizar(Long id, DadosQualificacao dados) {
         Qualificacao existente = qualificacaoRepository.findById(id)
                 .orElseThrow(() -> new NoSuchElementException("Qualificacao nao encontrada"));
-        existente.setNome(dados.getNome());
-        existente.setDescricao(dados.getDescricao());
+        qualificacaoRepository.findByNome(dados.nome().trim())
+                .filter(outra -> !outra.getId().equals(id))
+                .ifPresent(outra -> { throw new IllegalArgumentException("Já existe um curso com esse nome"); });
+        existente.setNome(dados.nome().trim());
+        existente.setDescricao(dados.descricao());
         return qualificacaoRepository.save(existente);
     }
 

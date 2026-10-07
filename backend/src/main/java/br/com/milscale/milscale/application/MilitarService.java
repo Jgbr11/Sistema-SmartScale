@@ -4,6 +4,8 @@ import br.com.smartscale.core.SituacaoPessoa;
 import br.com.milscale.milscale.adapters.persistence.AfastamentoRepository;
 import br.com.milscale.milscale.adapters.persistence.MilitarRepository;
 import br.com.milscale.milscale.adapters.persistence.PerfilAcessoRepository;
+import br.com.milscale.milscale.adapters.persistence.PostoGraduacaoRepository;
+import br.com.milscale.milscale.adapters.persistence.SubunidadeRepository;
 import br.com.milscale.milscale.adapters.persistence.RequisitoServicoRepository;
 import br.com.milscale.milscale.adapters.persistence.ServicoEscaladoRepository;
 import br.com.milscale.milscale.adapters.persistence.SolicitacaoRepository;
@@ -43,13 +45,16 @@ public class MilitarService {
     private final PerfilAcessoRepository perfilAcessoRepository;
     private final PasswordEncoder passwordEncoder;
     private final GeradorDeSenha geradorDeSenha;
+    private final PostoGraduacaoRepository postoGraduacaoRepository;
+    private final SubunidadeRepository subunidadeRepository;
 
     public MilitarService(MilitarRepository militarRepository, TipoServicoRepository tipoServicoRepository,
                            RequisitoServicoRepository requisitoServicoRepository, ElegibilidadeService elegibilidadeService,
                            ServicoEscaladoRepository servicoEscaladoRepository, AfastamentoRepository afastamentoRepository,
                            SolicitacaoRepository solicitacaoRepository, UsuarioRepository usuarioRepository,
                            PerfilAcessoRepository perfilAcessoRepository, PasswordEncoder passwordEncoder,
-                           GeradorDeSenha geradorDeSenha) {
+                           GeradorDeSenha geradorDeSenha, PostoGraduacaoRepository postoGraduacaoRepository,
+                           SubunidadeRepository subunidadeRepository) {
         this.militarRepository = militarRepository;
         this.tipoServicoRepository = tipoServicoRepository;
         this.requisitoServicoRepository = requisitoServicoRepository;
@@ -61,6 +66,8 @@ public class MilitarService {
         this.perfilAcessoRepository = perfilAcessoRepository;
         this.passwordEncoder = passwordEncoder;
         this.geradorDeSenha = geradorDeSenha;
+        this.postoGraduacaoRepository = postoGraduacaoRepository;
+        this.subunidadeRepository = subunidadeRepository;
     }
 
     public List<Militar> listar() {
@@ -116,10 +123,9 @@ public class MilitarService {
     }
 
     @Transactional
-    public MilitarCadastrado cadastrar(Militar militar) {
-        militar.setId(null);
-        militar.setSituacao(SituacaoPessoa.ATIVO);
-        militar.setCpf(normalizarCpf(militar.getCpf()));
+    public MilitarCadastrado cadastrar(DadosMilitar dados) {
+        Militar militar = Militar.builder().situacao(SituacaoPessoa.ATIVO).build();
+        aplicar(dados, militar);
         validarCpfUnico(militar.getCpf(), null);
         validarNomeGuerraUnicoNoPosto(militar.getPosto().getId(), militar.getNomeGuerra(), null);
         Militar salvo = militarRepository.save(militar);
@@ -144,36 +150,38 @@ public class MilitarService {
     }
 
     @Transactional
-    public Militar atualizar(Long id, Militar dados) {
+    public Militar atualizar(Long id, DadosMilitar dados) {
         Militar existente = buscar(id);
-        dados.setCpf(normalizarCpf(dados.getCpf()));
-        validarNomeGuerraUnicoNoPosto(dados.getPosto().getId(), dados.getNomeGuerra(), id);
-        validarCpfUnico(dados.getCpf(), id);
-        boolean cpfMudou = !existente.getCpf().equals(dados.getCpf());
-        existente.setNomeCompleto(dados.getNomeCompleto());
-        existente.setNomeGuerra(dados.getNomeGuerra());
-        existente.setCpf(dados.getCpf());
-        existente.setPosto(dados.getPosto());
-        existente.setSubunidade(dados.getSubunidade());
-        existente.setEmail(dados.getEmail());
-        existente.setTelefone(dados.getTelefone());
-        existente.setNumeroRegistro(dados.getNumeroRegistro());
-        existente.setDataNascimento(dados.getDataNascimento());
-        existente.setFusex(dados.getFusex());
-        if (dados.getFotoBase64() != null) {
-            existente.setFotoBase64(dados.getFotoBase64());
-        }
+        String cpfAnterior = existente.getCpf();
+        String fotoAnterior = existente.getFotoBase64();
+        aplicar(dados, existente);
+        if (dados.fotoBase64() == null) existente.setFotoBase64(fotoAnterior);
+        validarCpfUnico(existente.getCpf(), id);
+        validarNomeGuerraUnicoNoPosto(existente.getPosto().getId(), existente.getNomeGuerra(), id);
         Militar salvo = militarRepository.save(existente);
-        // Login e o CPF (RF01) - se o CPF foi corrigido, o login da conta
-        // precisa acompanhar, senao a pessoa fica sem conseguir entrar com
-        // o CPF novo.
-        if (cpfMudou) {
+        if (!cpfAnterior.equals(salvo.getCpf())) {
             usuarioRepository.findByMilitar_Id(id).ifPresent(u -> {
-                u.setLogin(dados.getCpf());
+                u.setLogin(salvo.getCpf());
                 usuarioRepository.save(u);
             });
         }
         return salvo;
+    }
+
+    private void aplicar(DadosMilitar d, Militar m) {
+        m.setNomeCompleto(d.nomeCompleto().trim());
+        m.setNomeGuerra(d.nomeGuerra().trim());
+        m.setCpf(normalizarCpf(d.cpf()));
+        m.setNumeroRegistro(d.numeroRegistro());
+        m.setDataNascimento(d.dataNascimento());
+        m.setFusex(d.fusex());
+        m.setEmail(d.email());
+        m.setTelefone(d.telefone() == null ? null : d.telefone().replaceAll("\\D", ""));
+        m.setFotoBase64(d.fotoBase64());
+        m.setPosto(postoGraduacaoRepository.findById(d.postoId())
+                .orElseThrow(() -> new NoSuchElementException("Posto/graduação não encontrado")));
+        m.setSubunidade(subunidadeRepository.findById(d.subunidadeId())
+                .orElseThrow(() -> new NoSuchElementException("Subunidade não encontrada")));
     }
 
     private void validarCpfUnico(String cpf, Long idParaIgnorar) {

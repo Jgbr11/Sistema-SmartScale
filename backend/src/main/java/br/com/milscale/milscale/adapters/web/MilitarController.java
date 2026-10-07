@@ -1,8 +1,10 @@
 package br.com.milscale.milscale.adapters.web;
 
 import br.com.milscale.milscale.application.AuditoriaService;
+import br.com.milscale.milscale.application.DadosMilitar;
 import br.com.milscale.milscale.application.MilitarService;
 import br.com.milscale.milscale.domain.Militar;
+import jakarta.validation.Valid;
 import br.com.milscale.milscale.adapters.web.dto.MilitarCadastradoResponse;
 import br.com.milscale.milscale.adapters.web.dto.MilitarDetalheResponse;
 import org.springframework.http.ResponseEntity;
@@ -83,8 +85,8 @@ public class MilitarController {
     /** RF04 - manter o cadastro e privativo de Cabo da Sargenteacao e Sargenteante. */
     @PreAuthorize("hasAnyRole('CABO_SARGENTEACAO', 'SARGENTEANTE')")
     @PostMapping
-    public MilitarCadastradoResponse cadastrar(@RequestBody Militar militar, Authentication auth) {
-        MilitarService.MilitarCadastrado cadastrado = militarService.cadastrar(militar);
+    public MilitarCadastradoResponse cadastrar(@Valid @RequestBody DadosMilitar dados, Authentication auth) {
+        MilitarService.MilitarCadastrado cadastrado = militarService.cadastrar(dados);
         Militar salvo = cadastrado.militar();
         auditoriaService.registrar(auth.getName(), "MILITAR_CADASTRADO", salvo.getNomeExibicao() + " (id " + salvo.getId() + ") - conta criada");
         return new MilitarCadastradoResponse(MilitarDetalheResponse.completo(salvo), cadastrado.senhaTemporaria());
@@ -92,10 +94,10 @@ public class MilitarController {
 
     @PreAuthorize("hasAnyRole('CABO_SARGENTEACAO', 'SARGENTEANTE')")
     @PutMapping("/{id}")
-    public Militar atualizar(@PathVariable Long id, @RequestBody Militar militar, Authentication auth) {
-        Militar salvo = militarService.atualizar(id, militar);
+    public MilitarDetalheResponse atualizar(@PathVariable Long id, @Valid @RequestBody DadosMilitar dados, Authentication auth) {
+        Militar salvo = militarService.atualizar(id, dados);
         auditoriaService.registrar(auth.getName(), "MILITAR_EDITADO", salvo.getNomeExibicao() + " (id " + id + ")");
-        return salvo;
+        return MilitarDetalheResponse.completo(salvo);
     }
 
     @PreAuthorize("hasAnyRole('CABO_SARGENTEACAO', 'SARGENTEANTE')")

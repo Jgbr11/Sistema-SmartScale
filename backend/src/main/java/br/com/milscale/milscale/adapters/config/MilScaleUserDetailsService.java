@@ -19,9 +19,11 @@ import java.util.List;
 public class MilScaleUserDetailsService implements UserDetailsService {
 
     private final UsuarioRepository usuarioRepository;
+    private final ProtecaoContraForcaBruta protecao;
 
-    public MilScaleUserDetailsService(UsuarioRepository usuarioRepository) {
+    public MilScaleUserDetailsService(UsuarioRepository usuarioRepository, ProtecaoContraForcaBruta protecao) {
         this.usuarioRepository = usuarioRepository;
+        this.protecao = protecao;
     }
 
     @Override
@@ -39,6 +41,7 @@ public class MilScaleUserDetailsService implements UserDetailsService {
                 .password(usuario.getSenhaHash())
                 .authorities(List.of(new SimpleGrantedAuthority("ROLE_" + perfil)))
                 .disabled(!usuario.isAtivo())
+                .accountLocked(protecao.bloqueado(cpfNormalizado))
                 .build();
     }
 }

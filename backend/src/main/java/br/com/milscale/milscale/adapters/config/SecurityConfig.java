@@ -5,6 +5,7 @@ import br.com.milscale.milscale.adapters.persistence.UsuarioRepository;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.authentication.LockedException;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -19,6 +20,7 @@ import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.http.HttpStatus;
 
+import java.io.IOException;
 import java.util.List;
 
 /**
@@ -36,11 +38,13 @@ public class SecurityConfig {
 
     private final List<String> origensPermitidas;
     private final UsuarioRepository usuarioRepository;
+    private final ProtecaoContraForcaBruta protecao;
 
     public SecurityConfig(@Value("${milscale.cors.origens:http://localhost:*}") List<String> origensPermitidas,
-                          UsuarioRepository usuarioRepository) {
+                          UsuarioRepository usuarioRepository, ProtecaoContraForcaBruta protecao) {
         this.origensPermitidas = origensPermitidas;
         this.usuarioRepository = usuarioRepository;
+        this.protecao = protecao;
     }
 
     @Bean
@@ -60,8 +64,18 @@ public class SecurityConfig {
             )
             .formLogin(form -> form
                 .loginProcessingUrl("/api/auth/login")
-                .successHandler((req, res, a) -> res.setStatus(200))
-                .failureHandler((req, res, e) -> res.setStatus(401))
+                .successHandler((req, res, a) -> {
+                    protecao.limpar(a.getName());
+                    res.setStatus(HttpServletResponse.SC_OK);
+                })
+                .failureHandler((req, res, e) -> {
+                    if (e instanceof LockedException) {
+                        responderErro(res, 423, "Muitas tentativas erradas. Tente de novo em 15 minutos.");
+                        return;
+                    }
+                    protecao.registrarFalha(somenteDigitos(req.getParameter("username")));
+                    responderErro(res, HttpServletResponse.SC_UNAUTHORIZED, "CPF ou senha inválidos");
+                })
             )
             .logout(logout -> logout
                 .logoutUrl("/api/auth/logout")
@@ -69,6 +83,17 @@ public class SecurityConfig {
             .exceptionHandling(ex -> ex.authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED)));
         http.addFilterAfter(new SenhaTemporariaFilter(usuarioRepository), AuthorizationFilter.class);
         return http.build();
+    }
+
+    private static String somenteDigitos(String valor) {
+        return valor == null ? "" : valor.replaceAll("\\D", "");
+    }
+
+    private static void responderErro(HttpServletResponse res, int status, String mensagem) throws IOException {
+        res.setStatus(status);
+        res.setCharacterEncoding("UTF-8");
+        res.setContentType("application/json");
+        res.getWriter().write("{\"erro\":\"" + mensagem + "\"}");
     }
 
     @Bean

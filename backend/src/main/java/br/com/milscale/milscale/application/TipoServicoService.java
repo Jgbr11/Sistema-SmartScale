@@ -5,6 +5,7 @@ import br.com.milscale.milscale.domain.TipoServico;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalTime;
 import java.util.List;
 import java.util.NoSuchElementException;
 
@@ -23,22 +24,26 @@ public class TipoServicoService {
     }
 
     @Transactional
-    public TipoServico cadastrar(TipoServico tipo) {
-        tipo.setId(null);
-        tipo.setAtivo(true);
+    public TipoServico cadastrar(DadosTipoServico dados) {
+        TipoServico tipo = TipoServico.builder().ativo(true).build();
+        aplicar(dados, tipo);
         return tipoServicoRepository.save(tipo);
     }
 
     @Transactional
-    public TipoServico atualizar(Long id, TipoServico dados) {
+    public TipoServico atualizar(Long id, DadosTipoServico dados) {
         TipoServico existente = tipoServicoRepository.findById(id)
                 .orElseThrow(() -> new NoSuchElementException("Tipo de servico nao encontrado"));
-        existente.setNome(dados.getNome());
-        existente.setDescricao(dados.getDescricao());
-        existente.setEfetivoNecessario(dados.getEfetivoNecessario());
-        existente.setHoraInicio(dados.getHoraInicio());
-        existente.setDuracaoHoras(dados.getDuracaoHoras());
+        aplicar(dados, existente);
         return tipoServicoRepository.save(existente);
+    }
+
+    private void aplicar(DadosTipoServico d, TipoServico t) {
+        t.setNome(d.nome().trim());
+        t.setDescricao(d.descricao());
+        t.setEfetivoNecessario(d.efetivoNecessario());
+        t.setHoraInicio(d.horaInicio() != null ? d.horaInicio() : LocalTime.of(8, 0));
+        t.setDuracaoHoras(d.duracaoHoras() != null ? d.duracaoHoras() : 24);
     }
 
     @Transactional

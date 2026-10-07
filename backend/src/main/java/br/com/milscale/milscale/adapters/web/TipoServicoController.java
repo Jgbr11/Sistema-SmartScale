@@ -1,6 +1,8 @@
 package br.com.milscale.milscale.adapters.web;
 
 import br.com.milscale.milscale.application.TipoServicoService;
+import br.com.milscale.milscale.application.DadosTipoServico;
+import jakarta.validation.Valid;
 import br.com.milscale.milscale.domain.TipoServico;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -25,14 +27,14 @@ public class TipoServicoController {
     /** RN11 - manutencao dos tipos de servico e privativa do Sargenteante. */
     @PreAuthorize("hasRole('SARGENTEANTE')")
     @PostMapping
-    public TipoServico cadastrar(@RequestBody TipoServico tipo) {
-        return tipoServicoService.cadastrar(tipo);
+    public TipoServico cadastrar(@Valid @RequestBody DadosTipoServico dados) {
+        return tipoServicoService.cadastrar(dados);
     }
 
     @PreAuthorize("hasRole('SARGENTEANTE')")
     @PutMapping("/{id}")
-    public TipoServico atualizar(@PathVariable Long id, @RequestBody TipoServico tipo) {
-        return tipoServicoService.atualizar(id, tipo);
+    public TipoServico atualizar(@PathVariable Long id, @Valid @RequestBody DadosTipoServico dados) {
+        return tipoServicoService.atualizar(id, dados);
     }
 
     @PreAuthorize("hasRole('SARGENTEANTE')")

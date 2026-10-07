@@ -24,9 +24,9 @@ class MilitarCadastroIntegrationTest {
     @Autowired private SubunidadeRepository subunidadeRepository;
     @Autowired private PasswordEncoder passwordEncoder;
 
-    private Militar novo(String cpf, String nomeGuerra) {
-        return Militar.builder().nomeCompleto("Novo " + nomeGuerra).nomeGuerra(nomeGuerra).cpf(cpf)
-                .posto(postoRepository.findAll().get(0)).subunidade(subunidadeRepository.findAll().get(0)).build();
+    private DadosMilitar novo(String cpf, String nomeGuerra) {
+        return new DadosMilitar("Novo " + nomeGuerra, nomeGuerra, cpf, null, null, null, null, null, null,
+                postoRepository.findAll().get(0).getId(), subunidadeRepository.findAll().get(0).getId());
     }
 
     @Test

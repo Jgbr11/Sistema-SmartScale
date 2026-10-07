@@ -1,9 +1,11 @@
 package br.com.milscale.milscale.adapters.web;
 
 import br.com.milscale.milscale.application.AuditoriaService;
+import br.com.milscale.milscale.application.DadosQualificacao;
 import br.com.milscale.milscale.application.QualificacaoService;
 import br.com.milscale.milscale.domain.Militar;
 import br.com.milscale.milscale.domain.Qualificacao;
+import jakarta.validation.Valid;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
@@ -30,14 +32,14 @@ public class QualificacaoController {
     /** RN11 - catalogo (criar um novo tipo de curso) e privativo do Sargenteante. */
     @PreAuthorize("hasRole('SARGENTEANTE')")
     @PostMapping("/qualificacoes")
-    public Qualificacao cadastrar(@RequestBody Qualificacao q) {
-        return qualificacaoService.cadastrar(q);
+    public Qualificacao cadastrar(@Valid @RequestBody DadosQualificacao dados) {
+        return qualificacaoService.cadastrar(dados);
     }
 
     @PreAuthorize("hasRole('SARGENTEANTE')")
     @PutMapping("/qualificacoes/{id}")
-    public Qualificacao atualizar(@PathVariable Long id, @RequestBody Qualificacao q) {
-        return qualificacaoService.atualizar(id, q);
+    public Qualificacao atualizar(@PathVariable Long id, @Valid @RequestBody DadosQualificacao dados) {
+        return qualificacaoService.atualizar(id, dados);
     }
 
     @PreAuthorize("hasRole('SARGENTEANTE')")
