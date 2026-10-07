@@ -16,6 +16,9 @@ public class ServicoEscalado {
     @Column(name = "id_servico_escalado")
     private Long id;
 
+    @Version
+    private Long versao;
+
     @ManyToOne(optional = false)
     @JoinColumn(name = "id_escala")
     @JsonIgnore

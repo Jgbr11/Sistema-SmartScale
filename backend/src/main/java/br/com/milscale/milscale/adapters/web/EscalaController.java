@@ -2,6 +2,8 @@ package br.com.milscale.milscale.adapters.web;
 
 import br.com.milscale.milscale.adapters.web.dto.GerarEscalaRequest;
 import br.com.milscale.milscale.application.AuditoriaService;
+import br.com.milscale.milscale.application.EscalaDoMes;
+import br.com.milscale.milscale.application.EscalaResumo;
 import br.com.milscale.milscale.application.BloqueioDiaService;
 import br.com.milscale.milscale.application.ConsultaEscalaService;
 import br.com.milscale.milscale.application.GerarEscalaService;
@@ -15,6 +17,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
+import java.time.YearMonth;
 import java.util.List;
 
 @RestController
@@ -45,8 +48,14 @@ public class EscalaController {
     /** RF14 - visão completa do mês. Militar Escalado NÃO entra aqui (RF13 é o dele: só a própria escala + Escala do dia). */
     @PreAuthorize("hasAnyRole('CABO_SARGENTEACAO', 'SD_EP_SARGENTEACAO', 'SARGENTEANTE')")
     @GetMapping
-    public List<Escala> listar() {
+    public List<EscalaResumo> listar() {
         return consultaEscalaService.listar();
+    }
+
+    @PreAuthorize("hasAnyRole('CABO_SARGENTEACAO', 'SD_EP_SARGENTEACAO', 'SARGENTEANTE')")
+    @GetMapping("/mes")
+    public EscalaDoMes doMes(@RequestParam String mes) {
+        return consultaEscalaService.doMes(YearMonth.parse(mes));
     }
 
     @PreAuthorize("hasAnyRole('CABO_SARGENTEACAO', 'SD_EP_SARGENTEACAO', 'SARGENTEANTE')")
@@ -83,17 +92,17 @@ public class EscalaController {
 
     /** RF12/RN04 - travar um dia (nenhuma troca ou alteracao manual e aceita). Privativo do Sargenteante. */
     @PreAuthorize("hasRole('SARGENTEANTE')")
-    @PostMapping("/{id}/dias/{data}/travar")
-    public List<ServicoEscalado> travarDia(@PathVariable Long id, @PathVariable String data, Authentication auth) {
-        List<ServicoEscalado> resultado = bloqueioDiaService.travar(id, LocalDate.parse(data));
+    @PostMapping("/dias/{data}/travar")
+    public List<ServicoEscalado> travarDia(@PathVariable String data, Authentication auth) {
+        List<ServicoEscalado> resultado = bloqueioDiaService.travar(LocalDate.parse(data));
         auditoriaService.registrar(auth.getName(), "DIA_TRAVADO", data);
         return resultado;
     }
 
     @PreAuthorize("hasRole('SARGENTEANTE')")
-    @PostMapping("/{id}/dias/{data}/destravar")
-    public List<ServicoEscalado> destravarDia(@PathVariable Long id, @PathVariable String data, Authentication auth) {
-        List<ServicoEscalado> resultado = bloqueioDiaService.destravar(id, LocalDate.parse(data));
+    @PostMapping("/dias/{data}/destravar")
+    public List<ServicoEscalado> destravarDia(@PathVariable String data, Authentication auth) {
+        List<ServicoEscalado> resultado = bloqueioDiaService.destravar(LocalDate.parse(data));
         auditoriaService.registrar(auth.getName(), "DIA_DESTRAVADO", data);
         return resultado;
     }

@@ -191,6 +191,19 @@ de qualquer um dos ~200 militares gerados.
   disso, um dia cujo serviço já começou (08h) fica imutável sozinho.
 - **Afastamento cadastrado depois da escala pronta** realoca
   automaticamente só as vagas afetadas.
+- **Rascunho × publicada:** escala em rascunho só aparece para a
+  sargenteação; o efetivo vê (e pede troca) só de escala publicada.
+- **Máximo de serviços no mês:** cada tipo de serviço pode limitar quantas
+  vezes o mesmo militar o tira no mês. Como o intervalo mínimo, o limite só é
+  relaxado quando não houver gente para cobrir a vaga.
+- **Tipos de serviço novos** nascem com regra 3x1 e sem ninguém elegível; a
+  tela mostra o aviso e permite definir quem pode tirar.
+- **Contas:** cadastrar um militar cria a conta dele com senha temporária,
+  que precisa ser trocada no primeiro acesso; resetar senha gera outra
+  temporária; desligar o militar fecha o acesso; 5 senhas erradas seguidas
+  bloqueiam o CPF por 15 minutos.
+- **Privacidade:** CPF, data de nascimento, FUSEX e contatos só aparecem para
+  a sargenteação ou para a própria pessoa.
 
 ## Documentação da disciplina
 

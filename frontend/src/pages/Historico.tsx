@@ -100,7 +100,7 @@ export function HistoricoPage() {
                   <tr key={t.id}>
                     <td>{formatarDataBR(t.dataSolicitacao.slice(0, 10))}</td>
                     <td>{t.solicitante.id === usuario?.militarId ? "Pediu" : "Recebeu o pedido"}</td>
-                    <td>{t.servicoOrigem.tipoServico.nome} — {formatarDataBR(t.servicoOrigem.data)}</td>
+                    <td>{t.servicoOrigemTipo} — {formatarDataBR(t.servicoOrigemData)}</td>
                     <td><span className="pill pill-grey">{t.situacao}</span></td>
                   </tr>
                 ))}

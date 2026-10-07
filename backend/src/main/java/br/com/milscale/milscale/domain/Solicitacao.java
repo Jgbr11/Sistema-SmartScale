@@ -3,6 +3,7 @@ package br.com.milscale.milscale.domain;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 /**
@@ -28,9 +29,21 @@ public class Solicitacao {
     @Column(name = "id_solicitacao")
     private Long id;
 
-    @ManyToOne(optional = false)
+    @Version
+    private Long versao;
+
+    @ManyToOne
     @JoinColumn(name = "id_servico_escalado")
     private ServicoEscalado servicoOrigem;
+
+    @Column(name = "servico_origem_data")
+    private LocalDate servicoOrigemData;
+
+    @Column(name = "servico_origem_tipo", length = 60)
+    private String servicoOrigemTipo;
+
+    @Column(name = "servico_destino_data")
+    private LocalDate servicoDestinoData;
 
     @ManyToOne(optional = false)
     @JoinColumn(name = "id_solicitante")

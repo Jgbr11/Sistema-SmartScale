@@ -1,5 +1,7 @@
 package br.com.milscale.milscale.application;
 
+import br.com.milscale.milscale.domain.RegraEscala;
+import br.com.milscale.milscale.adapters.persistence.RegraEscalaRepository;
 import br.com.milscale.milscale.adapters.persistence.TipoServicoRepository;
 import br.com.milscale.milscale.domain.TipoServico;
 import org.springframework.stereotype.Service;
@@ -13,10 +15,14 @@ import java.util.NoSuchElementException;
 @Service
 public class TipoServicoService {
 
-    private final TipoServicoRepository tipoServicoRepository;
+    private static final int INTERVALO_MINIMO_NOVO_TIPO = 3;
 
-    public TipoServicoService(TipoServicoRepository tipoServicoRepository) {
+    private final TipoServicoRepository tipoServicoRepository;
+    private final RegraEscalaRepository regraEscalaRepository;
+
+    public TipoServicoService(TipoServicoRepository tipoServicoRepository, RegraEscalaRepository regraEscalaRepository) {
         this.tipoServicoRepository = tipoServicoRepository;
+        this.regraEscalaRepository = regraEscalaRepository;
     }
 
     public List<TipoServico> listar() {
@@ -27,7 +33,10 @@ public class TipoServicoService {
     public TipoServico cadastrar(DadosTipoServico dados) {
         TipoServico tipo = TipoServico.builder().ativo(true).build();
         aplicar(dados, tipo);
-        return tipoServicoRepository.save(tipo);
+        TipoServico salvo = tipoServicoRepository.save(tipo);
+        regraEscalaRepository.save(RegraEscala.builder()
+                .tipoServico(salvo).intervaloMinimo(INTERVALO_MINIMO_NOVO_TIPO).build());
+        return salvo;
     }
 
     @Transactional

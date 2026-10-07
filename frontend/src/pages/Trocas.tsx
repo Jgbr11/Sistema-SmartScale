@@ -119,14 +119,14 @@ export function TrocasPage() {
                   <tbody>
                     {minhas.map((s) => (
                       <tr key={s.id}>
-                        <td>{s.servicoOrigem.tipoServico.nome}</td>
-                        <td>{formatarDataBR(s.servicoOrigem.data)}</td>
+                        <td>{s.servicoOrigemTipo}</td>
+                        <td>{formatarDataBR(s.servicoOrigemData)}</td>
                         <td><TipoTrocaPill tipo={s.tipoTroca} /></td>
                         <td>
                           {s.substituto.nomeExibicao}
-                          {s.tipoTroca === "TROCA_MUTUA" && s.servicoDestino && (
+                          {s.tipoTroca === "TROCA_MUTUA" && s.servicoDestinoData && (
                             <span style={{ display: "block", fontSize: 11, color: "var(--grey)" }}>
-                              você assume o dia {formatarDataBR(s.servicoDestino.data)} dele
+                              você assume o dia {formatarDataBR(s.servicoDestinoData)} dele
                             </span>
                           )}
                         </td>
@@ -167,13 +167,13 @@ export function TrocasPage() {
                   {aguardandoConfirmacao.map((s) => (
                     <tr key={s.id}>
                       <td>{s.solicitante.nomeExibicao}</td>
-                      <td>{s.servicoOrigem.tipoServico.nome}</td>
-                      <td>{formatarDataBR(s.servicoOrigem.data)}</td>
+                      <td>{s.servicoOrigemTipo}</td>
+                      <td>{formatarDataBR(s.servicoOrigemData)}</td>
                       <td>
                         <TipoTrocaPill tipo={s.tipoTroca} />
-                        {s.tipoTroca === "TROCA_MUTUA" && s.servicoDestino && (
+                        {s.tipoTroca === "TROCA_MUTUA" && s.servicoDestinoData && (
                           <span style={{ display: "block", fontSize: 11, color: "var(--grey)", marginTop: 3 }}>
-                            você assumiria o dia {formatarDataBR(s.servicoOrigem.data)}, e ele assumiria seu dia {formatarDataBR(s.servicoDestino.data)}
+                            você assumiria o dia {formatarDataBR(s.servicoOrigemData)}, e ele assumiria seu dia {formatarDataBR(s.servicoDestinoData)}
                           </span>
                         )}
                       </td>
@@ -215,14 +215,14 @@ export function TrocasPage() {
                   {emTriagem.map((s) => (
                     <tr key={s.id}>
                       <td>{s.solicitante.nomeExibicao}</td>
-                      <td>{s.servicoOrigem.tipoServico.nome}</td>
-                      <td>{formatarDataBR(s.servicoOrigem.data)}</td>
+                      <td>{s.servicoOrigemTipo}</td>
+                      <td>{formatarDataBR(s.servicoOrigemData)}</td>
                       <td><TipoTrocaPill tipo={s.tipoTroca} /></td>
                       <td>
                         {s.substituto.nomeExibicao}
-                        {s.tipoTroca === "TROCA_MUTUA" && s.servicoDestino && (
+                        {s.tipoTroca === "TROCA_MUTUA" && s.servicoDestinoData && (
                           <span style={{ display: "block", fontSize: 11, color: "var(--grey)" }}>
-                            e {s.solicitante.nomeExibicao} assume o dia {formatarDataBR(s.servicoDestino.data)} dele
+                            e {s.solicitante.nomeExibicao} assume o dia {formatarDataBR(s.servicoDestinoData)} dele
                           </span>
                         )}
                       </td>
@@ -260,14 +260,14 @@ export function TrocasPage() {
                   {aguardandoAutorizacao.map((s) => (
                     <tr key={s.id}>
                       <td>{s.solicitante.nomeExibicao}</td>
-                      <td>{s.servicoOrigem.tipoServico.nome}</td>
-                      <td>{formatarDataBR(s.servicoOrigem.data)}</td>
+                      <td>{s.servicoOrigemTipo}</td>
+                      <td>{formatarDataBR(s.servicoOrigemData)}</td>
                       <td><TipoTrocaPill tipo={s.tipoTroca} /></td>
                       <td>
                         {s.substituto.nomeExibicao}
-                        {s.tipoTroca === "TROCA_MUTUA" && s.servicoDestino && (
+                        {s.tipoTroca === "TROCA_MUTUA" && s.servicoDestinoData && (
                           <span style={{ display: "block", fontSize: 11, color: "var(--grey)" }}>
-                            e {s.solicitante.nomeExibicao} assume o dia {formatarDataBR(s.servicoDestino.data)} dele
+                            e {s.solicitante.nomeExibicao} assume o dia {formatarDataBR(s.servicoDestinoData)} dele
                           </span>
                         )}
                       </td>

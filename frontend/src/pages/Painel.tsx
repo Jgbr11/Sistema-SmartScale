@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { api } from "../api/client";
-import type { Afastamento, Escala, Militar, ServicoEscalado, Solicitacao } from "../api/types";
+import type { Afastamento, EscalaDoMes, Militar, ServicoEscalado, Solicitacao } from "../api/types";
 import { PageHeader } from "../components/Shell";
 import { MilitarDetalheOverlay } from "../components/MilitarDetalheOverlay";
 import { useAuth } from "../context/AuthContext";
@@ -16,7 +16,7 @@ export function PainelPage() {
 
   const [carregando, setCarregando] = useState(true);
   const [militares, setMilitares] = useState<Militar[]>([]);
-  const [escala, setEscala] = useState<Escala | null>(null);
+  const [servicosDoMes, setServicosDoMes] = useState<ServicoEscalado[]>([]);
   const [servicosHoje, setServicosHoje] = useState<ServicoEscalado[]>([]);
   const [emTriagem, setEmTriagem] = useState<Solicitacao[]>([]);
   const [aguardandoAutorizacao, setAguardandoAutorizacao] = useState<Solicitacao[]>([]);
@@ -26,17 +26,14 @@ export function PainelPage() {
   useEffect(() => {
     async function carregar() {
       setCarregando(true);
-      const hoje = new Date().toISOString().slice(0, 10);
+      const agora = new Date();
+      const hoje = `${agora.getFullYear()}-${String(agora.getMonth() + 1).padStart(2, "0")}-${String(agora.getDate()).padStart(2, "0")}`;
       const chamadas: Promise<unknown>[] = [
         api.get<Militar[]>("/api/militares").then(setMilitares),
         api.get<ServicoEscalado[]>(`/api/escalas/dia?data=${hoje}`).then((s) => setServicosHoje(ordenarPorTipo(s))),
         api.get<Afastamento[]>("/api/afastamentos").then(setAfastamentos),
       ];
-      chamadas.push(
-        api.get<Escala[]>("/api/escalas").then(async (lista) => {
-          if (lista.length > 0) setEscala(await api.get<Escala>(`/api/escalas/${lista[0].id}`));
-        })
-      );
+      chamadas.push(api.get<EscalaDoMes>(`/api/escalas/mes?mes=${hoje.slice(0, 7)}`).then((m) => setServicosDoMes(m.servicos)));
       if (podeTriagem) chamadas.push(api.get<Solicitacao[]>("/api/solicitacoes/triagem").then(setEmTriagem));
       if (podeAutorizar) chamadas.push(api.get<Solicitacao[]>("/api/solicitacoes/autorizacao").then(setAguardandoAutorizacao));
       await Promise.all(chamadas);
@@ -47,14 +44,13 @@ export function PainelPage() {
   }, []);
 
   const ativos = militares.filter((m) => m.situacao === "ATIVO").length;
-  const vagasAbertas = escala?.servicos.filter((s) => !s.militar).length ?? 0;
+  const vagasAbertas = servicosDoMes.filter((s) => !s.militar).length;
   const trocasPendentes = emTriagem.length + aguardandoAutorizacao.length;
-  const hojeStr = new Date().toISOString().slice(0, 10);
+  const agoraLocal = new Date();
+  const hojeStr = `${agoraLocal.getFullYear()}-${String(agoraLocal.getMonth() + 1).padStart(2, "0")}-${String(agoraLocal.getDate()).padStart(2, "0")}`;
   const afastamentosHoje = afastamentos.filter((a) => a.dataInicio <= hojeStr && a.dataFim >= hojeStr);
 
-  const nomeMesEscala = escala
-    ? new Date(escala.dataInicio + "T00:00:00").toLocaleDateString("pt-BR", { month: "long", year: "numeric" })
-    : null;
+  const nomeMesEscala = new Date().toLocaleDateString("pt-BR", { month: "long", year: "numeric" });
 
   const hojeExtenso = new Date().toLocaleDateString("pt-BR", { weekday: "long", day: "numeric", month: "long" });
 
@@ -150,7 +146,7 @@ export function PainelPage() {
                         {[...emTriagem, ...aguardandoAutorizacao].slice(0, 5).map((s) => (
                           <tr key={s.id}>
                             <td>{s.solicitante.nomeExibicao}</td>
-                            <td>{formatarDataBR(s.servicoOrigem.data)}</td>
+                            <td>{formatarDataBR(s.servicoOrigemData)}</td>
                             <td>{s.substituto.nomeExibicao}</td>
                             <td>
                               <span className="pill pill-amber">

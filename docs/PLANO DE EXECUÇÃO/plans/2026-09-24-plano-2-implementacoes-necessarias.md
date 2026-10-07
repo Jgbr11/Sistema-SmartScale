@@ -61,17 +61,17 @@ Atualizado ao fim de cada tarefa, como no Plano 1. Os detalhes de cada uma ficam
 | 6 | 4 — Senha temporária | ✅ Lote 1 | `61b4e32` | verde (backend 124) | V2 `senha_temporaria`; `GeradorDeSenha`; `SenhaTemporariaFilter` (403 fora de `/api/auth`); front força Minha conta; aviso de contas demo só em dev |
 | 7 | 5 — Conta criada no cadastro | ✅ Lote 1 | `61b4e32` | verde (backend 124) | Cadastro cria conta MILITAR_ESCALADO com senha temporária; CPF normalizado e único; desligar desativa a conta |
 | 8 | 11 — Seed de demonstração só quando habilitado | ✅ Lote 1 | `61b4e32` | verde (backend 124) | `DataSeeder` dividido em `DadosDeReferenciaSeeder`, `DemoSeeder` (`milscale.seed.demo`) e `AdministradorInicialSeeder` (`MILSCALE_ADMIN_CPF/SENHA`) |
-| 9 | 12 — Cadastros sem *mass assignment* | 🟡 Lote 2, aguardando commit | — | verde (backend 132) | `DadosMilitar`, `DadosTipoServico`, `DadosQualificacao` (feriado já feito no Plano 5); front envia `postoId`/`subunidadeId`; curso com nome repetido recusado |
-| 10 | 14 — Limite de tentativas de login | 🟡 Lote 2, aguardando commit | — | verde (backend 132) | `ProtecaoContraForcaBruta` (5 falhas → 423 por 15 min) + bean `Clock`; login responde `{"erro"}`; front mostra "Servidor indisponível" sem resposta |
-| 11 | 15 — Fuso horário fixo | 🟡 Lote 2, aguardando commit | — | verde (backend 132) | `TimeZone` fixo em America/Sao_Paulo no `MilScaleApplication`; `TZ` no Dockerfile; testes rodam com JVM em UTC |
+| 9 | 12 — Cadastros sem *mass assignment* | ✅ Lote 2 | `55b53e9` | verde (backend 132) | `DadosMilitar`, `DadosTipoServico`, `DadosQualificacao` (feriado já feito no Plano 5); front envia `postoId`/`subunidadeId`; curso com nome repetido recusado |
+| 10 | 14 — Limite de tentativas de login | ✅ Lote 2 | `55b53e9` | verde (backend 132) | `ProtecaoContraForcaBruta` (5 falhas → 423 por 15 min) + bean `Clock`; login responde `{"erro"}`; front mostra "Servidor indisponível" sem resposta |
+| 11 | 15 — Fuso horário fixo | ✅ Lote 2 | `55b53e9` | verde (backend 132) | `TimeZone` fixo em America/Sao_Paulo no `MilScaleApplication`; `TZ` no Dockerfile; testes rodam com JVM em UTC |
 | 12 | 1 — Rascunho só para a sargenteação | ✅ Lote 1 | `61b4e32` | verde (backend 124) | `PerfisSargenteacao`; escala do dia, minha escala e histórico só PUBLICADA para quem não é da sargenteação; troca exige escala publicada |
-| 13 | 16 — Trocas: sem duplicidade, revalidação, travamento otimista | ⬜ Pendente | — | — | — |
-| 14 | 17 — Regerar período com histórico de trocas | ⬜ Pendente | — | — | — |
-| 15 | 18 — Escala do mês por mês + listagem leve | ⬜ Pendente | — | — | — |
-| 16 | 9 — Sem travar/destravar em dia que já começou | ⬜ Pendente | — | — | — |
-| 17 | 6 — Máx. serviços/mês | ⬜ Pendente | — | — | — |
-| 18 | 7 — Requisitos de elegibilidade (backend) | ⬜ Pendente | — | — | — |
-| 19 | 8 — Tela de elegibilidade (frontend) | ⬜ Pendente | — | — | — |
+| 13 | 16 — Trocas: sem duplicidade, revalidação, travamento otimista | 🟡 Lote 3, aguardando commit | — | verde (backend 151, front 13) | Um pedido em andamento por serviço; `autorizar` revalida dono, início, afastamento e 1x1; V3 `versao` (`@Version`) + 409 |
+| 14 | 17 — Regerar período com histórico de trocas | 🟡 Lote 3, aguardando commit | — | verde (backend 151, front 13) | V4 com fotografia (`servicoOrigemData/Tipo`, `servicoDestinoData`) e FK opcional; só pedido em andamento bloqueia regerar |
+| 15 | 18 — Escala do mês por mês + listagem leve | 🟡 Lote 3, aguardando commit | — | verde (backend 151, front 13) | `GET /api/escalas/mes`, `EscalaResumo`/`EscalaDoMes`; listagem sem serviços; travar/destravar por data; tela e Painel carregam o mês inteiro |
+| 16 | 9 — Sem travar/destravar em dia que já começou | 🟡 Lote 3, aguardando commit | — | verde (backend 151, front 13) | Backend recusa (400); tela mostra "Dia concluído" sem o botão |
+| 17 | 6 — Máx. serviços/mês | 🟡 Lote 3, aguardando commit | — | verde (backend 151, front 13) | Motor respeita `maxServicosMes` por militar/tipo/mês (relaxado só no aperto); regra valida valores; "dias de folga" fora da tela; auditoria |
+| 18 | 7 — Requisitos de elegibilidade (backend) | 🟡 Lote 3, aguardando commit | — | verde (backend 151, front 13) | `RequisitoServicoService` + endpoints; tipo novo nasce com regra 3x1; `quantidadeRequisitos` no JSON; auditoria de tipos e cursos |
+| 19 | 8 — Tela de elegibilidade (frontend) | 🟡 Lote 3, aguardando commit | — | verde (backend 151, front 13) | `RequisitosPainel` em Tipos de serviço, com aviso "Ninguém — definir"; `descreverRequisito` com 4 testes |
 
 **Dependências que a ordem acima respeita:**
 - **2 depende de 1 e 13:** a Task 2 usa `PerfisSargenteacao`, criado na Task 1, e parte do JSON já sem `Usuario` (Task 13). Se a Task 2 vier antes da 1, **crie o `PerfisSargenteacao` como primeiro passo da Task 2**, com o código do Step 4 da Task 1.

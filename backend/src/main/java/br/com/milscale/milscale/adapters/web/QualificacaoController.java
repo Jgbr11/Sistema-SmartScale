@@ -32,14 +32,18 @@ public class QualificacaoController {
     /** RN11 - catalogo (criar um novo tipo de curso) e privativo do Sargenteante. */
     @PreAuthorize("hasRole('SARGENTEANTE')")
     @PostMapping("/qualificacoes")
-    public Qualificacao cadastrar(@Valid @RequestBody DadosQualificacao dados) {
-        return qualificacaoService.cadastrar(dados);
+    public Qualificacao cadastrar(@Valid @RequestBody DadosQualificacao dados, Authentication auth) {
+        Qualificacao salva = qualificacaoService.cadastrar(dados);
+        auditoriaService.registrar(auth.getName(), "QUALIFICACAO_CADASTRADA", salva.getNome());
+        return salva;
     }
 
     @PreAuthorize("hasRole('SARGENTEANTE')")
     @PutMapping("/qualificacoes/{id}")
-    public Qualificacao atualizar(@PathVariable Long id, @Valid @RequestBody DadosQualificacao dados) {
-        return qualificacaoService.atualizar(id, dados);
+    public Qualificacao atualizar(@PathVariable Long id, @Valid @RequestBody DadosQualificacao dados, Authentication auth) {
+        Qualificacao salva = qualificacaoService.atualizar(id, dados);
+        auditoriaService.registrar(auth.getName(), "QUALIFICACAO_EDITADA", salva.getNome());
+        return salva;
     }
 
     @PreAuthorize("hasRole('SARGENTEANTE')")
@@ -52,13 +56,17 @@ public class QualificacaoController {
     /** Vincular um curso a uma pessoa e cadastro (RF04) - Cabo ou Sargenteante. */
     @PreAuthorize("hasAnyRole('CABO_SARGENTEACAO', 'SARGENTEANTE')")
     @PostMapping("/militares/{militarId}/qualificacoes/{qualificacaoId}")
-    public Militar vincular(@PathVariable Long militarId, @PathVariable Long qualificacaoId) {
-        return qualificacaoService.vincular(militarId, qualificacaoId);
+    public Militar vincular(@PathVariable Long militarId, @PathVariable Long qualificacaoId, Authentication auth) {
+        Militar militar = qualificacaoService.vincular(militarId, qualificacaoId);
+        auditoriaService.registrar(auth.getName(), "CURSO_VINCULADO", "militar " + militarId + ", curso " + qualificacaoId);
+        return militar;
     }
 
     @PreAuthorize("hasAnyRole('CABO_SARGENTEACAO', 'SARGENTEANTE')")
     @DeleteMapping("/militares/{militarId}/qualificacoes/{qualificacaoId}")
-    public Militar desvincular(@PathVariable Long militarId, @PathVariable Long qualificacaoId) {
-        return qualificacaoService.desvincular(militarId, qualificacaoId);
+    public Militar desvincular(@PathVariable Long militarId, @PathVariable Long qualificacaoId, Authentication auth) {
+        Militar militar = qualificacaoService.desvincular(militarId, qualificacaoId);
+        auditoriaService.registrar(auth.getName(), "CURSO_DESVINCULADO", "militar " + militarId + ", curso " + qualificacaoId);
+        return militar;
     }
 }

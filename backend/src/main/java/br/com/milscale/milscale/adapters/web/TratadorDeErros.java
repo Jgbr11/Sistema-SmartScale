@@ -3,6 +3,7 @@ package br.com.milscale.milscale.adapters.web;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -54,6 +55,12 @@ public class TratadorDeErros {
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
     public ResponseEntity<ErroResposta> tipoErrado(MethodArgumentTypeMismatchException ex) {
         return ResponseEntity.badRequest().body(new ErroResposta("Valor invalido para '" + ex.getName() + "'"));
+    }
+
+    @ExceptionHandler(ObjectOptimisticLockingFailureException.class)
+    public ResponseEntity<ErroResposta> conflitoDeVersao(ObjectOptimisticLockingFailureException ex) {
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(new ErroResposta("Esse registro foi alterado por outra pessoa. Recarregue e tente de novo."));
     }
 
     @ExceptionHandler(DataIntegrityViolationException.class)

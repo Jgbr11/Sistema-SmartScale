@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.time.YearMonth;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -90,11 +91,17 @@ public class GerarEscalaService {
                 throw new IllegalArgumentException(
                         "Esse período inclui um dia cujo serviço já começou — não é possível gerar de novo pro passado. Ajuste a data de início.");
             }
-            List<Solicitacao> solicitacoesNoPeriodo = solicitacaoRepository.findByServicoOrigem_DataBetween(dataInicio, dataFim);
-            if (!solicitacoesNoPeriodo.isEmpty()) {
+            List<Solicitacao> vinculadas = new ArrayList<>(solicitacaoRepository.findByServicoOrigem_DataBetween(dataInicio, dataFim));
+            vinculadas.addAll(solicitacaoRepository.findByServicoDestino_DataBetween(dataInicio, dataFim));
+            if (vinculadas.stream().anyMatch(s -> s.getSituacao().emAndamento())) {
                 throw new IllegalArgumentException(
-                        "Há pedidos de troca vinculados a esse período — resolva-os antes de gerar de novo");
+                        "Há pedidos de troca em andamento nesse período — resolva-os antes de gerar de novo");
             }
+            for (Solicitacao s : vinculadas) {
+                if (s.getServicoOrigem() != null && dentroDoPeriodo(s.getServicoOrigem().getData(), dataInicio, dataFim)) s.setServicoOrigem(null);
+                if (s.getServicoDestino() != null && dentroDoPeriodo(s.getServicoDestino().getData(), dataInicio, dataFim)) s.setServicoDestino(null);
+            }
+            solicitacaoRepository.saveAllAndFlush(vinculadas);
             Set<Long> escalasAfetadas = new HashSet<>();
             for (ServicoEscalado s : existentesNoPeriodo) escalasAfetadas.add(s.getEscala().getId());
             servicoEscaladoRepository.deleteAll(existentesNoPeriodo);
@@ -116,10 +123,19 @@ public class GerarEscalaService {
         // guardamos um conjunto de combinações, não um único posto.
         Map<Long, List<Militar>> elegiveisPorTipo = new HashMap<>();
         Map<Long, Integer> intervaloPorTipo = new HashMap<>();
+        Map<Long, Integer> maxPorTipo = new HashMap<>();
         for (TipoServico tipo : tipos) {
             List<RequisitoServico> requisitos = requisitoServicoRepository.findByTipoServico_Id(tipo.getId());
             elegiveisPorTipo.put(tipo.getId(), ativos.stream().filter(m -> elegibilidadeService.elegivel(m, requisitos)).toList());
-            intervaloPorTipo.put(tipo.getId(), PoliticaDeDescanso.intervaloMinimo(regraEscalaRepository.findByTipoServico_Id(tipo.getId()).orElse(null)));
+            RegraEscala regra = regraEscalaRepository.findByTipoServico_Id(tipo.getId()).orElse(null);
+            intervaloPorTipo.put(tipo.getId(), PoliticaDeDescanso.intervaloMinimo(regra));
+            maxPorTipo.put(tipo.getId(), regra != null ? regra.getMaxServicosMes() : null);
+        }
+        Map<ChaveMes, Integer> servicosNoMes = new HashMap<>();
+        for (ServicoEscalado s : servicoEscaladoRepository.findByDataBetween(
+                dataInicio.withDayOfMonth(1), dataFim.withDayOfMonth(dataFim.lengthOfMonth()))) {
+            if (s.getMilitar() == null) continue;
+            servicosNoMes.merge(new ChaveMes(s.getMilitar().getId(), s.getTipoServico().getId(), YearMonth.from(s.getData())), 1, Integer::sum);
         }
         Map<Long, List<Afastamento>> afastamentosPorMilitar = afastamentoRepository.findByDataFimGreaterThanEqual(dataInicio).stream()
                 .collect(Collectors.groupingBy(a -> a.getMilitar().getId()));
@@ -147,6 +163,7 @@ public class GerarEscalaService {
 
             for (TipoServico tipo : tipos) {
                 int intervaloMinimo = intervaloPorTipo.get(tipo.getId());
+                Integer max = maxPorTipo.get(tipo.getId());
 
                 final LocalDate diaFinal = dia;
                 List<MilitarEmGeracao> pool = new ArrayList<>();
@@ -156,7 +173,9 @@ public class GerarEscalaService {
                     if (temImpedimento(m, diaFinal, afastamentosPorMilitar)) continue; // RN15
                     MilitarEmGeracao em = estado.get(m.getId());
                     disponiveis.add(em);
-                    if (PoliticaDeDescanso.respeitaIntervalo(em.getUltimoServico(), diaFinal, intervaloMinimo)) pool.add(em); // RN06
+                    boolean abaixoDoMaximo = max == null
+                            || servicosNoMes.getOrDefault(new ChaveMes(m.getId(), tipo.getId(), YearMonth.from(diaFinal)), 0) < max;
+                    if (abaixoDoMaximo && PoliticaDeDescanso.respeitaIntervalo(em.getUltimoServico(), diaFinal, intervaloMinimo)) pool.add(em);
                 }
 
                 List<MilitarEmGeracao> escolhidos = new ArrayList<>(motor.preencherVagas(pool, tipo, criterio));
@@ -185,6 +204,7 @@ public class GerarEscalaService {
                 for (MilitarEmGeracao escolhido : escolhidos) {
                     escaladosHoje.add(escolhido.militar().getId());
                     escolhido.marcarServico(dia);
+                    servicosNoMes.merge(new ChaveMes(escolhido.militar().getId(), tipo.getId(), YearMonth.from(dia)), 1, Integer::sum);
                     gerados.add(ServicoEscalado.builder()
                             .escala(escala).data(dia).tipoServico(tipo)
                             .militar(escolhido.militar()).situacao(SituacaoServico.PREVISTO).build());
@@ -216,6 +236,12 @@ public class GerarEscalaService {
         }
 
         return salva;
+    }
+
+    private record ChaveMes(Long militarId, Long tipoId, YearMonth mes) {}
+
+    private static boolean dentroDoPeriodo(LocalDate dia, LocalDate inicio, LocalDate fim) {
+        return !dia.isBefore(inicio) && !dia.isAfter(fim);
     }
 
     private boolean temImpedimento(Militar m, LocalDate dia, Map<Long, List<Afastamento>> afastamentosPorMilitar) {

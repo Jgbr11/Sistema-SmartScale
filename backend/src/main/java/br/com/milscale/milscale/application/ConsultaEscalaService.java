@@ -8,10 +8,10 @@ import br.com.milscale.milscale.domain.SituacaoEscala;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.time.YearMonth;
 import java.util.List;
 import java.util.NoSuchElementException;
 
-/** RF13/RF14 - leituras da escala (mes completo e um dia). */
 @Service
 public class ConsultaEscalaService {
 
@@ -23,8 +23,23 @@ public class ConsultaEscalaService {
         this.servicoEscaladoRepository = servicoEscaladoRepository;
     }
 
-    public List<Escala> listar() {
-        return escalaRepository.findAllByOrderByDataInicioDesc();
+    public List<EscalaResumo> listar() {
+        return escalaRepository.findAllByOrderByDataInicioDesc().stream().map(this::resumo).toList();
+    }
+
+    public EscalaDoMes doMes(YearMonth mes) {
+        LocalDate inicio = mes.atDay(1);
+        LocalDate fim = mes.atEndOfMonth();
+        List<EscalaResumo> escalas = escalaRepository
+                .findByDataInicioLessThanEqualAndDataFimGreaterThanEqualOrderByDataInicioAsc(fim, inicio)
+                .stream().map(this::resumo).toList();
+        return new EscalaDoMes(escalas, servicoEscaladoRepository.findByDataBetween(inicio, fim));
+    }
+
+    private EscalaResumo resumo(Escala e) {
+        return new EscalaResumo(e.getId(), e.getDescricao(), e.getDataInicio(), e.getDataFim(), e.getSituacao(),
+                e.getDataPublicacao(), servicoEscaladoRepository.countByEscala_Id(e.getId()),
+                servicoEscaladoRepository.countByEscala_IdAndMilitarIsNull(e.getId()));
     }
 
     public Escala buscar(Long id) {

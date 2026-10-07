@@ -44,6 +44,7 @@ public class SolicitacaoService {
     private final ElegibilidadeService elegibilidadeService;
     private final NotificacaoService notificacaoService;
     private final UsuarioLogadoService usuarioLogadoService;
+    private final AfastamentoRepository afastamentoRepository;
 
     public SolicitacaoService(SolicitacaoRepository solicitacaoRepository,
                                ServicoEscaladoRepository servicoEscaladoRepository,
@@ -53,7 +54,8 @@ public class SolicitacaoService {
                                RegraEscalaRepository regraEscalaRepository,
                                ElegibilidadeService elegibilidadeService,
                                NotificacaoService notificacaoService,
-                               UsuarioLogadoService usuarioLogadoService) {
+                               UsuarioLogadoService usuarioLogadoService,
+                               AfastamentoRepository afastamentoRepository) {
         this.solicitacaoRepository = solicitacaoRepository;
         this.servicoEscaladoRepository = servicoEscaladoRepository;
         this.militarRepository = militarRepository;
@@ -63,6 +65,7 @@ public class SolicitacaoService {
         this.elegibilidadeService = elegibilidadeService;
         this.notificacaoService = notificacaoService;
         this.usuarioLogadoService = usuarioLogadoService;
+        this.afastamentoRepository = afastamentoRepository;
     }
 
     public List<Solicitacao> minhas(String loginSolicitante) {
@@ -89,6 +92,7 @@ public class SolicitacaoService {
     public Solicitacao criar(Long servicoOrigemId, Long substitutoId, String justificativa, String loginSolicitante) {
         ServicoEscalado servico = servicoEscaladoRepository.findById(servicoOrigemId)
                 .orElseThrow(() -> new NoSuchElementException("Serviço não encontrado"));
+        exigirServicoSemPedidoEmAndamento(servico);
         Militar solicitante = usuarioLogadoService.militar(loginSolicitante);
 
         if (servico.getMilitar() == null || !servico.getMilitar().getId().equals(solicitante.getId())) {
@@ -121,6 +125,8 @@ public class SolicitacaoService {
 
         Solicitacao s = Solicitacao.builder()
                 .servicoOrigem(servico)
+                .servicoOrigemData(servico.getData())
+                .servicoOrigemTipo(servico.getTipoServico().getNome())
                 .solicitante(solicitante)
                 .substituto(substituto)
                 .justificativa(justificativa)
@@ -148,6 +154,8 @@ public class SolicitacaoService {
                 .orElseThrow(() -> new NoSuchElementException("Serviço não encontrado"));
         ServicoEscalado servicoDestino = servicoEscaladoRepository.findById(servicoDestinoId)
                 .orElseThrow(() -> new NoSuchElementException("Serviço do outro militar não encontrado"));
+        exigirServicoSemPedidoEmAndamento(servicoOrigem);
+        exigirServicoSemPedidoEmAndamento(servicoDestino);
         Militar solicitante = usuarioLogadoService.militar(loginSolicitante);
 
         if (servicoOrigem.getMilitar() == null || !servicoOrigem.getMilitar().getId().equals(solicitante.getId())) {
@@ -188,6 +196,9 @@ public class SolicitacaoService {
         Solicitacao s = Solicitacao.builder()
                 .servicoOrigem(servicoOrigem)
                 .servicoDestino(servicoDestino)
+                .servicoOrigemData(servicoOrigem.getData())
+                .servicoOrigemTipo(servicoOrigem.getTipoServico().getNome())
+                .servicoDestinoData(servicoDestino.getData())
                 .solicitante(solicitante)
                 .substituto(outroMilitar)
                 .justificativa(justificativa)
@@ -250,6 +261,7 @@ public class SolicitacaoService {
         s.setComentarioSargenteante(comentario);
         s.setDataDecisaoFinal(LocalDateTime.now());
         if (aprovado) {
+            exigirAindaValido(s);
             ServicoEscalado servico = s.getServicoOrigem();
             if (servico.isTravado()) {
                 throw new IllegalArgumentException("O dia foi travado depois do pedido — não é possível autorizar (RN04)");
@@ -359,6 +371,52 @@ public class SolicitacaoService {
     private void exigirSituacao(Solicitacao s, SituacaoSolicitacao esperada) {
         if (s.getSituacao() != esperada) {
             throw new IllegalArgumentException("Esta solicitação já não está mais em " + esperada.legivel());
+        }
+    }
+
+    // ---- Revalidação de trocas ----
+    private void exigirServicoSemPedidoEmAndamento(ServicoEscalado servico) {
+        boolean ocupado = solicitacaoRepository.existsByServicoOrigem_IdAndSituacaoIn(servico.getId(), SituacaoSolicitacao.EM_ANDAMENTO)
+                || solicitacaoRepository.existsByServicoDestino_IdAndSituacaoIn(servico.getId(), SituacaoSolicitacao.EM_ANDAMENTO);
+        if (ocupado) {
+            throw new IllegalArgumentException("Já existe um pedido de troca em andamento para esse serviço");
+        }
+    }
+
+    private void exigirAindaValido(Solicitacao s) {
+        ServicoEscalado origem = s.getServicoOrigem();
+        exigirQueNaoComecou(origem);
+        exigirDono(origem, s.getSolicitante());
+        exigirSemAfastamento(s.getSubstituto(), origem.getData());
+        if (s.getTipoTroca() == TipoTroca.TROCA_MUTUA) {
+            ServicoEscalado destino = s.getServicoDestino();
+            exigirQueNaoComecou(destino);
+            exigirDono(destino, s.getSubstituto());
+            exigirSemAfastamento(s.getSolicitante(), destino.getData());
+            if (ficariaEm1x1(s.getSolicitante().getId(), destino.getData(), origem.getId())
+                    || ficariaEm1x1(s.getSubstituto().getId(), origem.getData(), destino.getId())) {
+                throw new IllegalArgumentException("A troca deixaria alguém em 1x1 — a escala mudou desde o pedido");
+            }
+        } else if (ficariaEm1x1(s.getSubstituto().getId(), origem.getData(), origem.getId())) {
+            throw new IllegalArgumentException("A troca deixaria o substituto em 1x1 — a escala mudou desde o pedido");
+        }
+    }
+
+    private static void exigirQueNaoComecou(ServicoEscalado servico) {
+        if (servico.isJaComecou()) {
+            throw new IllegalArgumentException("Esse serviço já começou — não dá mais pra autorizar a troca");
+        }
+    }
+
+    private static void exigirDono(ServicoEscalado servico, Militar esperado) {
+        if (servico.getMilitar() == null || !servico.getMilitar().getId().equals(esperado.getId())) {
+            throw new IllegalArgumentException("O serviço mudou de dono desde o pedido — peça a troca de novo");
+        }
+    }
+
+    private void exigirSemAfastamento(Militar militar, LocalDate dia) {
+        if (afastamentoRepository.existsByMilitar_IdAndDataInicioLessThanEqualAndDataFimGreaterThanEqual(militar.getId(), dia, dia)) {
+            throw new IllegalArgumentException(militar.getNomeExibicao() + " está afastado nesse dia");
         }
     }
 }

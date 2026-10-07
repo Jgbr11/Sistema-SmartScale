@@ -1,6 +1,8 @@
 package br.com.milscale.milscale.domain;
 
 import br.com.smartscale.core.TipoTurno;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -43,7 +45,13 @@ public class TipoServico implements TipoTurno {
     @Builder.Default
     private boolean ativo = true;
 
+    @JsonIgnore
     @OneToMany(mappedBy = "tipoServico", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
     private List<RequisitoServico> requisitos = new ArrayList<>();
+
+    @JsonProperty("quantidadeRequisitos")
+    public int getQuantidadeRequisitos() {
+        return requisitos == null ? 0 : requisitos.size();
+    }
 }

@@ -54,6 +54,7 @@ export interface TipoServico {
   horaInicio: string;
   duracaoHoras: number;
   ativo: boolean;
+  quantidadeRequisitos: number;
 }
 
 export interface RegraEscala {
@@ -80,8 +81,11 @@ export interface ServicoEscalado {
 
 export interface Solicitacao {
   id: number;
-  servicoOrigem: ServicoEscalado;
-  servicoDestino?: ServicoEscalado;
+  servicoOrigem?: ServicoEscalado | null;
+  servicoOrigemData: string;
+  servicoOrigemTipo: string;
+  servicoDestino?: ServicoEscalado | null;
+  servicoDestinoData?: string | null;
   solicitante: Militar;
   substituto: Militar;
   justificativa: string;
@@ -181,4 +185,29 @@ export interface Escala {
   dataGeracao: string;
   dataPublicacao?: string;
   servicos: ServicoEscalado[];
+}
+
+export interface EscalaResumo {
+  id: number;
+  descricao: string;
+  dataInicio: string;
+  dataFim: string;
+  situacao: "RASCUNHO" | "PUBLICADA" | "ENCERRADA";
+  dataPublicacao?: string;
+  totalServicos: number;
+  vagasAbertas: number;
+}
+
+export interface EscalaDoMes {
+  escalas: EscalaResumo[];
+  servicos: ServicoEscalado[];
+}
+
+export interface RequisitoServico {
+  id: number;
+  posto: PostoGraduacao;
+  subunidade?: Subunidade | null;
+  qualificacao?: Qualificacao | null;
+  qualificacoesExcluidas: Qualificacao[];
+  subunidadeExcluida?: Subunidade | null;
 }

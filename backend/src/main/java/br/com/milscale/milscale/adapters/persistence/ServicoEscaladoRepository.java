@@ -36,4 +36,8 @@ public interface ServicoEscaladoRepository extends JpaRepository<ServicoEscalado
 
     /** RF15 - candidatos a troca mutua: todo mundo com servico do mesmo tipo, ainda previsto. */
     List<ServicoEscalado> findByTipoServico_IdAndSituacao(Long tipoServicoId, SituacaoServico situacao);
+
+    long countByEscala_Id(Long escalaId);
+
+    long countByEscala_IdAndMilitarIsNull(Long escalaId);
 }
