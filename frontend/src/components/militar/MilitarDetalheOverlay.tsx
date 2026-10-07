@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
-import { api } from "../api/client";
-import type { Afastamento, Militar, TipoServico } from "../api/types";
-import { useOrganizacao } from "../hooks/useOrganizacao";
-import { TIPO_AFASTAMENTO_LABEL } from "../utils/afastamentoTipos";
-import { formatarCpf, formatarDataBR } from "../utils/formatadores";
+import { api } from "../../api/client";
+import type { Afastamento, Militar, TipoServico } from "../../api/types";
+import { useOrganizacao } from "../../hooks/useOrganizacao";
+import { TIPO_AFASTAMENTO_LABEL } from "../../utils/afastamentoTipos";
+import { formatarCpf, formatarDataBR } from "../../utils/formatadores";
 
 export function MilitarDetalheOverlay({ militarId, onFechar }: { militarId: number | null; onFechar: () => void }) {
   const [militar, setMilitar] = useState<Militar | null>(null);

@@ -1,14 +1,14 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { api, ApiError } from "../api/client";
 import type { Escala, EscalaDoMes, ServicoEscalado } from "../api/types";
-import { PageHeader } from "../components/Shell";
-import { BotaoBaixarCsv } from "../components/BotaoBaixarCsv";
-import { MilitarDetalheOverlay } from "../components/MilitarDetalheOverlay";
-import { useAuth } from "../context/AuthContext";
+import { PageHeader } from "../components/layout/PageHeader";
+import { BotaoBaixarCsv } from "../components/ui/BotaoBaixarCsv";
+import { MilitarDetalheOverlay } from "../components/militar/MilitarDetalheOverlay";
 import { ordenarPorTipo } from "../utils/ordemTipos";
 import { capitalizar, formatarDataBR } from "../utils/formatadores";
-
-const DIAS_SEMANA = ["DOM", "SEG", "TER", "QUA", "QUI", "SEX", "SÁB"];
+import { usePermissoes } from "../hooks/usePermissoes";
+import { useAoMudar } from "../hooks/useAoMudar";
+import { CalendarioMensal } from "../components/ui/CalendarioMensal";
 
 interface MesAno {
   ano: number;
@@ -16,9 +16,7 @@ interface MesAno {
 }
 
 export function EscalaDoMesPage() {
-  const { usuario } = useAuth();
-  const podeGerar = usuario?.perfil === "CABO_SARGENTEACAO" || usuario?.perfil === "SARGENTEANTE";
-  const podePublicar = usuario?.perfil === "SARGENTEANTE";
+  const { geraEscala: podeGerar, publicaEscala: podePublicar } = usePermissoes();
 
   const hoje = new Date();
   const [mesExibido, setMesExibido] = useState<MesAno>({ ano: hoje.getFullYear(), mes: hoje.getMonth() });
@@ -45,9 +43,7 @@ export function EscalaDoMesPage() {
     }
   }
 
-  useEffect(() => {
-    carregar(mesExibido);
-  }, [mesExibido.ano, mesExibido.mes]);
+  useAoMudar(() => carregar(mesExibido), chaveMes(mesExibido));
 
   async function gerar() {
     setGerando(true);
@@ -80,7 +76,7 @@ export function EscalaDoMesPage() {
       carregar();
     } catch (e) {
       setErro(e instanceof ApiError && e.status === 403
-        ? "Só o Sargenteante publica a escala (RN14)."
+        ? "Só o Sargenteante publica a escala."
         : "Não foi possível publicar.");
     } finally {
       setPublicandoId(null);
@@ -124,11 +120,6 @@ export function EscalaDoMesPage() {
   }
 
   const primeiroDia = new Date(mesExibido.ano, mesExibido.mes, 1);
-  const diasNoMes = new Date(mesExibido.ano, mesExibido.mes + 1, 0).getDate();
-  const celulas: (number | null)[] = [
-    ...Array(primeiroDia.getDay()).fill(null),
-    ...Array.from({ length: diasNoMes }, (_, i) => i + 1),
-  ];
   const nomeMesExibido = capitalizar(primeiroDia.toLocaleDateString("pt-BR", { month: "long", year: "numeric" }));
 
   return (
@@ -140,7 +131,7 @@ export function EscalaDoMesPage() {
         {podeGerar && (
           <div className="card">
             <h3>Gerar nova escala</h3>
-            <p className="sub">RF08 — o motor escolhe quem está há mais tempo sem tirar serviço</p>
+            <p className="sub">Quem está há mais tempo sem tirar serviço entra primeiro</p>
             <div className="form-grid">
               <div className="field">
                 <label>De</label>
@@ -194,41 +185,21 @@ export function EscalaDoMesPage() {
           {carregando ? (
             <p className="sub">Carregando…</p>
           ) : (
-            <div className="calendar-grid">
-              {DIAS_SEMANA.map((d) => <div key={d} className="dow">{d}</div>)}
-              {celulas.map((dia, idx) => {
-                if (dia === null) return <div key={idx} className="calendar-cell empty" />;
-                const dataStr = `${mesExibido.ano}-${String(mesExibido.mes + 1).padStart(2, "0")}-${String(dia).padStart(2, "0")}`;
+            <CalendarioMensal
+              ano={mesExibido.ano}
+              mes={mesExibido.mes}
+              diaSelecionado={diaEscolhido}
+              onSelecionar={(dataStr) => setDiaEscolhido((atual) => (atual === dataStr ? null : dataStr))}
+              infoDoDia={(dataStr) => {
                 const servicosDoDia = servicosPorDia.get(dataStr) ?? [];
-                const temServico = servicosDoDia.length > 0;
-                const temVagaAberta = servicosDoDia.some((s) => !s.militar);
-                const travadoNoDia = temServico && servicosDoDia.every((s) => s.travado);
-                const selecionado = diaEscolhido === dataStr;
-                return (
-                  <button
-                    key={idx}
-                    className="calendar-cell"
-                    style={{
-                      cursor: temServico ? "pointer" : "default",
-                      textAlign: "left",
-                      background: selecionado ? "var(--sidebar-active)" : temVagaAberta ? "var(--amber-bg)" : temServico ? "#fbfcfa" : "transparent",
-                      color: selecionado ? "#fff" : "var(--dark)",
-                      border: temServico ? "1px solid var(--border-2)" : "none",
-                    }}
-                    disabled={!temServico}
-                    onClick={() => setDiaEscolhido((atual) => (atual === dataStr ? null : dataStr))}
-                  >
-                    {dia}
-                    {temServico && (
-                      <div className="tipo" style={{ color: selecionado ? "#d8e2cc" : temVagaAberta ? "var(--amber-text)" : "var(--grey)" }}>
-                        {servicosDoDia.length} serviço{servicosDoDia.length === 1 ? "" : "s"}
-                        {travadoNoDia ? " · travado" : ""}
-                      </div>
-                    )}
-                  </button>
-                );
-              })}
-            </div>
+                if (servicosDoDia.length === 0) return { habilitado: false };
+                const travadoNoDia = servicosDoDia.every((s) => s.travado);
+                return {
+                  rotulo: `${servicosDoDia.length} serviço${servicosDoDia.length === 1 ? "" : "s"}${travadoNoDia ? " · travado" : ""}`,
+                  destaque: servicosDoDia.some((s) => !s.militar) ? "atencao" : undefined,
+                };
+              }}
+            />
           )}
         </div>
 
@@ -260,7 +231,7 @@ export function EscalaDoMesPage() {
             {diaTravado && (
               <div className="card" style={{ background: "var(--amber-bg)", border: "none", marginBottom: 12 }}>
                 <p style={{ fontSize: 12, color: "var(--amber-text)" }}>
-                  Dia travado — nenhuma troca ou alteração manual é aceita aqui, nem pelo Sargenteante (RN04).
+                  Dia travado — nenhuma troca ou alteração manual é aceita aqui, nem pelo Sargenteante.
                 </p>
               </div>
             )}

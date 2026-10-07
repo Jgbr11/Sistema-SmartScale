@@ -1,8 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { api } from "../api/client";
-import type { Notificacao } from "../api/types";
-
+import { api } from "../../api/client";
+import type { Notificacao } from "../../api/types";
 
 export function NotificacaoSino() {
   const [contagem, setContagem] = useState(0);
@@ -19,7 +18,6 @@ export function NotificacaoSino() {
       const r = await api.get<{ total: number }>("/api/notificacoes/nao-lidas/contagem");
       setContagem(r.total);
     } catch {
-      // silencioso — o sininho não pode quebrar o resto da tela
     }
   }
 
@@ -45,8 +43,6 @@ export function NotificacaoSino() {
   async function abrirPainel() {
     if (!aberto && botaoRef.current) {
       const r = botaoRef.current.getBoundingClientRect();
-      // Painel fixo na tela (não dentro do sidebar) pra não ser cortado
-      // pelo overflow-y:auto do sidebar quando passa da largura dele.
       const larguraPainel = 320;
       let left = r.left;
       if (left + larguraPainel > window.innerWidth - 12) left = window.innerWidth - larguraPainel - 12;

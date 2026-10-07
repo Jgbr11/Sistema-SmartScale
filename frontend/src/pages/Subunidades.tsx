@@ -1,8 +1,10 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { api, ApiError } from "../api/client";
 import type { Subunidade } from "../api/types";
-import { PageHeader } from "../components/Shell";
-import { useAuth } from "../context/AuthContext";
+import { PageHeader } from "../components/layout/PageHeader";
+import { usePermissoes } from "../hooks/usePermissoes";
+import { useAoMudar } from "../hooks/useAoMudar";
+import { useFeedback } from "../components/ui/Feedback";
 
 interface Rascunho {
   sigla: string;
@@ -13,8 +15,8 @@ interface Rascunho {
 const VAZIO: Rascunho = { sigla: "", nome: "", ativo: true };
 
 export function SubunidadesPage() {
-  const { usuario } = useAuth();
-  const podeEditar = usuario?.perfil === "SARGENTEANTE";
+  const { confirmar } = useFeedback();
+  const { mantemConfiguracoes: podeEditar } = usePermissoes();
 
   const [subunidades, setSubunidades] = useState<Subunidade[]>([]);
   const [carregando, setCarregando] = useState(true);
@@ -35,9 +37,7 @@ export function SubunidadesPage() {
     }
   }
 
-  useEffect(() => {
-    carregar();
-  }, []);
+  useAoMudar(carregar);
 
   function iniciarEdicao(s: Subunidade) {
     setErro(null);
@@ -58,7 +58,7 @@ export function SubunidadesPage() {
   }
 
   async function excluir(s: Subunidade) {
-    if (!confirm(`Excluir a subunidade "${s.sigla}"? Se ela estiver em uso, será só desativada.`)) return;
+    if (!(await confirmar(`Excluir a subunidade "${s.sigla}"? Se ela estiver em uso, será só desativada.`))) return;
     setErro(null);
     setAviso(null);
     try {

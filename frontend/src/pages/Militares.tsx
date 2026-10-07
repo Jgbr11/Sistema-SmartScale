@@ -1,16 +1,15 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import { api, ApiError } from "../api/client";
 import type { Militar, PostoGraduacao, Qualificacao, Subunidade } from "../api/types";
-import { PageHeader } from "../components/Shell";
-import { useAuth } from "../context/AuthContext";
+import { PageHeader } from "../components/layout/PageHeader";
 import { mascararCpf, mascararFusex, mascararTelefone, somenteDigitos } from "../utils/mascaras";
+import { usePermissoes } from "../hooks/usePermissoes";
+import { useAoMudar } from "../hooks/useAoMudar";
+import { useFeedback } from "../components/ui/Feedback";
 
 export function MilitaresPage() {
-  const { usuario } = useAuth();
-  // RF04 / RN11: manter o cadastro é privativo de Cabo da Sargenteação e Sargenteante.
-  // Sd EP tem "Militares" no menu, mas só em modo de consulta.
-  const podeEditar = usuario?.perfil === "CABO_SARGENTEACAO" || usuario?.perfil === "SARGENTEANTE";
+  const { gerenciaCadastros: podeEditar } = usePermissoes();
 
   const [militares, setMilitares] = useState<Militar[]>([]);
   const [postos, setPostos] = useState<PostoGraduacao[]>([]);
@@ -35,13 +34,9 @@ export function MilitaresPage() {
     setCarregando(false);
   }
 
-  useEffect(() => {
-    carregar();
-  }, []);
+  useAoMudar(carregar);
 
   const ativos = militares.filter((m) => m.situacao === "ATIVO").length;
-  // Ordena por hierarquia de posto primeiro (Tenente no topo, Sd EV embaixo),
-  // e só dentro do mesmo posto por ordem alfabética do nome de guerra.
   const militaresOrdenados = militares.slice().sort((a, b) => {
     const comparaPosto = b.posto.nivelHierarquico - a.posto.nivelHierarquico;
     if (comparaPosto !== 0) return comparaPosto;
@@ -145,7 +140,7 @@ export function MilitaresPage() {
         {!podeEditar && (
           <div className="card" style={{ background: "var(--amber-bg)", border: "none" }}>
             <p style={{ fontSize: 12, color: "var(--amber-text)" }}>
-              Seu perfil só consulta o efetivo (RF04 / RN11). Cadastro é privativo do Cabo da
+              Seu perfil só consulta o efetivo. Cadastro é privativo do Cabo da
               Sargenteação e do Sargenteante.
             </p>
           </div>
@@ -164,6 +159,7 @@ function NovoMilitarForm({
   subunidades: Subunidade[];
   onCriado: () => void;
 }) {
+  const { confirmar } = useFeedback();
   const [nomeCompleto, setNomeCompleto] = useState("");
   const [nomeGuerra, setNomeGuerra] = useState("");
   const [cpf, setCpf] = useState("");
@@ -209,7 +205,7 @@ function NovoMilitarForm({
         postoId,
         subunidadeId,
       });
-      alert(
+      await confirmar(
         `Conta criada para ${r.militar.nomeExibicao}.\n\n` +
         `Login: ${mascararCpf(cpf)}\nSenha temporária: ${r.senhaTemporaria}\n\n` +
         `Ela aparece só agora. No primeiro acesso a pessoa vai criar a própria senha.`
@@ -225,7 +221,7 @@ function NovoMilitarForm({
   return (
     <div className="card">
       <h3>Novo militar</h3>
-      <p className="sub">Dados da carteira de identidade militar — RF04</p>
+      <p className="sub">Dados da carteira de identidade militar</p>
       {erro && <div className="error-box">{erro}</div>}
       <div className="cadastro-foto-layout" style={{ display: "flex", gap: 20 }}>
         <div style={{ flexShrink: 0 }}>

@@ -1,13 +1,15 @@
-import { Fragment, useEffect, useState } from "react";
+import { Fragment, useState } from "react";
 import { api, ApiError } from "../api/client";
 import type { TipoServico } from "../api/types";
-import { PageHeader } from "../components/Shell";
-import { RequisitosPainel } from "../components/RequisitosPainel";
-import { useAuth } from "../context/AuthContext";
+import { PageHeader } from "../components/layout/PageHeader";
+import { RequisitosPainel } from "../components/servico/RequisitosPainel";
+import { usePermissoes } from "../hooks/usePermissoes";
+import { useAoMudar } from "../hooks/useAoMudar";
+import { useFeedback } from "../components/ui/Feedback";
 
 export function TiposServicoPage() {
-  const { usuario } = useAuth();
-  const podeEditar = usuario?.perfil === "SARGENTEANTE";
+  const { avisar } = useFeedback();
+  const { mantemConfiguracoes: podeEditar } = usePermissoes();
 
   const [tipos, setTipos] = useState<TipoServico[]>([]);
   const [carregando, setCarregando] = useState(true);
@@ -22,9 +24,7 @@ export function TiposServicoPage() {
     setCarregando(false);
   }
 
-  useEffect(() => {
-    carregar();
-  }, []);
+  useAoMudar(carregar);
 
   function iniciarEdicao(t: TipoServico) {
     setEditandoId(t.id);
@@ -32,9 +32,13 @@ export function TiposServicoPage() {
   }
 
   async function salvarEfetivo(t: TipoServico) {
-    await api.put(`/api/tipos-servico/${t.id}`, { ...t, efetivoNecessario: efetivoRascunho });
-    setEditandoId(null);
-    carregar();
+    try {
+      await api.put(`/api/tipos-servico/${t.id}`, { ...t, efetivoNecessario: efetivoRascunho });
+      setEditandoId(null);
+      carregar();
+    } catch (e) {
+      avisar(e instanceof ApiError ? e.message : "Não foi possível concluir a ação.", "erro");
+    }
   }
 
   return (
@@ -153,7 +157,7 @@ export function TiposServicoPage() {
         {!podeEditar && (
           <div className="card" style={{ background: "var(--amber-bg)", border: "none" }}>
             <p style={{ fontSize: 12, color: "var(--amber-text)" }}>
-              Somente o Sargenteante mantém tipos de serviço (RN11). Você está vendo em modo de
+              Somente o Sargenteante mantém tipos de serviço. Você está vendo em modo de
               consulta.
             </p>
           </div>
@@ -189,7 +193,6 @@ function NovoTipoForm({ onCriado }: { onCriado: (novo: TipoServico) => void }) {
   return (
     <div className="card">
       <h3>Novo tipo de serviço</h3>
-      <p className="sub">RF06</p>
       {erro && <div className="error-box">{erro}</div>}
       <div className="form-grid">
         <div className="field">

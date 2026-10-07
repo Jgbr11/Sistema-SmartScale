@@ -2,16 +2,18 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { api, ApiError } from "../api/client";
 import type { Aviso, Boletim, BoletimResumo } from "../api/types";
-import { PageHeader } from "../components/Shell";
-import { RichEditor } from "../components/RichEditor";
-import { useAuth } from "../context/AuthContext";
+import { PageHeader } from "../components/layout/PageHeader";
+import { RichEditor } from "../components/boletim/RichEditor";
 import { TIPO_AFASTAMENTO_LABEL } from "../utils/afastamentoTipos";
 import { formatarDataBR, formatarDataHora } from "../utils/formatadores";
 import DOMPurify from "dompurify";
+import { usePermissoes } from "../hooks/usePermissoes";
+import { useAoMudar } from "../hooks/useAoMudar";
+import { useFeedback } from "../components/ui/Feedback";
 
 export function BoletimPage() {
-  const { usuario } = useAuth();
-  const podeEditar = usuario?.perfil === "CABO_SARGENTEACAO" || usuario?.perfil === "SARGENTEANTE";
+  const { avisar, confirmar } = useFeedback();
+  const { gerenciaCadastros: podeEditar } = usePermissoes();
   const navigate = useNavigate();
 
   const [boletins, setBoletins] = useState<BoletimResumo[]>([]);
@@ -28,9 +30,7 @@ export function BoletimPage() {
     setCarregando(false);
   }
 
-  useEffect(() => {
-    carregar();
-  }, []);
+  useAoMudar(carregar);
 
   async function detalhe(id: number): Promise<Boletim> {
     const b = await api.get<Boletim>(`/api/boletins/${id}`);
@@ -53,9 +53,14 @@ export function BoletimPage() {
   }
 
   async function remover(id: number) {
-    if (!confirm("Remover este boletim?")) return;
-    await api.delete(`/api/boletins/${id}`);
-    carregar();
+    if (!(await confirmar("Remover este boletim?"))) return;
+    try {
+      await api.delete(`/api/boletins/${id}`);
+      carregar();
+      avisar("Boletim removido.", "sucesso");
+    } catch (e) {
+      avisar(e instanceof ApiError ? e.message : "Não foi possível concluir a ação.", "erro");
+    }
   }
 
   return (
@@ -131,8 +136,6 @@ function BoletimForm({ boletim, onSalvou, onCancelar }: { boletim: Boletim | nul
   const [erro, setErro] = useState<string | null>(null);
 
   useEffect(() => {
-    // Traz os avisos do mês atual e do próximo — cobre o caso comum de
-    // "formatura/missão cadastrada pro mês que vem" sem precisar escolher mês.
     const hoje = new Date();
     const mesAtual = `${hoje.getFullYear()}-${String(hoje.getMonth() + 1).padStart(2, "0")}`;
     const proximo = new Date(hoje.getFullYear(), hoje.getMonth() + 1, 1);

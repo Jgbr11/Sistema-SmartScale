@@ -19,7 +19,6 @@ export function LoginPage() {
     setErro(null);
     setEnviando(true);
     try {
-      // Aceita com ou sem formatação — só os números importam pro login.
       await entrar(somenteDigitos(login), senha);
       navigate("/");
     } catch (e) {

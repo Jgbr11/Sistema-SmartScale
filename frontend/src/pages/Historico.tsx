@@ -1,17 +1,11 @@
 import { useEffect, useState } from "react";
 import { api } from "../api/client";
 import type { Afastamento, ServicoEscalado, Solicitacao } from "../api/types";
-import { PageHeader } from "../components/Shell";
+import { PageHeader } from "../components/layout/PageHeader";
 import { useAuth } from "../context/AuthContext";
 import { TIPO_AFASTAMENTO_LABEL } from "../utils/afastamentoTipos";
 import { formatarDataBR } from "../utils/formatadores";
 
-/**
- * "Meu histórico" — aberto a todo mundo, cada um vê o próprio
- * histórico (nunca o de outra pessoa; isso é feito na Ficha do
- * Militar, privativa de Cabo/Sd EP/Sargenteante). Mesmos três blocos
- * da Ficha do Militar, só que sem os dados pessoais e sem edição.
- */
 export function HistoricoPage() {
   const { usuario } = useAuth();
   const [servicos, setServicos] = useState<ServicoEscalado[]>([]);

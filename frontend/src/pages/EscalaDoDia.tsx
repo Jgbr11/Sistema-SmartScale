@@ -1,20 +1,15 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { api } from "../api/client";
 import type { ServicoEscalado } from "../api/types";
-import { PageHeader } from "../components/Shell";
-import { BotaoBaixarCsv } from "../components/BotaoBaixarCsv";
-import { MilitarDetalheOverlay } from "../components/MilitarDetalheOverlay";
+import { PageHeader } from "../components/layout/PageHeader";
+import { BotaoBaixarCsv } from "../components/ui/BotaoBaixarCsv";
+import { MilitarDetalheOverlay } from "../components/militar/MilitarDetalheOverlay";
 import { ordenarPorTipo } from "../utils/ordemTipos";
+import { hojeISO } from "../utils/datas";
+import { useAoMudar } from "../hooks/useAoMudar";
 
-/**
- * RF14, com escopo restrito: Militar Escalado só vê o roster de UM dia
- * por vez (o que ele escolher), nunca o mês inteiro — isso é decidido
- * no backend (GET /api/escalas/dia devolve só aquela data), não só
- * escondido na tela. Ver EscalaDoMesPage para a versão completa que
- * Cabo/Sd EP/Sargenteante usam.
- */
 export function EscalaDoDiaPage() {
-  const [data, setData] = useState(new Date().toISOString().slice(0, 10));
+  const [data, setData] = useState(hojeISO());
   const [servicos, setServicos] = useState<ServicoEscalado[]>([]);
   const [carregando, setCarregando] = useState(true);
   const [militarSelecionado, setMilitarSelecionado] = useState<number | null>(null);
@@ -26,15 +21,12 @@ export function EscalaDoDiaPage() {
     setCarregando(false);
   }
 
-  useEffect(() => {
-    carregar(data);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [data]);
+  useAoMudar(() => carregar(data), data);
 
   function mudarDia(delta: number) {
     const d = new Date(data + "T00:00:00");
     d.setDate(d.getDate() + delta);
-    setData(d.toISOString().slice(0, 10));
+    setData(hojeISO(d));
   }
 
   return (

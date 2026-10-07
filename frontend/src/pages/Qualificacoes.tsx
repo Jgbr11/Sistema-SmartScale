@@ -1,12 +1,14 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { api, ApiError } from "../api/client";
 import type { Qualificacao } from "../api/types";
-import { PageHeader } from "../components/Shell";
-import { useAuth } from "../context/AuthContext";
+import { PageHeader } from "../components/layout/PageHeader";
+import { usePermissoes } from "../hooks/usePermissoes";
+import { useAoMudar } from "../hooks/useAoMudar";
+import { useFeedback } from "../components/ui/Feedback";
 
 export function QualificacoesPage() {
-  const { usuario } = useAuth();
-  const podeEditar = usuario?.perfil === "SARGENTEANTE";
+  const { avisar, confirmar } = useFeedback();
+  const { mantemConfiguracoes: podeEditar } = usePermissoes();
 
   const [quals, setQuals] = useState<Qualificacao[]>([]);
   const [carregando, setCarregando] = useState(true);
@@ -20,9 +22,7 @@ export function QualificacoesPage() {
     setCarregando(false);
   }
 
-  useEffect(() => {
-    carregar();
-  }, []);
+  useAoMudar(carregar);
 
   function iniciarEdicao(q: Qualificacao) {
     setEditandoId(q.id);
@@ -30,26 +30,30 @@ export function QualificacoesPage() {
   }
 
   async function excluir(q: Qualificacao) {
-    if (!confirm(`Excluir o curso "${q.nome}"?`)) return;
+    if (!(await confirmar(`Excluir o curso "${q.nome}"?`))) return;
     try {
       await api.delete(`/api/qualificacoes/${q.id}`);
       carregar();
     } catch (e) {
-      alert(e instanceof ApiError ? e.message : "Não foi possível excluir.");
+      avisar(e instanceof ApiError ? e.message : "Não foi possível excluir.", "erro");
     }
   }
 
   async function salvarEdicao(q: Qualificacao) {
-    await api.put(`/api/qualificacoes/${q.id}`, { ...q, ...rascunho });
-    setEditandoId(null);
-    carregar();
+    try {
+      await api.put(`/api/qualificacoes/${q.id}`, { ...q, ...rascunho });
+      setEditandoId(null);
+      carregar();
+    } catch (e) {
+      avisar(e instanceof ApiError ? e.message : "Não foi possível concluir a ação.", "erro");
+    }
   }
 
   return (
     <>
       <PageHeader
         title="Qualificações"
-        subtitle="Cursos e habilitações que podem ser exigidos por um tipo de serviço (RF05)"
+        subtitle="Cursos e habilitações que podem ser exigidos por um tipo de serviço"
       />
       <div className="body">
         {podeEditar && (
@@ -171,7 +175,6 @@ function NovaQualificacaoForm({ onCriado }: { onCriado: () => void }) {
   return (
     <div className="card">
       <h3>Nova qualificação</h3>
-      <p className="sub">RF05</p>
       {erro && <div className="error-box">{erro}</div>}
       <div className="form-grid">
         <div className="field">

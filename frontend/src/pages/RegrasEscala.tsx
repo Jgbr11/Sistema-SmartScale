@@ -1,12 +1,12 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { api, ApiError } from "../api/client";
 import type { RegraEscala } from "../api/types";
-import { PageHeader } from "../components/Shell";
-import { useAuth } from "../context/AuthContext";
+import { PageHeader } from "../components/layout/PageHeader";
+import { usePermissoes } from "../hooks/usePermissoes";
+import { useAoMudar } from "../hooks/useAoMudar";
 
 export function RegrasEscalaPage() {
-  const { usuario } = useAuth();
-  const podeEditar = usuario?.perfil === "SARGENTEANTE";
+  const { mantemConfiguracoes: podeEditar } = usePermissoes();
 
   const [regras, setRegras] = useState<RegraEscala[]>([]);
   const [carregando, setCarregando] = useState(true);
@@ -23,9 +23,7 @@ export function RegrasEscalaPage() {
     setCarregando(false);
   }
 
-  useEffect(() => {
-    carregar();
-  }, []);
+  useAoMudar(carregar);
 
   function iniciarEdicao(r: RegraEscala) {
     setEditandoId(r.id);
@@ -54,7 +52,7 @@ export function RegrasEscalaPage() {
     <>
       <PageHeader
         title="Regras da escala"
-        subtitle="Um conjunto de regras por tipo de serviço — alimenta o motor de geração (RF07)"
+        subtitle="Um conjunto de regras por tipo de serviço — vale para a próxima escala gerada"
       />
       <div className="body">
         {erro && <div className="error-box">{erro}</div>}
@@ -136,7 +134,7 @@ export function RegrasEscalaPage() {
 
         <div className="card" style={{ background: "var(--amber-bg)", border: "none" }}>
           <p style={{ fontSize: 12, color: "var(--amber-text)" }}>
-            Só o Sargenteante altera estas regras (RN11). Mudanças valem a partir da próxima
+            Só o Sargenteante altera estas regras. Mudanças valem a partir da próxima
             geração de escala — não afetam escalas já publicadas.
           </p>
           <p style={{ fontSize: 12, color: "var(--amber-text)", marginTop: 6 }}>

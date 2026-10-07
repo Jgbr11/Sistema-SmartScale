@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { api } from "../api/client";
 import type { LogAuditoria } from "../api/types";
-import { PageHeader } from "../components/Shell";
+import { PageHeader } from "../components/layout/PageHeader";
 import { formatarDataHora } from "../utils/formatadores";
 
 const ACAO_LABEL: Record<string, string> = {

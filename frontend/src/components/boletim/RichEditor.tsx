@@ -1,18 +1,13 @@
-import { useEffect, useRef } from "react";
+import { useLayoutEffect, useRef, useState } from "react";
 import DOMPurify from "dompurify";
-
 
 export function RichEditor({ valorInicial, onChange }: { valorInicial: string; onChange: (html: string) => void }) {
   const ref = useRef<HTMLDivElement>(null);
-  const iniciou = useRef(false);
+  const [htmlInicial] = useState(() => DOMPurify.sanitize(valorInicial || ""));
 
-  useEffect(() => {
-    if (!iniciou.current && ref.current) {
-      ref.current.innerHTML = DOMPurify.sanitize(valorInicial || "");
-      iniciou.current = true;
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  useLayoutEffect(() => {
+    if (ref.current) ref.current.innerHTML = htmlInicial;
+  }, [htmlInicial]);
 
   function emitirMudanca() {
     if (ref.current) onChange(ref.current.innerHTML);

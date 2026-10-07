@@ -1,7 +1,3 @@
-// Mesma ordem do Boletim Interno do 5º BSup (BI nº 107) - usada em
-// qualquer tela que mostre o roster de um dia (Escala do mês e Escala
-// do dia), pra sempre aparecer na mesma sequência que o pessoal já
-// conhece do boletim de papel.
 export const ORDEM_TIPOS = [
   "Oficial de Dia",
   "Graduado de Dia",
@@ -23,8 +19,6 @@ export function ordenarPorTipo<T extends { tipoServico: { nome: string }; milita
     const ib = ORDEM_TIPOS.indexOf(b.tipoServico.nome);
     const comparaTipo = (ia === -1 ? 999 : ia) - (ib === -1 ? 999 : ib);
     if (comparaTipo !== 0) return comparaTipo;
-    // Dentro da mesma função, ordena por nome de guerra (alfabético).
-    // Vaga em aberto (sem militar) vai por último dentro do grupo.
     const nomeA = a.militar?.nomeGuerra ?? "\uffff";
     const nomeB = b.militar?.nomeGuerra ?? "\uffff";
     return nomeA.localeCompare(nomeB, "pt-BR");

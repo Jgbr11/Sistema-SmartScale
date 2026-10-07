@@ -1,5 +1,5 @@
-import { BASE_URL } from "../api/client";
-import { useAuth } from "../context/AuthContext";
+import { BASE_URL } from "../../api/client";
+import { useAuth } from "../../context/AuthContext";
 
 const PERFIS_COM_RELATORIO = ["CABO_SARGENTEACAO", "SD_EP_SARGENTEACAO", "SARGENTEANTE"];
 

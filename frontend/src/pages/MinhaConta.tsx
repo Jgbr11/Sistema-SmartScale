@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { api, ApiError } from "../api/client";
 import type { Militar } from "../api/types";
-import { PageHeader } from "../components/Shell";
+import { PageHeader } from "../components/layout/PageHeader";
 import { useAuth } from "../context/AuthContext";
 import { PERFIL_LABEL } from "../utils/perfis";
 import { formatarCpf, formatarDataBR } from "../utils/formatadores";

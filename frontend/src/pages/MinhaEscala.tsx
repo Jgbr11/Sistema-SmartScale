@@ -1,15 +1,15 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { api } from "../api/client";
 import type { ServicoEscalado } from "../api/types";
-import { PageHeader } from "../components/Shell";
+import { PageHeader } from "../components/layout/PageHeader";
 import { capitalizar } from "../utils/formatadores";
-
-const DIAS_SEMANA = ["DOM", "SEG", "TER", "QUA", "QUI", "SEX", "SÁB"];
+import { useAoMudar } from "../hooks/useAoMudar";
+import { CalendarioMensal } from "../components/ui/CalendarioMensal";
 
 export function MinhaEscalaPage() {
   const hoje = new Date();
   const [ano, setAno] = useState(hoje.getFullYear());
-  const [mes, setMes] = useState(hoje.getMonth()); // 0-indexed
+  const [mes, setMes] = useState(hoje.getMonth());
   const [servicos, setServicos] = useState<ServicoEscalado[]>([]);
   const [carregando, setCarregando] = useState(true);
 
@@ -21,10 +21,7 @@ export function MinhaEscalaPage() {
     setCarregando(false);
   }
 
-  useEffect(() => {
-    carregar();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [ano, mes]);
+  useAoMudar(carregar, `${ano}-${mes}`);
 
   function mudarMes(delta: number) {
     let novoMes = mes + delta;
@@ -36,19 +33,12 @@ export function MinhaEscalaPage() {
   }
 
   const primeiroDia = new Date(ano, mes, 1);
-  const diasNoMes = new Date(ano, mes + 1, 0).getDate();
-  const offsetInicial = primeiroDia.getDay();
 
   const servicoPorDia = new Map<number, ServicoEscalado>();
   for (const s of servicos) {
     const dia = Number(s.data.slice(8, 10));
     servicoPorDia.set(dia, s);
   }
-
-  const celulas: (number | null)[] = [
-    ...Array(offsetInicial).fill(null),
-    ...Array.from({ length: diasNoMes }, (_, i) => i + 1),
-  ];
 
   const nomeMes = primeiroDia.toLocaleDateString("pt-BR", { month: "long", year: "numeric" });
 
@@ -78,21 +68,14 @@ export function MinhaEscalaPage() {
             </div>
           </div>
 
-          <div className="calendar-grid">
-            {DIAS_SEMANA.map((d) => (
-              <div key={d} className="dow">{d}</div>
-            ))}
-            {celulas.map((dia, idx) => {
-              if (dia === null) return <div key={idx} className="calendar-cell empty" />;
-              const servico = servicoPorDia.get(dia);
-              return (
-                <div key={idx} className={"calendar-cell" + (servico ? " servico" : "")}>
-                  {dia}
-                  {servico && <div className="tipo">{servico.tipoServico.nome}</div>}
-                </div>
-              );
-            })}
-          </div>
+          <CalendarioMensal
+            ano={ano}
+            mes={mes}
+            infoDoDia={(dataStr) => {
+              const servico = servicoPorDia.get(Number(dataStr.slice(8)));
+              return servico ? { rotulo: servico.tipoServico.nome, destaque: "servico" } : {};
+            }}
+          />
         </div>
       </div>
     </>

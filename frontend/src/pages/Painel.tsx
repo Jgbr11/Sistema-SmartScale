@@ -1,18 +1,17 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { api } from "../api/client";
 import type { PainelResumo, ServicoEscalado, Solicitacao } from "../api/types";
-import { PageHeader } from "../components/Shell";
-import { MilitarDetalheOverlay } from "../components/MilitarDetalheOverlay";
-import { useAuth } from "../context/AuthContext";
+import { PageHeader } from "../components/layout/PageHeader";
+import { MilitarDetalheOverlay } from "../components/militar/MilitarDetalheOverlay";
 import { ordenarPorTipo } from "../utils/ordemTipos";
 import { capitalizar, formatarDataBR } from "../utils/formatadores";
+import { usePermissoes } from "../hooks/usePermissoes";
+import { useAoMudar } from "../hooks/useAoMudar";
 
 export function PainelPage() {
-  const { usuario } = useAuth();
+  const { fazTriagem: podeTriagem, autorizaTrocas: podeAutorizar } = usePermissoes();
   const navigate = useNavigate();
-  const podeTriagem = usuario?.perfil === "CABO_SARGENTEACAO" || usuario?.perfil === "SARGENTEANTE";
-  const podeAutorizar = usuario?.perfil === "SARGENTEANTE";
 
   const [carregando, setCarregando] = useState(true);
   const [resumo, setResumo] = useState<PainelResumo | null>(null);
@@ -21,23 +20,21 @@ export function PainelPage() {
   const [aguardandoAutorizacao, setAguardandoAutorizacao] = useState<Solicitacao[]>([]);
   const [militarSelecionado, setMilitarSelecionado] = useState<number | null>(null);
 
-  useEffect(() => {
-    async function carregar() {
-      setCarregando(true);
-      const agora = new Date();
-      const hoje = `${agora.getFullYear()}-${String(agora.getMonth() + 1).padStart(2, "0")}-${String(agora.getDate()).padStart(2, "0")}`;
-      const chamadas: Promise<unknown>[] = [
-        api.get<PainelResumo>("/api/painel/resumo").then(setResumo),
-        api.get<ServicoEscalado[]>(`/api/escalas/dia?data=${hoje}`).then((s) => setServicosHoje(ordenarPorTipo(s))),
-      ];
-      if (podeTriagem) chamadas.push(api.get<Solicitacao[]>("/api/solicitacoes/triagem").then(setEmTriagem));
-      if (podeAutorizar) chamadas.push(api.get<Solicitacao[]>("/api/solicitacoes/autorizacao").then(setAguardandoAutorizacao));
-      await Promise.all(chamadas);
-      setCarregando(false);
-    }
-    carregar();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  async function carregar() {
+    setCarregando(true);
+    const agora = new Date();
+    const hoje = `${agora.getFullYear()}-${String(agora.getMonth() + 1).padStart(2, "0")}-${String(agora.getDate()).padStart(2, "0")}`;
+    const chamadas: Promise<unknown>[] = [
+      api.get<PainelResumo>("/api/painel/resumo").then(setResumo),
+      api.get<ServicoEscalado[]>(`/api/escalas/dia?data=${hoje}`).then((s) => setServicosHoje(ordenarPorTipo(s))),
+    ];
+    if (podeTriagem) chamadas.push(api.get<Solicitacao[]>("/api/solicitacoes/triagem").then(setEmTriagem));
+    if (podeAutorizar) chamadas.push(api.get<Solicitacao[]>("/api/solicitacoes/autorizacao").then(setAguardandoAutorizacao));
+    await Promise.all(chamadas);
+    setCarregando(false);
+  }
+
+  useAoMudar(carregar);
 
   const ativos = resumo?.militaresAtivos ?? 0;
   const vagasAbertas = resumo?.vagasAbertasNoMes ?? 0;
@@ -162,7 +159,7 @@ export function PainelPage() {
                 <div className="card">
                   <h3>Ações rápidas</h3>
                   <div className="quick-actions" style={{ marginTop: 10 }}>
-                    {(usuario?.perfil === "CABO_SARGENTEACAO" || usuario?.perfil === "SARGENTEANTE") && (
+                    {podeTriagem && (
                       <button className="quick-action" onClick={() => navigate("/escala")}>
                         Montar a escala do mês
                       </button>
@@ -170,7 +167,7 @@ export function PainelPage() {
                     <button className="quick-action" onClick={() => navigate("/trocas")}>
                       Ver trocas de serviço
                     </button>
-                    {usuario?.perfil === "SARGENTEANTE" && (
+                    {podeAutorizar && (
                       <button className="quick-action" onClick={() => navigate("/bloqueio")}>
                         Travar um dia da escala
                       </button>

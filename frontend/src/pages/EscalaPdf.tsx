@@ -5,13 +5,6 @@ import type { ServicoEscalado } from "../api/types";
 import { useOrganizacao } from "../hooks/useOrganizacao";
 import { ordenarPorTipo } from "../utils/ordemTipos";
 
-/**
- * Página só de impressão — sem menu lateral, sem chrome nenhum.
- * Aberta numa aba nova a partir do botão "Gerar PDF"; assim que os
- * dados carregam, chama window.print() sozinha (o navegador oferece
- * "Salvar como PDF" como opção de impressora, que é como isso vira
- * um PDF de verdade sem precisar de biblioteca nenhuma no backend).
- */
 export function EscalaPdfPage() {
   const { data } = useParams<{ data: string }>();
   const [servicos, setServicos] = useState<ServicoEscalado[] | null>(null);
@@ -21,8 +14,7 @@ export function EscalaPdfPage() {
     if (!data) return;
     api.get<ServicoEscalado[]>(`/api/escalas/dia?data=${data}`).then((s) => {
       setServicos(ordenarPorTipo(s));
-      // Pequeno atraso pra garantir que o layout terminou de renderizar
-      // antes do navegador abrir o diálogo de impressão.
+
       setTimeout(() => window.print(), 300);
     });
   }, [data]);

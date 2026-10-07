@@ -1,8 +1,8 @@
 import { NavLink, useLocation } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { useAuth } from "../context/AuthContext";
+import { useAuth } from "../../context/AuthContext";
 import { NotificacaoSino } from "./NotificacaoSino";
-import { PERFIL_LABEL } from "../utils/perfis";
+import { PERFIL_LABEL } from "../../utils/perfis";
 
 interface Item {
   label: string;
@@ -13,9 +13,6 @@ interface Grupo {
   itens: Item[];
 }
 
-// Estrutura do menu por perfil - mesma organizada em grupos do Figma final
-// (ESCALA / PESSOAL / CONFIGURAÇÃO / ADMINISTRAÇÃO), replicando exatamente
-// o que cada perfil pode acessar (mesma lógica dos @PreAuthorize no backend).
 const MENU_POR_PERFIL: Record<string, { topo?: Item[]; grupos: Grupo[]; rodape?: Item }> = {
   SARGENTEANTE: {
     topo: [{ label: "Painel", to: "/painel" }, { label: "Boletim", to: "/boletim" }],
@@ -32,7 +29,6 @@ const MENU_POR_PERFIL: Record<string, { topo?: Item[]; grupos: Grupo[]; rodape?:
       { label: "CONFIGURAÇÃO", itens: [
         { label: "Tipos de serviço", to: "/tipos-servico" },
         { label: "Regras da escala", to: "/regras" },
-        { label: "Bloqueio de dias", to: "/bloqueio" },
         { label: "Feriados", to: "/feriados" },
         { label: "Postos e graduações", to: "/postos-graduacao" },
         { label: "Subunidades", to: "/subunidades" },
@@ -96,7 +92,6 @@ export function Shell({ children }: { children: React.ReactNode }) {
   const [menuAberto, setMenuAberto] = useState(false);
   const local = useLocation();
 
-  // Fecha o menu deslizante automaticamente ao navegar pra outra tela.
   useEffect(() => {
     setMenuAberto(false);
   }, [local.pathname]);
@@ -157,11 +152,3 @@ function ItemLink({ item }: { item: Item }) {
   );
 }
 
-export function PageHeader({ title, subtitle }: { title: string; subtitle?: string }) {
-  return (
-    <div className="header-bar">
-      <h2>{title}</h2>
-      {subtitle && <p>{subtitle}</p>}
-    </div>
-  );
-}

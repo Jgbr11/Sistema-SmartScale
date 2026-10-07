@@ -1,9 +1,12 @@
-import { useEffect, useState } from "react";
-import { api, ApiError } from "../api/client";
-import type { PostoGraduacao, Qualificacao, RequisitoServico, Subunidade, TipoServico } from "../api/types";
-import { descreverRequisito } from "../utils/requisitos";
+import { useState } from "react";
+import { api, ApiError } from "../../api/client";
+import type { PostoGraduacao, Qualificacao, RequisitoServico, Subunidade, TipoServico } from "../../api/types";
+import { descreverRequisito } from "../../utils/requisitos";
+import { useAoMudar } from "../../hooks/useAoMudar";
+import { useFeedback } from "../ui/Feedback";
 
 export function RequisitosPainel({ tipo, podeEditar, onMudou }: { tipo: TipoServico; podeEditar: boolean; onMudou: () => void }) {
+  const { confirmar } = useFeedback();
   const [requisitos, setRequisitos] = useState<RequisitoServico[]>([]);
   const [postos, setPostos] = useState<PostoGraduacao[]>([]);
   const [subunidades, setSubunidades] = useState<Subunidade[]>([]);
@@ -20,7 +23,7 @@ export function RequisitosPainel({ tipo, podeEditar, onMudou }: { tipo: TipoServ
     setRequisitos(await api.get<RequisitoServico[]>(`/api/tipos-servico/${tipo.id}/requisitos`));
   }
 
-  useEffect(() => {
+  function carregarTudo() {
     carregar();
     Promise.all([
       api.get<PostoGraduacao[]>("/api/postos-graduacao"),
@@ -31,8 +34,9 @@ export function RequisitosPainel({ tipo, podeEditar, onMudou }: { tipo: TipoServ
       setSubunidades(s);
       setCursos(q);
     });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [tipo.id]);
+  }
+
+  useAoMudar(carregarTudo, tipo.id);
 
   async function adicionar() {
     if (postoId === "") {
@@ -57,7 +61,7 @@ export function RequisitosPainel({ tipo, podeEditar, onMudou }: { tipo: TipoServ
   }
 
   async function remover(r: RequisitoServico) {
-    if (!confirm(`Remover "${descreverRequisito(r)}" de ${tipo.nome}?`)) return;
+    if (!(await confirmar(`Remover "${descreverRequisito(r)}" de ${tipo.nome}?`))) return;
     try {
       await api.delete(`/api/tipos-servico/${tipo.id}/requisitos/${r.id}`);
       await carregar();

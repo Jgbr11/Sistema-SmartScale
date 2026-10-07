@@ -1,6 +1,7 @@
-import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
+import { createContext, useContext, useState, type ReactNode } from "react";
 import { api, ApiError } from "../api/client";
 import type { Usuario } from "../api/types";
+import { useAoMudar } from "../hooks/useAoMudar";
 
 interface AuthContextValue {
   usuario: Usuario | null;
@@ -27,9 +28,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }
 
-  useEffect(() => {
-    carregarSessao();
-  }, []);
+  useAoMudar(carregarSessao);
 
   async function entrar(login: string, senha: string) {
     await api.login(login, senha);

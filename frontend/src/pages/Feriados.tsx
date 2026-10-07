@@ -1,9 +1,11 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { api, ApiError } from "../api/client";
 import type { Feriado } from "../api/types";
-import { PageHeader } from "../components/Shell";
-import { useAuth } from "../context/AuthContext";
+import { PageHeader } from "../components/layout/PageHeader";
 import { formatarPeriodo } from "../utils/formatadores";
+import { usePermissoes } from "../hooks/usePermissoes";
+import { useAoMudar } from "../hooks/useAoMudar";
+import { useFeedback } from "../components/ui/Feedback";
 
 const TIPOS: { valor: Feriado["tipo"]; label: string }[] = [
   { valor: "NACIONAL", label: "Nacional" },
@@ -12,8 +14,8 @@ const TIPOS: { valor: Feriado["tipo"]; label: string }[] = [
 ];
 
 export function FeriadosPage() {
-  const { usuario } = useAuth();
-  const podeEditar = usuario?.perfil === "SARGENTEANTE";
+  const { avisar, confirmar } = useFeedback();
+  const { mantemConfiguracoes: podeEditar } = usePermissoes();
 
   const [feriados, setFeriados] = useState<Feriado[]>([]);
   const [carregando, setCarregando] = useState(true);
@@ -26,17 +28,15 @@ export function FeriadosPage() {
     setCarregando(false);
   }
 
-  useEffect(() => {
-    carregar();
-  }, []);
+  useAoMudar(carregar);
 
   async function remover(id: number) {
-    if (!confirm("Remover este feriado?")) return;
+    if (!(await confirmar("Remover este feriado?"))) return;
     try {
       await api.delete(`/api/feriados/${id}`);
       carregar();
     } catch (e) {
-      alert(e instanceof ApiError ? e.message : "Não foi possível remover.");
+      avisar(e instanceof ApiError ? e.message : "Não foi possível remover.", "erro");
     }
   }
 

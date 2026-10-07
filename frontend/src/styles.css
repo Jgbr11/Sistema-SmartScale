@@ -1,11 +1,5 @@
 @import url("https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Condensed:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap");
 
-/* ============================================================
-   Sistema de design MilScale — "farda, não gradiente"
-   Superfícies planas, sombra quase nula, hierarquia por peso e
-   tamanho. Paleta de farda (oliva/musgo) com um único acento de
-   latão (insígnia), usado com moderação.
-   ============================================================ */
 :root {
   --bg: #f4f1e8;
   --white: #ffffff;
@@ -288,7 +282,6 @@ tbody tr:nth-child(even) { background: var(--row-alt); }
 .calendar-cell .tipo { font-size: 11px; font-weight: 500; margin-top: 4px; color: #d8e2cc; }
 .dow { text-align: center; font-size: 11px; font-weight: 600; color: var(--grey-light); padding-bottom: 4px; font-family: var(--font-display); }
 
-/* ---- Painel (dashboard) ---- */
 .stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; }
 .stat-card {
   background: var(--white);
@@ -334,11 +327,6 @@ tbody tr:nth-child(even) { background: var(--row-alt); }
 
 .dashboard-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 16px; }
 
-/* ============================================================
-   Responsividade mobile (≤ 860px)
-   Menu lateral vira um painel deslizante (off-canvas) acionado
-   pela barra superior; conteúdo empilha em coluna única.
-   ============================================================ */
 @media (max-width: 860px) {
   .mobile-topbar { display: flex; }
   .sidebar-backdrop.open { display: block; }
@@ -394,3 +382,31 @@ tbody tr:nth-child(even) { background: var(--row-alt); }
   .calendar-cell { min-height: 40px; font-size: 12px; padding: 4px; }
   .calendar-cell .tipo { display: none; }
 }
+
+/* ---- Diálogos e avisos ---- */
+.dialogo-fundo { position: fixed; inset: 0; background: rgba(28, 33, 23, 0.55); display: flex; align-items: center; justify-content: center; z-index: 1000; padding: 16px; }
+.dialogo { background: var(--white); border: 1px solid var(--border); border-radius: 8px; padding: 20px; width: 420px; max-width: 100%; display: flex; flex-direction: column; gap: 14px; }
+.dialogo textarea { width: 100%; border: 1px solid var(--border); border-radius: 5px; padding: 8px; font: inherit; }
+.dialogo-acoes { display: flex; justify-content: flex-end; gap: 8px; }
+.avisos { position: fixed; bottom: 16px; right: 16px; display: flex; flex-direction: column; gap: 8px; z-index: 1100; }
+.aviso { padding: 10px 14px; border-radius: 6px; font-size: 13px; background: var(--dark); color: var(--white); max-width: 360px; }
+.aviso-sucesso { background: var(--green-pill-text); }
+.aviso-erro { background: var(--red-text); }
+
+/* ---- Calendário ---- */
+.calendar-cell { background: #fbfcfa; border: 1px solid var(--border-2); text-align: left; color: var(--dark); }
+.calendar-cell .tipo { display: block; color: var(--grey); }
+.calendar-cell:disabled { background: transparent; border-color: transparent; cursor: default; }
+.calendar-cell.destaque-atencao { background: var(--amber-bg); border-color: var(--border-2); }
+.calendar-cell.destaque-atencao .tipo { color: var(--amber-text); }
+.calendar-cell.destaque-positivo { background: var(--green-pill-bg); border-color: var(--border-2); }
+.calendar-cell.destaque-positivo .tipo { color: var(--green-pill-text); }
+.calendar-cell.destaque-servico { background: var(--sidebar-active); color: #fff; }
+.calendar-cell.destaque-servico .tipo { color: #d8e2cc; }
+.calendar-cell.hoje { box-shadow: inset 0 0 0 2px var(--accent, var(--sidebar-active)); }
+.calendar-cell.selecionado { background: var(--sidebar-active); color: #fff; }
+.calendar-cell.selecionado .tipo { color: #d8e2cc; }
+
+/* ---- Tabelas ---- */
+.vazio { padding: 20px; color: var(--grey); font-size: 13px; }
+td.acoes { white-space: nowrap; }

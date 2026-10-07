@@ -1,8 +1,10 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { api, ApiError } from "../api/client";
 import type { PostoGraduacao } from "../api/types";
-import { PageHeader } from "../components/Shell";
-import { useAuth } from "../context/AuthContext";
+import { PageHeader } from "../components/layout/PageHeader";
+import { usePermissoes } from "../hooks/usePermissoes";
+import { useAoMudar } from "../hooks/useAoMudar";
+import { useFeedback } from "../components/ui/Feedback";
 
 interface Rascunho {
   sigla: string;
@@ -13,8 +15,8 @@ interface Rascunho {
 const VAZIO: Rascunho = { sigla: "", descricao: "", nivelHierarquico: "" };
 
 export function PostosGraduacaoPage() {
-  const { usuario } = useAuth();
-  const podeEditar = usuario?.perfil === "SARGENTEANTE";
+  const { confirmar } = useFeedback();
+  const { mantemConfiguracoes: podeEditar } = usePermissoes();
 
   const [postos, setPostos] = useState<PostoGraduacao[]>([]);
   const [carregando, setCarregando] = useState(true);
@@ -34,9 +36,7 @@ export function PostosGraduacaoPage() {
     }
   }
 
-  useEffect(() => {
-    carregar();
-  }, []);
+  useAoMudar(carregar);
 
   function iniciarEdicao(p: PostoGraduacao) {
     setErro(null);
@@ -56,7 +56,7 @@ export function PostosGraduacaoPage() {
   }
 
   async function excluir(p: PostoGraduacao) {
-    if (!confirm(`Excluir o posto "${p.sigla}"?`)) return;
+    if (!(await confirmar(`Excluir o posto "${p.sigla}"?`))) return;
     setErro(null);
     try {
       await api.delete(`/api/postos-graduacao/${p.id}`);

@@ -2,18 +2,20 @@ import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { api, ApiError } from "../api/client";
 import type { Afastamento, Militar, PostoGraduacao, ServicoEscalado, Solicitacao, Subunidade, TipoServico } from "../api/types";
-import { PageHeader } from "../components/Shell";
-import { BotaoBaixarCsv } from "../components/BotaoBaixarCsv";
-import { useAuth } from "../context/AuthContext";
+import { PageHeader } from "../components/layout/PageHeader";
+import { BotaoBaixarCsv } from "../components/ui/BotaoBaixarCsv";
 import { mascararCpf, mascararFusex, mascararTelefone, somenteDigitos } from "../utils/mascaras";
 import { TIPO_AFASTAMENTO_LABEL } from "../utils/afastamentoTipos";
 import { formatarCpf, formatarDataBR } from "../utils/formatadores";
+import { usePermissoes } from "../hooks/usePermissoes";
+import { hojeISO } from "../utils/datas";
+import { useAoMudar } from "../hooks/useAoMudar";
+import { useFeedback } from "../components/ui/Feedback";
 
 export function FichaMilitarPage() {
+  const { gerenciaCadastros: podeEditar } = usePermissoes();
   const { id } = useParams<{ id: string }>();
   const militarId = Number(id);
-  const { usuario } = useAuth();
-  const podeEditar = usuario?.perfil === "CABO_SARGENTEACAO" || usuario?.perfil === "SARGENTEANTE";
 
   const [militar, setMilitar] = useState<Militar | null>(null);
   const [funcoes, setFuncoes] = useState<TipoServico[]>([]);
@@ -40,10 +42,7 @@ export function FichaMilitarPage() {
     setCarregando(false);
   }
 
-  useEffect(() => {
-    carregar();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [militarId]);
+  useAoMudar(carregar, militarId);
 
   if (carregando || !militar) {
     return (
@@ -54,7 +53,7 @@ export function FichaMilitarPage() {
     );
   }
 
-  const hoje = new Date().toISOString().slice(0, 10);
+  const hoje = hojeISO();
   const afastamentoAtual = afastamentos.find((a) => hoje >= a.dataInicio && hoje <= a.dataFim);
 
   return (
@@ -206,6 +205,7 @@ function CampoLeitura({ label, valor }: { label: string; valor: string }) {
 }
 
 function EditarForm({ militar, onSalvou, onCancelar }: { militar: Militar; onSalvou: () => void; onCancelar: () => void }) {
+  const { confirmar } = useFeedback();
   const [dados, setDados] = useState({
     nomeCompleto: militar.nomeCompleto,
     nomeGuerra: militar.nomeGuerra,
@@ -245,7 +245,7 @@ function EditarForm({ militar, onSalvou, onCancelar }: { militar: Militar; onSal
       dados.nomeGuerra !== militar.nomeGuerra ||
       somenteDigitos(dados.cpf) !== militar.cpf;
     if (mudouIdentidade) {
-      const ok = confirm(
+      const ok = await confirmar(
         "Você está mudando nome completo, nome de guerra ou CPF — isso deveria ser raro, só pra corrigir um erro de cadastro. Confirma a alteração?"
       );
       if (!ok) return;

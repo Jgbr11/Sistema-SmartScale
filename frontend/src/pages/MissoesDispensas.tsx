@@ -1,11 +1,14 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { api, ApiError } from "../api/client";
 import type { Afastamento, Militar } from "../api/types";
-import { PageHeader } from "../components/Shell";
-import { BotaoBaixarCsv } from "../components/BotaoBaixarCsv";
-import { useAuth } from "../context/AuthContext";
+import { PageHeader } from "../components/layout/PageHeader";
+import { BotaoBaixarCsv } from "../components/ui/BotaoBaixarCsv";
 import { TIPOS_AFASTAMENTO as TIPOS } from "../utils/afastamentoTipos";
 import { formatarDataBR } from "../utils/formatadores";
+import { usePermissoes } from "../hooks/usePermissoes";
+import { hojeISO } from "../utils/datas";
+import { useAoMudar } from "../hooks/useAoMudar";
+import { useFeedback } from "../components/ui/Feedback";
 
 interface GrupoAfastamento {
   loteOuId: string;
@@ -18,8 +21,8 @@ interface GrupoAfastamento {
 }
 
 export function MissoesDispensasPage() {
-  const { usuario } = useAuth();
-  const podeEditar = usuario?.perfil === "CABO_SARGENTEACAO" || usuario?.perfil === "SARGENTEANTE";
+  const { avisar, confirmar } = useFeedback();
+  const { gerenciaCadastros: podeEditar } = usePermissoes();
 
   const [afastamentos, setAfastamentos] = useState<Afastamento[]>([]);
   const [militares, setMilitares] = useState<Militar[]>([]);
@@ -42,11 +45,8 @@ export function MissoesDispensasPage() {
     setCarregando(false);
   }
 
-  useEffect(() => {
-    carregar();
-  }, []);
+  useAoMudar(carregar);
 
-  // Agrupa por lote de missão - uma missão com 5 pessoas vira 1 linha, não 5.
   const grupos: GrupoAfastamento[] = useMemo(() => {
     const mapa = new Map<string, GrupoAfastamento>();
     for (const a of afastamentos) {
@@ -65,10 +65,15 @@ export function MissoesDispensasPage() {
   }, [afastamentos]);
 
   async function cancelarGrupo(ids: number[], dataInicio: string, dataFim: string) {
-    if (!confirm(ids.length > 1 ? "Cancelar esse afastamento pra todo mundo dessa missão?" : "Cancelar este afastamento?")) return;
-    await Promise.all(ids.map((id) => api.delete(`/api/afastamentos/${id}`)));
-    setOfertaRegenerar({ dataInicio, dataFim });
-    carregar();
+    if (!(await confirmar(ids.length > 1 ? "Cancelar esse afastamento pra todo mundo dessa missão?" : "Cancelar este afastamento?"))) return;
+    try {
+      await Promise.all(ids.map((id) => api.delete(`/api/afastamentos/${id}`)));
+      setOfertaRegenerar({ dataInicio, dataFim });
+      carregar();
+      avisar("Afastamento cancelado.", "sucesso");
+    } catch (e) {
+      avisar(e instanceof ApiError ? e.message : "Não foi possível concluir a ação.", "erro");
+    }
   }
 
   async function regenerarPeriodo() {
@@ -85,13 +90,13 @@ export function MissoesDispensasPage() {
     }
   }
 
-  const hoje = new Date().toISOString().slice(0, 10);
+  const hoje = hojeISO();
 
   return (
     <>
       <PageHeader
         title="Missões e dispensas"
-        subtitle="Quem está afastado não é escalado nesse período (RF26 / RN15)"
+        subtitle="Quem está afastado não é escalado nesse período"
       />
       <div className="body">
         {ofertaRegenerar && (
@@ -235,7 +240,7 @@ function NovoAfastamentoForm({ militares, onCriado }: { militares: Militar[]; on
   return (
     <div className="card">
       <h3>Novo afastamento</h3>
-      <p className="sub">RF26 — pode selecionar mais de uma pessoa (ex.: equipe inteira numa missão)</p>
+      <p className="sub">Pode selecionar mais de uma pessoa (ex.: equipe inteira numa missão)</p>
       {erro && <div className="error-box">{erro}</div>}
 
       <div className="field">

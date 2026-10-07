@@ -1,12 +1,15 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { api, ApiError } from "../api/client";
 import type { PerfilAcesso, UsuarioAdmin } from "../api/types";
-import { PageHeader } from "../components/Shell";
+import { PageHeader } from "../components/layout/PageHeader";
 import { useAuth } from "../context/AuthContext";
 import { PERFIL_LABEL } from "../utils/perfis";
 import { formatarCpf } from "../utils/formatadores";
+import { useAoMudar } from "../hooks/useAoMudar";
+import { useFeedback } from "../components/ui/Feedback";
 
 export function PerfisPermissoesPage() {
+  const { confirmar } = useFeedback();
   const { usuario: euMesmo } = useAuth();
   const [usuarios, setUsuarios] = useState<UsuarioAdmin[]>([]);
   const [perfis, setPerfis] = useState<PerfilAcesso[]>([]);
@@ -27,9 +30,7 @@ export function PerfisPermissoesPage() {
     setCarregando(false);
   }
 
-  useEffect(() => {
-    carregar();
-  }, []);
+  useAoMudar(carregar);
 
   async function alterarPerfil(usuarioId: number, perfilId: number) {
     setErro(null);
@@ -45,7 +46,7 @@ export function PerfisPermissoesPage() {
   }
 
   async function alternarAtivo(usuarioId: number, ativo: boolean) {
-    if (!confirm(ativo ? "Reativar o acesso dessa pessoa?" : "Desativar o acesso dessa pessoa? Ela não vai mais conseguir logar.")) return;
+    if (!(await confirmar(ativo ? "Reativar o acesso dessa pessoa?" : "Desativar o acesso dessa pessoa? Ela não vai mais conseguir logar."))) return;
     setErro(null);
     setProcessando(usuarioId);
     try {
@@ -59,12 +60,12 @@ export function PerfisPermissoesPage() {
   }
 
   async function resetarSenha(usuarioId: number, nome: string) {
-    if (!confirm(`Gerar uma senha temporária para ${nome}? A senha atual deixa de funcionar.`)) return;
+    if (!(await confirmar(`Gerar uma senha temporária para ${nome}? A senha atual deixa de funcionar.`))) return;
     setErro(null);
     setProcessando(usuarioId);
     try {
       const r = await api.post<{ senhaTemporaria: string }>(`/api/usuarios/${usuarioId}/resetar-senha`, {});
-      alert(`Senha temporária de ${nome}: ${r.senhaTemporaria}
+      await confirmar(`Senha temporária de ${nome}: ${r.senhaTemporaria}
 
 Ela aparece só agora. Entregue pessoalmente — no primeiro acesso a pessoa vai ser obrigada a criar uma senha nova.`);
     } catch (e) {
@@ -80,7 +81,7 @@ Ela aparece só agora. Entregue pessoalmente — no primeiro acesso a pessoa vai
 
   return (
     <>
-      <PageHeader title="Perfis e permissões" subtitle="Quem tem acesso ao quê no sistema — RF25" />
+      <PageHeader title="Perfis e permissões" subtitle="Quem tem acesso ao quê no sistema" />
       <div className="body">
         {erro && <div className="error-box">{erro}</div>}
         <div className="field" style={{ maxWidth: 320 }}>

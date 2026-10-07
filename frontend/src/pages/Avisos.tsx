@@ -2,10 +2,9 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { api } from "../api/client";
 import type { Aviso, BoletimResumo } from "../api/types";
-import { PageHeader } from "../components/Shell";
+import { PageHeader } from "../components/layout/PageHeader";
 import { capitalizar, formatarDataBR, formatarPeriodo } from "../utils/formatadores";
-
-const DIAS_SEMANA = ["DOM", "SEG", "TER", "QUA", "QUI", "SEX", "SÁB"];
+import { CalendarioMensal } from "../components/ui/CalendarioMensal";
 
 const TIPO_LABEL: Record<string, string> = {
   FERIADO: "Feriado",
@@ -17,12 +16,6 @@ const TIPO_LABEL: Record<string, string> = {
   OUTRO: "Outro",
 };
 
-/**
- * Calendário de avisos - igual em estrutura ao calendário de escala,
- * mas em vez de serviços mostra dias com feriado ou missão/afastamento
- * cadastrados. Clicar num dia mostra o detalhe embaixo; clicar de novo
- * no mesmo dia (ou escolher outro) desmarca a seleção anterior.
- */
 export function AvisosPage() {
   const hoje = new Date();
   const navigate = useNavigate();
@@ -51,7 +44,6 @@ export function AvisosPage() {
   useEffect(() => {
     carregar(mesExibido.ano, mesExibido.mes);
     setDiaEscolhido(null);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mesExibido]);
 
   function mudarMes(delta: number) {
@@ -71,9 +63,6 @@ export function AvisosPage() {
   }
 
   const primeiroDia = new Date(mesExibido.ano, mesExibido.mes, 1);
-  const diasNoMes = new Date(mesExibido.ano, mesExibido.mes + 1, 0).getDate();
-  const offsetInicial = primeiroDia.getDay();
-  const celulas: (number | null)[] = [...Array(offsetInicial).fill(null), ...Array.from({ length: diasNoMes }, (_, i) => i + 1)];
   const nomeMes = capitalizar(primeiroDia.toLocaleDateString("pt-BR", { month: "long", year: "numeric" }));
 
   const avisosDoDiaEscolhido = diaEscolhido ? avisosDoDia(diaEscolhido) : [];
@@ -94,38 +83,20 @@ export function AvisosPage() {
           {carregando ? (
             <p className="sub">Carregando…</p>
           ) : (
-            <div className="calendar-grid">
-              {DIAS_SEMANA.map((d) => <div key={d} className="dow">{d}</div>)}
-              {celulas.map((dia, idx) => {
-                if (dia === null) return <div key={idx} className="calendar-cell empty" />;
-                const dataStr = `${mesExibido.ano}-${String(mesExibido.mes + 1).padStart(2, "0")}-${String(dia).padStart(2, "0")}`;
+            <CalendarioMensal
+              ano={mesExibido.ano}
+              mes={mesExibido.mes}
+              diaSelecionado={diaEscolhido}
+              onSelecionar={clicarDia}
+              infoDoDia={(dataStr) => {
                 const doDia = avisosDoDia(dataStr);
-                const temFeriado = doDia.some((a) => a.tipo === "FERIADO");
-                const temMissao = doDia.some((a) => a.tipo !== "FERIADO");
-                const selecionado = diaEscolhido === dataStr;
-                return (
-                  <button
-                    key={idx}
-                    className="calendar-cell"
-                    style={{
-                      cursor: "pointer",
-                      textAlign: "left",
-                      background: selecionado ? "var(--sidebar-active)" : temFeriado ? "var(--green-pill-bg)" : temMissao ? "var(--amber-bg)" : "#fbfcfa",
-                      color: selecionado ? "#fff" : "var(--dark)",
-                      border: "1px solid var(--border-2)",
-                    }}
-                    onClick={() => clicarDia(dataStr)}
-                  >
-                    {dia}
-                    {doDia.length > 0 && (
-                      <div className="tipo" style={{ color: selecionado ? "#d8e2cc" : temFeriado ? "var(--green-pill-text)" : "var(--amber-text)" }}>
-                        {doDia.length === 1 ? TIPO_LABEL[doDia[0].tipo] ?? doDia[0].tipo : `${doDia.length} avisos`}
-                      </div>
-                    )}
-                  </button>
-                );
-              })}
-            </div>
+                if (doDia.length === 0) return {};
+                return {
+                  rotulo: doDia.length === 1 ? TIPO_LABEL[doDia[0].tipo] ?? doDia[0].tipo : `${doDia.length} avisos`,
+                  destaque: doDia.some((a) => a.tipo === "FERIADO") ? "positivo" : "atencao",
+                };
+              }}
+            />
           )}
         </div>
 
