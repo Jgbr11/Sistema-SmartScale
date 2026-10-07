@@ -9,7 +9,6 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-/** RF08/RF11 - o periodo de escala gerado (rascunho) e publicado. */
 @Entity
 @Table(name = "escala")
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
@@ -24,7 +23,7 @@ public class Escala {
 
     @ManyToOne
     @JoinColumn(name = "id_subunidade")
-    private Subunidade subunidade; // null = escala da OM inteira
+    private Subunidade subunidade;
 
     @Column(name = "data_inicio", nullable = false)
     private LocalDate dataInicio;

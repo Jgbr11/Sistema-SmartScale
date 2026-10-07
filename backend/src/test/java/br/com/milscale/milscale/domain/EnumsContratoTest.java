@@ -6,11 +6,6 @@ import java.util.Arrays;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-/**
- * Os nomes destes enums sao contrato com o frontend (src/api/types.ts) e
- * com o que ja esta gravado no banco. Renomear qualquer valor quebra os
- * dois - este teste acusa isso na hora.
- */
 class EnumsContratoTest {
 
     private static String[] nomes(Enum<?>[] valores) {

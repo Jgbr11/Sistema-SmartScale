@@ -1,5 +1,7 @@
 package br.com.milscale.milscale.domain;
 
+// Especialização MilScale (LPS)
+
 import br.com.smartscale.core.TipoTurno;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -10,10 +12,6 @@ import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Especializacao MilScale de {@link TipoTurno} (RF06).
- * "Tipo de turno" do nucleo -> "tipo de servico" aqui, sempre de 24h.
- */
 @Entity
 @Table(name = "tipo_servico")
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder

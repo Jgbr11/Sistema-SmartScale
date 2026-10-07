@@ -5,8 +5,8 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
-/** RF08/RF13/RF14 - uma vaga preenchida (ou em aberto) num dia da escala. */
 @Entity
 @Table(name = "servico_escalado")
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
@@ -33,7 +33,7 @@ public class ServicoEscalado {
 
     @ManyToOne
     @JoinColumn(name = "id_militar")
-    private Militar militar; // null = posto em aberto (nao coberto pelo motor)
+    private Militar militar;
 
     @Column(length = 40)
     private String posicao;
@@ -45,17 +45,13 @@ public class ServicoEscalado {
 
     @Column(nullable = false)
     @Builder.Default
-    private boolean travado = false; // RF12 - dia bloqueado preserva a alocacao
+    private boolean travado = false;
 
     @Column(length = 150)
     private String observacao;
 
-    /** Calculado, não guardado no banco — vira "sólido" sozinho quando o
-     *  horário de início do serviço já passou, sem precisar de travamento
-     *  manual (RF12, variante automática). Exposto no JSON pro front
-     *  mostrar um ícone diferente do cadeado manual (`travado`). */
     public boolean isJaComecou() {
-        java.time.LocalDateTime inicio = java.time.LocalDateTime.of(data, tipoServico.getHoraInicio());
-        return !java.time.LocalDateTime.now().isBefore(inicio);
+        LocalDateTime inicio = LocalDateTime.of(data, tipoServico.getHoraInicio());
+        return !LocalDateTime.now().isBefore(inicio);
     }
 }

@@ -3,7 +3,6 @@ package br.com.milscale.milscale.domain;
 import jakarta.persistence.*;
 import lombok.*;
 
-/** Especializacao MilScale de "qualificacao" (RF05) - cursos e habilitacoes. */
 @Entity
 @Table(name = "qualificacao")
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder

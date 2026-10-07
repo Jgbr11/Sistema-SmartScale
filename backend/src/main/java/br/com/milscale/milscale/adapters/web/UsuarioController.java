@@ -14,7 +14,6 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.Map;
 
-/** RF25 - Perfis e permissões. Privativo do Sargenteante. */
 @RestController
 @RequestMapping("/api/usuarios")
 @PreAuthorize("hasRole('SARGENTEANTE')")

@@ -28,7 +28,6 @@ public class TipoServicoController {
         return tipoServicoService.listar();
     }
 
-    /** RN11 - manutencao dos tipos de servico e privativa do Sargenteante. */
     @PreAuthorize("hasRole('SARGENTEANTE')")
     @PostMapping
     public TipoServico cadastrar(@Valid @RequestBody DadosTipoServico dados, Authentication auth) {

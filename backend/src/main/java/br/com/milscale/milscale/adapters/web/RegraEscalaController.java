@@ -26,7 +26,6 @@ public class RegraEscalaController {
         return regraEscalaService.listar();
     }
 
-    /** RN11 - manutencao das regras e privativa do Sargenteante. */
     @PreAuthorize("hasRole('SARGENTEANTE')")
     @PutMapping("/{id}")
     public RegraEscala atualizar(@PathVariable Long id, @RequestBody RegraEscala regra, Authentication auth) {

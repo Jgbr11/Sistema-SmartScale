@@ -30,7 +30,6 @@ import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
 
-/** RF04 - cadastro das pessoas escaladas: incluir, consultar, alterar, inativar. */
 @Service
 public class MilitarService {
 
@@ -79,7 +78,6 @@ public class MilitarService {
                 .orElseThrow(() -> new NoSuchElementException("Militar nao encontrado"));
     }
 
-    /** RF06 - pra que tipos de servico esse militar e elegivel hoje (posto/subunidade/cursos). */
     public List<TipoServico> funcoesElegiveis(Long militarId) {
         Militar m = buscar(militarId);
         List<TipoServico> todosOsTipos = tipoServicoRepository.findByAtivoTrue();
@@ -90,7 +88,6 @@ public class MilitarService {
                 .toList();
     }
 
-    /** RF04 - Ficha do Militar: historico completo de servicos, afastamentos e trocas da pessoa. */
     public List<ServicoEscalado> historicoServicos(Long militarId, boolean incluirRascunho) {
         return incluirRascunho
                 ? servicoEscaladoRepository.findByMilitar_IdOrderByDataDesc(militarId)
@@ -105,17 +102,12 @@ public class MilitarService {
         return solicitacaoRepository.findBySolicitante_IdOrSubstituto_IdOrderByDataSolicitacaoDesc(militarId, militarId);
     }
 
-    /** RF04/RF26 - se a pessoa está afastada hoje, pra mostrar uma tag curta (só o tipo,
-     *  nunca a descrição inteira) no popup e na Ficha do militar. */
     public Afastamento afastamentoAtual(Long militarId) {
         LocalDate hoje = LocalDate.now();
         return afastamentoRepository.findByMilitar_IdAndDataInicioLessThanEqualAndDataFimGreaterThanEqual(militarId, hoje, hoje)
                 .stream().findFirst().orElse(null);
     }
 
-    /** Usado no @PreAuthorize dos endpoints de histórico — libera a
-     *  própria pessoa a ver o próprio histórico, mesmo sem perfil
-     *  elevado, sem abrir pra ver o de qualquer outra pessoa. */
     public boolean ehOProprio(Long militarId, String loginUsuario) {
         return usuarioRepository.findByLogin(loginUsuario)
                 .map(u -> u.getMilitar().getId().equals(militarId))
@@ -192,7 +184,6 @@ public class MilitarService {
         });
     }
 
-    /** RN - dentro do mesmo posto/graduação, nome de guerra não pode repetir (postos diferentes podem). */
     private void validarNomeGuerraUnicoNoPosto(Long postoId, String nomeGuerra, Long idParaIgnorar) {
         boolean conflito = militarRepository.findByPosto_IdAndNomeGuerraIgnoreCase(postoId, nomeGuerra).stream()
                 .anyMatch(m -> idParaIgnorar == null || !m.getId().equals(idParaIgnorar));
@@ -202,7 +193,6 @@ public class MilitarService {
         }
     }
 
-    /** RF04 - inativar (nunca excluir de verdade: preserva o historico). */
     @Transactional
     public Militar desligar(Long id) {
         Militar existente = buscar(id);

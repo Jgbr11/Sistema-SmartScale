@@ -6,15 +6,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 
-/**
- * RF06 - regra unica de elegibilidade (posto + subunidade opcional +
- * qualificacao exigida opcional + qualificacoes excluidas opcional).
- *
- * Extraido pra um lugar so porque essa mesma checagem era repetida em
- * GerarEscalaService, AfastamentoService e SolicitacaoService - qualquer
- * ajuste de regra (como "CFC e Motorista nao tiram Monitoramento")
- * precisava ser replicado nos tres. Reuso de verdade: uma unica fonte.
- */
 @Service
 public class ElegibilidadeService {
 
@@ -24,8 +15,8 @@ public class ElegibilidadeService {
             if (r.getSubunidade() != null && !r.getSubunidade().getId().equals(m.getSubunidade().getId())) continue;
             if (r.getSubunidadeExcluida() != null && r.getSubunidadeExcluida().getId().equals(m.getSubunidade().getId())) continue;
             if (temQualificacaoExcluida(m, r)) continue;
-            if (r.getQualificacao() == null) return true; // exige só posto (e subunidade, se houver)
-            if (m.getQualificacoes().contains(r.getQualificacao())) return true; // exige posto + curso, e a pessoa tem
+            if (r.getQualificacao() == null) return true;
+            if (m.getQualificacoes().contains(r.getQualificacao())) return true;
         }
         return false;
     }

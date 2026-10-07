@@ -15,12 +15,6 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-/**
- * Cenario montado pra o limite mensal ser o UNICO motivo da escolha:
- * 7 Tenentes com prioridade maxima na fila, mas que ja tiraram 1 Oficial
- * de Dia no mes; 1 Tenente com prioridade menor e nenhum servico no mes.
- * Com maxServicosMes=1, so o oitavo pode ser escalado.
- */
 @SpringBootTest
 @ActiveProfiles("test")
 @Transactional
@@ -56,13 +50,13 @@ class MaxServicosMesIntegrationTest {
                 .dataInicio(dia.withDayOfMonth(1)).dataFim(dia.withDayOfMonth(7)).usuarioGeracao(sargenteante).build());
         for (int i = 0; i < 7; i++) {
             Militar t = tenentes.get(i);
-            t.setDataUltimoServico(LocalDate.of(2000, 1, 1)); // topo da fila
+            t.setDataUltimoServico(LocalDate.of(2000, 1, 1));
             militarRepository.save(t);
             servicoEscaladoRepository.save(ServicoEscalado.builder().escala(anterior)
                     .data(dia.withDayOfMonth(i + 1)).tipoServico(oficialDeDia).militar(t).build());
         }
         oitavo = tenentes.get(7);
-        oitavo.setDataUltimoServico(dia.withDayOfMonth(5)); // fila mais baixa, mas sem servico no mes
+        oitavo.setDataUltimoServico(dia.withDayOfMonth(5));
         militarRepository.save(oitavo);
     }
 

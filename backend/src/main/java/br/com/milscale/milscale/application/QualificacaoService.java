@@ -11,7 +11,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.NoSuchElementException;
 
-/** RF05 - catalogo de qualificacoes (cursos/habilitacoes) e o vinculo com militares. */
 @Service
 public class QualificacaoService {
 
@@ -30,7 +29,6 @@ public class QualificacaoService {
         return qualificacaoRepository.findAll();
     }
 
-    /** Privativo do Sargenteante (catalogo, mesmo nivel de Tipos de Servico - RN11). */
     @Transactional
     public Qualificacao cadastrar(DadosQualificacao dados) {
         qualificacaoRepository.findByNome(dados.nome().trim()).ifPresent(q -> {
@@ -63,7 +61,6 @@ public class QualificacaoService {
         return qualificacao;
     }
 
-    /** Vincular/desvincular e parte do cadastro do militar (RF04) - Cabo ou Sargenteante. */
     @Transactional
     public Militar vincular(Long militarId, Long qualificacaoId) {
         Militar m = militarRepository.findById(militarId).orElseThrow(() -> new NoSuchElementException("Militar nao encontrado"));

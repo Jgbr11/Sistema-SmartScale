@@ -9,7 +9,6 @@ import org.springframework.web.bind.annotation.RestController;
 import java.time.YearMonth;
 import java.util.List;
 
-/** Aberto a qualquer autenticado - feriados e missoes/afastamentos do mes, unificados. */
 @RestController
 @RequestMapping("/api/avisos")
 public class AvisoController {

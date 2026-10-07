@@ -22,18 +22,12 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import java.time.temporal.ChronoUnit;
+import java.util.Set;
 
-/**
- * Sobe o contexto Spring de verdade (com o DataSeeder rodando, ~200
- * militares) contra um H2 em memoria, e gera uma escala completa - o
- * mesmo tipo de verificacao que eu fazia manualmente via curl toda vez
- * que mexia numa regra nesta sessao (contar vaga aberta, contar
- * violacao de intervalo, conferir quem foi escalado onde). Agora roda
- * sozinho e acusa na hora se algo regredir.
- */
 @SpringBootTest
 @ActiveProfiles("test")
-@Transactional // desfaz a escala gerada no fim de cada teste, sem sujar os outros
+@Transactional
 class EscalaGeracaoIntegrationTest {
 
     @Autowired private GerarEscalaService gerarEscalaService;
@@ -43,7 +37,7 @@ class EscalaGeracaoIntegrationTest {
     @Autowired private AfastamentoRepository afastamentoRepository;
 
     private Escala gerarProximoMesCompleto() {
-        Usuario usuario = usuarioRepository.findByLogin("00000000001").orElseThrow(); // Zeni, Sargenteante
+        Usuario usuario = usuarioRepository.findByLogin("00000000001").orElseThrow();
         LocalDate inicio = LocalDate.now().plusMonths(2).withDayOfMonth(1);
         LocalDate fim = inicio.withDayOfMonth(inicio.lengthOfMonth());
         return gerarEscalaService.gerar(inicio, fim, usuario);
@@ -62,8 +56,7 @@ class EscalaGeracaoIntegrationTest {
 
     @Test
     void gerarMesInteiro_respeitaIntervaloMinimoDeTresDiasDeFolga() {
-        // RN06: 3x1 - quem serviu num dia so pode servir de novo com pelo
-        // menos 3 dias de folga (gap de calendario >= 4).
+
         Escala escala = gerarProximoMesCompleto();
         List<ServicoEscalado> servicos = servicoEscaladoRepository.findByEscala_Id(escala.getId());
 
@@ -75,7 +68,7 @@ class EscalaGeracaoIntegrationTest {
         for (var entrada : datasPorMilitar.entrySet()) {
             List<LocalDate> datas = entrada.getValue().stream().sorted().toList();
             for (int i = 1; i < datas.size(); i++) {
-                long gap = java.time.temporal.ChronoUnit.DAYS.between(datas.get(i - 1), datas.get(i));
+                long gap = ChronoUnit.DAYS.between(datas.get(i - 1), datas.get(i));
                 assertThat(gap)
                         .as("intervalo entre dois serviços do militar id %d (%s -> %s)", entrada.getKey(), datas.get(i - 1), datas.get(i))
                         .isGreaterThanOrEqualTo(4);
@@ -88,7 +81,7 @@ class EscalaGeracaoIntegrationTest {
         Escala escala = gerarProximoMesCompleto();
         List<ServicoEscalado> servicos = servicoEscaladoRepository.findByEscala_Id(escala.getId());
 
-        var funcoesDoRancho = java.util.Set.of("Rancheiro de Dia", "Cozinheiro de Dia", "Graduado do Rancho");
+        var funcoesDoRancho = Set.of("Rancheiro de Dia", "Cozinheiro de Dia", "Graduado do Rancho");
 
         List<ServicoEscalado> vazamentos = servicos.stream()
                 .filter(s -> s.getMilitar() != null)
@@ -120,14 +113,7 @@ class EscalaGeracaoIntegrationTest {
 
     @Test
     void efetivoInsuficiente_apertaAEscalaEmVezDeDeixarVagaAberta() {
-        // Regressao real: um usuario colocou varios Tenentes de ferias ao
-        // mesmo tempo e a escala gerada ficou com vaga em aberto no dia 25 -
-        // no quartel de verdade isso nao acontece, a escala "aperta" sozinha
-        // (quem sobra serve mais vezes, respeitando o intervalo minimo só
-        // até onde da). Reproduz o pior caso possivel: só 1 Tenente sobra
-        // pro mes inteiro (Oficial de Dia so aceita Tenente, sem outra
-        // combinacao de posto) - se o efetivo sobrar zero, tem que apertar
-        // ELE sozinho em vez de abrir vaga.
+
         List<Militar> tenentes = militarRepository.findAll().stream()
                 .filter(m -> "Ten".equals(m.getPosto().getSigla()))
                 .toList();
@@ -153,8 +139,6 @@ class EscalaGeracaoIntegrationTest {
         long vagasAbertas = oficialDeDia.stream().filter(s -> s.getMilitar() == null).count();
         assertThat(vagasAbertas).as("vagas abertas em Oficial de Dia mesmo com só 1 Tenente disponível").isZero();
 
-        // Confirma que quem sobrou realmente serviu repetidas vezes (prova
-        // que o "aperto" disparou de verdade, não que sobrou gente por acaso).
         long vezesQueOSobreviventeServiu = oficialDeDia.stream()
                 .filter(s -> s.getMilitar() != null && s.getMilitar().getId().equals(sobrevivente.getId()))
                 .count();

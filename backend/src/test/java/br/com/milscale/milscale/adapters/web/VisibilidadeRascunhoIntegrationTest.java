@@ -22,10 +22,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-/**
- * Escala em RASCUNHO ainda pode mudar - so a sargenteacao enxerga.
- * Quem e escalado so ve (e so pede troca de) escala PUBLICADA.
- */
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
@@ -41,7 +37,7 @@ class VisibilidadeRascunhoIntegrationTest {
 
     private Escala escala;
     private ServicoEscalado servico;
-    private Militar militarEscalado; // dono da conta 00000000004 (perfil MILITAR_ESCALADO)
+    private Militar militarEscalado;
     private LocalDate dia;
 
     @BeforeEach
@@ -74,7 +70,7 @@ class VisibilidadeRascunhoIntegrationTest {
     }
 
     @Test
-    @WithUserDetails("00000000003") // Sd EP da Sargenteacao
+    @WithUserDetails("00000000003")
     void sargenteacao_veRascunhoNaEscalaDoDia() throws Exception {
         mvc.perform(get("/api/escalas/dia").param("data", dia.toString()))
                 .andExpect(status().isOk()).andExpect(jsonPath("$", hasSize(1)));
@@ -100,7 +96,7 @@ class VisibilidadeRascunhoIntegrationTest {
 
     @Test
     void pedirTrocaDeServicoEmRascunho_bloqueia() {
-        Militar outro = usuarioRepository.findByLogin("00000000002").orElseThrow().getMilitar(); // Cabo
+        Militar outro = usuarioRepository.findByLogin("00000000002").orElseThrow().getMilitar();
         assertThatThrownBy(() -> solicitacaoService.criar(servico.getId(), outro.getId(), "teste", "00000000004"))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("ainda não foi publicada");

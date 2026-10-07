@@ -14,6 +14,10 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Map;
+import br.com.milscale.milscale.domain.Afastamento;
+import br.com.milscale.milscale.domain.ServicoEscalado;
+import br.com.milscale.milscale.domain.Solicitacao;
+import br.com.milscale.milscale.domain.TipoServico;
 
 @RestController
 @RequestMapping("/api/militares")
@@ -27,7 +31,6 @@ public class MilitarController {
         this.auditoriaService = auditoriaService;
     }
 
-    /** RF04 (RF14/RF19 - escopo de visibilidade) - Cabo e Sargenteante veem o efetivo completo. */
     @PreAuthorize("hasAnyRole('CABO_SARGENTEACAO', 'SD_EP_SARGENTEACAO', 'SARGENTEANTE')")
     @GetMapping
     public List<Militar> listar() {
@@ -48,41 +51,34 @@ public class MilitarController {
         return ResponseEntity.ok(Map.of("fotoBase64", militar.getFotoBase64()));
     }
 
-    /** RF06 - quais tipos de servico esse militar e elegivel pra assumir, dado
-     *  posto/subunidade/cursos dele hoje. Usado no popup de detalhes. */
     @GetMapping("/{id}/funcoes-elegiveis")
-    public List<br.com.milscale.milscale.domain.TipoServico> funcoesElegiveis(@PathVariable Long id) {
+    public List<TipoServico> funcoesElegiveis(@PathVariable Long id) {
         return militarService.funcoesElegiveis(id);
     }
 
-    /** RF04 - Ficha do Militar: historico completo. Privativo de quem mantem o cadastro,
-     *  OU a propria pessoa vendo o proprio historico (RF - "Meu historico", aberto a todo mundo). */
     @PreAuthorize("hasAnyRole('CABO_SARGENTEACAO', 'SD_EP_SARGENTEACAO', 'SARGENTEANTE') or @militarService.ehOProprio(#id, authentication.name)")
     @GetMapping("/{id}/historico-servicos")
-    public List<br.com.milscale.milscale.domain.ServicoEscalado> historicoServicos(@PathVariable Long id, Authentication auth) {
+    public List<ServicoEscalado> historicoServicos(@PathVariable Long id, Authentication auth) {
         return militarService.historicoServicos(id, PerfisSargenteacao.ehSargenteacao(auth));
     }
 
     @PreAuthorize("hasAnyRole('CABO_SARGENTEACAO', 'SD_EP_SARGENTEACAO', 'SARGENTEANTE') or @militarService.ehOProprio(#id, authentication.name)")
     @GetMapping("/{id}/historico-afastamentos")
-    public List<br.com.milscale.milscale.domain.Afastamento> historicoAfastamentos(@PathVariable Long id) {
+    public List<Afastamento> historicoAfastamentos(@PathVariable Long id) {
         return militarService.historicoAfastamentos(id);
     }
 
     @PreAuthorize("hasAnyRole('CABO_SARGENTEACAO', 'SD_EP_SARGENTEACAO', 'SARGENTEANTE') or @militarService.ehOProprio(#id, authentication.name)")
     @GetMapping("/{id}/historico-trocas")
-    public List<br.com.milscale.milscale.domain.Solicitacao> historicoTrocas(@PathVariable Long id) {
+    public List<Solicitacao> historicoTrocas(@PathVariable Long id) {
         return militarService.historicoTrocas(id);
     }
 
-    /** Aberto a qualquer autenticado - usado no popup e na Ficha pra mostrar
-     *  a tag de afastamento (só o tipo, nunca a descrição inteira). */
     @GetMapping("/{id}/afastamento-atual")
-    public br.com.milscale.milscale.domain.Afastamento afastamentoAtual(@PathVariable Long id) {
+    public Afastamento afastamentoAtual(@PathVariable Long id) {
         return militarService.afastamentoAtual(id);
     }
 
-    /** RF04 - manter o cadastro e privativo de Cabo da Sargenteacao e Sargenteante. */
     @PreAuthorize("hasAnyRole('CABO_SARGENTEACAO', 'SARGENTEANTE')")
     @PostMapping
     public MilitarCadastradoResponse cadastrar(@Valid @RequestBody DadosMilitar dados, Authentication auth) {

@@ -13,19 +13,9 @@ import java.time.LocalDate;
 import java.time.YearMonth;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.time.format.TextStyle;
+import java.time.temporal.ChronoUnit;
 
-/**
- * Caso de uso RF08: "Gerar automaticamente a escala de um periodo a
- * partir das regras vigentes e do contador de rodizio de cada pessoa."
- *
- * Esta classe e a "cola" MilScale: ela consulta o banco (postos,
- * requisitos, afastamentos, regras), monta os pools elegiveis dia a dia
- * e delega a escolha de quem preenche cada vaga para o
- * {@link MotorDeRodizio} do nucleo reutilizavel. As regras verificadas
- * aqui fora do motor sao as que dependem de tabelas exclusivas do
- * MilScale (requisito_servico, afastamento, regra_escala) - por isso nao
- * podiam morar no nucleo.
- */
 @Service
 public class GerarEscalaService {
 
@@ -68,15 +58,10 @@ public class GerarEscalaService {
         if (dataFim.isBefore(dataInicio)) {
             throw new IllegalArgumentException("A data final não pode ser antes da data inicial");
         }
-        if (java.time.temporal.ChronoUnit.DAYS.between(dataInicio, dataFim) > 366) {
+        if (ChronoUnit.DAYS.between(dataInicio, dataFim) > 366) {
             throw new IllegalArgumentException("O período não pode passar de um ano");
         }
 
-        // A escala e uma UNICA linha do tempo continua, nao um cofrinho por mes:
-        // gerar de novo um periodo que ja tem servico marcado SUBSTITUI o que
-        // havia ali, em vez de empilhar registros duplicados por cima (o que
-        // inflava a contagem em "Minha escala" e impedia gerar um periodo menor
-        // depois de ja ter gerado o mes inteiro).
         List<ServicoEscalado> existentesNoPeriodo = servicoEscaladoRepository.findByDataBetween(dataInicio, dataFim);
         if (!existentesNoPeriodo.isEmpty()) {
             boolean temDiaTravado = existentesNoPeriodo.stream().anyMatch(ServicoEscalado::isTravado);
@@ -84,8 +69,7 @@ public class GerarEscalaService {
                 throw new IllegalArgumentException(
                         "Há dias travados nesse período — destrave antes de gerar de novo, ou escolha outro período (RN04)");
             }
-            // RF12 (variante automática) - um dia cujo horário de início já
-            // passou vira "sólido" sozinho, sem precisar de travamento manual.
+
             boolean temDiaJaComecado = existentesNoPeriodo.stream().anyMatch(ServicoEscalado::isJaComecou);
             if (temDiaJaComecado) {
                 throw new IllegalArgumentException(
@@ -105,7 +89,7 @@ public class GerarEscalaService {
             Set<Long> escalasAfetadas = new HashSet<>();
             for (ServicoEscalado s : existentesNoPeriodo) escalasAfetadas.add(s.getEscala().getId());
             servicoEscaladoRepository.deleteAll(existentesNoPeriodo);
-            // limpa escalas que ficaram completamente vazias depois da substituicao
+
             for (Long escalaId : escalasAfetadas) {
                 if (servicoEscaladoRepository.findByEscala_Id(escalaId).isEmpty()) {
                     escalaRepository.deleteById(escalaId);
@@ -116,11 +100,6 @@ public class GerarEscalaService {
         List<TipoServico> tipos = tipoServicoRepository.findByAtivoTrue();
         List<Militar> ativos = militarRepository.findBySituacao(SituacaoPessoa.ATIVO);
 
-        // Tudo que nao muda durante a geracao e carregado UMA vez, fora do laco dia x tipo.
-        // RF06 - elegibilidade real: posto E (se exigido) a qualificação específica.
-        // Uma mesma função pode ter mais de uma combinação posto+curso aceita
-        // (ex.: Cozinheiro de Dia aceita Sd EP-Rancho OU Cb-Rancho) - por isso
-        // guardamos um conjunto de combinações, não um único posto.
         Map<Long, List<Militar>> elegiveisPorTipo = new HashMap<>();
         Map<Long, Integer> intervaloPorTipo = new HashMap<>();
         Map<Long, Integer> maxPorTipo = new HashMap<>();
@@ -140,8 +119,6 @@ public class GerarEscalaService {
         Map<Long, List<Afastamento>> afastamentosPorMilitar = afastamentoRepository.findByDataFimGreaterThanEqual(dataInicio).stream()
                 .collect(Collectors.groupingBy(a -> a.getMilitar().getId()));
 
-        // Estado mutavel do rodizio durante a geracao (RN01/RN06): comeca com o
-        // ultimo servico conhecido no banco, e vai avancando conforme escalamos.
         Map<Long, MilitarEmGeracao> estado = new HashMap<>();
         for (Militar m : ativos) {
             estado.put(m.getId(), new MilitarEmGeracao(m));
@@ -158,7 +135,7 @@ public class GerarEscalaService {
         List<ServicoEscalado> gerados = new ArrayList<>();
 
         for (LocalDate dia = dataInicio; !dia.isAfter(dataFim); dia = dia.plusDays(1)) {
-            // RN05: quem ja foi escalado num tipo de servico hoje sai do pool dos demais tipos hoje.
+
             Set<Long> escaladosHoje = new HashSet<>();
 
             for (TipoServico tipo : tipos) {
@@ -167,10 +144,10 @@ public class GerarEscalaService {
 
                 final LocalDate diaFinal = dia;
                 List<MilitarEmGeracao> pool = new ArrayList<>();
-                List<MilitarEmGeracao> disponiveis = new ArrayList<>(); // RN05 + RF06 + RN15, sem RN06 (base do "aperto")
+                List<MilitarEmGeracao> disponiveis = new ArrayList<>();
                 for (Militar m : elegiveisPorTipo.get(tipo.getId())) {
-                    if (escaladosHoje.contains(m.getId())) continue; // RN05
-                    if (temImpedimento(m, diaFinal, afastamentosPorMilitar)) continue; // RN15
+                    if (escaladosHoje.contains(m.getId())) continue;
+                    if (temImpedimento(m, diaFinal, afastamentosPorMilitar)) continue;
                     MilitarEmGeracao em = estado.get(m.getId());
                     disponiveis.add(em);
                     boolean abaixoDoMaximo = max == null
@@ -180,19 +157,10 @@ public class GerarEscalaService {
 
                 List<MilitarEmGeracao> escolhidos = new ArrayList<>(motor.preencherVagas(pool, tipo, criterio));
 
-                // "A escala aperta sozinha, nunca fica vaga aberta" - se o pool que
-                // respeita o intervalo minimo (RN06) nao tiver gente suficiente pra
-                // cobrir o efetivo necessario (ex.: muita gente de ferias/missao ao
-                // mesmo tempo, deixando o efetivo elegivel pequeno demais pro 3x1
-                // rigoroso), o sistema relaxa o intervalo minimo como ULTIMO recurso
-                // - exatamente o que aconteceria de verdade no quartel. Mesmo assim
-                // prioriza sempre quem esta ha MAIS tempo sem servir (o criterio de
-                // ordenacao normal), entao quem "aperta" e sempre quem folgou menos
-                // tempo dentre os poucos disponiveis, nunca escolha arbitraria.
                 int faltantesAntesDoAperto = tipo.getEfetivoNecessario() - escolhidos.size();
                 if (faltantesAntesDoAperto > 0) {
                     Set<Long> jaEscolhidosNesteTipo = escolhidos.stream().map(e -> e.militar().getId()).collect(Collectors.toSet());
-                    // RN05, RF06 e RN15 continuam valendo - so o intervalo minimo e relaxado.
+
                     List<MilitarEmGeracao> poolRelaxado = disponiveis.stream()
                             .filter(em -> !jaEscolhidosNesteTipo.contains(em.militar().getId()))
                             .toList();
@@ -209,12 +177,7 @@ public class GerarEscalaService {
                             .escala(escala).data(dia).tipoServico(tipo)
                             .militar(escolhido.militar()).situacao(SituacaoServico.PREVISTO).build());
                 }
-                // Vagas que sobraram sem gente elegível/disponível também viram
-                // registro (id_militar NULL) - uma linha por vaga em aberto, não
-                // uma só por tipo/dia, senão duas vagas faltando em Monitoramento
-                // apareceriam como se faltasse só uma. So acontece agora quando
-                // NINGUEM elegivel sobrou de jeito nenhum (nem afrouxando RN06) -
-                // ex.: efetivo zerado pra aquele posto/curso especifico.
+
                 int faltantes = tipo.getEfetivoNecessario() - escolhidos.size();
                 for (int i = 0; i < faltantes; i++) {
                     gerados.add(ServicoEscalado.builder()
@@ -227,7 +190,6 @@ public class GerarEscalaService {
         escala.setServicos(gerados);
         Escala salva = escalaRepository.save(escala);
 
-        // Persiste o novo "ultimo servico" de quem foi escalado, para as proximas geracoes.
         for (MilitarEmGeracao em : estado.values()) {
             if (em.foiAtualizado()) {
                 em.militar().setDataUltimoServico(em.getUltimoServico());
@@ -248,9 +210,6 @@ public class GerarEscalaService {
         return afastamentosPorMilitar.getOrDefault(m.getId(), List.of()).stream().anyMatch(a -> a.cobre(dia));
     }
 
-    /** Wrapper leve que reaproveita o mesmo TipoServico, só com o
-     *  efetivo necessário trocado pelo número de vagas que faltam -
-     *  usado só na segunda chamada ao motor (o "aperto" da escala). */
     private record TipoTurnoComEfetivo(TipoServico original, int efetivoRestante) implements TipoTurno {
         @Override public Long getId() { return original.getId(); }
         @Override public String getNome() { return original.getNome(); }
@@ -259,6 +218,6 @@ public class GerarEscalaService {
     }
 
     private static String nomeMesPtBr(LocalDate data) {
-        return data.getMonth().getDisplayName(java.time.format.TextStyle.FULL, new java.util.Locale("pt", "BR"));
+        return data.getMonth().getDisplayName(TextStyle.FULL, new Locale("pt", "BR"));
     }
 }

@@ -3,7 +3,6 @@ package br.com.milscale.milscale.domain;
 import jakarta.persistence.*;
 import lombok.*;
 
-/** Especializacao MilScale de "unidade organizacional" (RF04, ponto de adaptacao). */
 @Entity
 @Table(name = "subunidade")
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder

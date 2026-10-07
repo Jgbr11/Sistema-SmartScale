@@ -5,7 +5,6 @@ import lombok.*;
 
 import java.time.LocalDate;
 
-/** Feriados usados pelo peso_feriado das regras da escala (RegraEscala.pesoFeriado). */
 @Entity
 @Table(name = "feriado")
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
@@ -15,8 +14,6 @@ public class Feriado {
     @Column(name = "id_feriado")
     private Long id;
 
-    /** Um feriado pode cobrir mais de um dia (ex.: ponte, recesso) - por isso
-     *  é um período, não uma data única. */
     @Column(name = "data_inicio", nullable = false)
     private LocalDate dataInicio;
 

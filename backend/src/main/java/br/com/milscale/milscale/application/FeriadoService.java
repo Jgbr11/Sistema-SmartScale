@@ -8,7 +8,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.NoSuchElementException;
 
-/** Feriados - usados pelo peso_feriado das regras da escala (RegraEscala). */
 @Service
 public class FeriadoService {
 

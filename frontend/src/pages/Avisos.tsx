@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { api } from "../api/client";
-import type { Aviso, Boletim } from "../api/types";
+import type { Aviso, BoletimResumo } from "../api/types";
 import { PageHeader } from "../components/Shell";
 import { capitalizar, formatarDataBR, formatarPeriodo } from "../utils/formatadores";
 
@@ -28,7 +28,7 @@ export function AvisosPage() {
   const navigate = useNavigate();
   const [mesExibido, setMesExibido] = useState({ ano: hoje.getFullYear(), mes: hoje.getMonth() });
   const [avisos, setAvisos] = useState<Aviso[]>([]);
-  const [boletins, setBoletins] = useState<Boletim[]>([]);
+  const [boletins, setBoletins] = useState<BoletimResumo[]>([]);
   const [carregando, setCarregando] = useState(true);
   const [diaEscolhido, setDiaEscolhido] = useState<string | null>(null);
 
@@ -37,7 +37,7 @@ export function AvisosPage() {
     const mesStr = `${ano}-${String(mes + 1).padStart(2, "0")}`;
     const [resultado, listaBoletins] = await Promise.all([
       api.get<Aviso[]>(`/api/avisos?mes=${mesStr}`),
-      api.get<Boletim[]>("/api/boletins"),
+      api.get<BoletimResumo[]>("/api/boletins"),
     ]);
     setAvisos(resultado);
     setBoletins(listaBoletins);
@@ -185,7 +185,7 @@ export function AvisosPage() {
   );
 }
 
-function AvisoDetalhe({ aviso, boletim, onVerBoletim }: { aviso: Aviso; boletim?: Boletim; onVerBoletim: () => void }) {
+function AvisoDetalhe({ aviso, boletim, onVerBoletim }: { aviso: Aviso; boletim?: BoletimResumo; onVerBoletim: () => void }) {
   return (
     <div className="card" style={{ background: aviso.tipo === "FERIADO" ? "var(--green-pill-bg)" : "var(--amber-bg)", border: "none", marginBottom: 10 }}>
       <strong style={{ fontSize: 13 }}>{TIPO_LABEL[aviso.tipo] ?? aviso.tipo} — {aviso.descricao}</strong>

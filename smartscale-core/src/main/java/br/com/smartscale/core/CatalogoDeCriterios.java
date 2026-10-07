@@ -1,5 +1,7 @@
 package br.com.smartscale.core;
 
+// Núcleo reutilizável (LPS)
+
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;

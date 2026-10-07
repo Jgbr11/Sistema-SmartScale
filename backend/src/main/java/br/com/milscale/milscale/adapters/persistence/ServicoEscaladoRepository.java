@@ -22,10 +22,8 @@ public interface ServicoEscaladoRepository extends JpaRepository<ServicoEscalado
 
     List<ServicoEscalado> findByDataBetween(LocalDate inicio, LocalDate fim);
 
-    /** RF04 - historico completo de servicos da pessoa, pra Ficha do Militar. */
     List<ServicoEscalado> findByMilitar_IdOrderByDataDesc(Long militarId);
 
-    /** RF14 - roster de um unico dia, independente de qual escala cobre a data (linha do tempo continua). */
     List<ServicoEscalado> findByData(LocalDate data);
 
     List<ServicoEscalado> findByDataAndEscala_Situacao(LocalDate data, SituacaoEscala situacao);
@@ -34,10 +32,11 @@ public interface ServicoEscaladoRepository extends JpaRepository<ServicoEscalado
 
     List<ServicoEscalado> findByMilitar_IdAndEscala_SituacaoOrderByDataDesc(Long militarId, SituacaoEscala situacao);
 
-    /** RF15 - candidatos a troca mutua: todo mundo com servico do mesmo tipo, ainda previsto. */
     List<ServicoEscalado> findByTipoServico_IdAndSituacao(Long tipoServicoId, SituacaoServico situacao);
 
     long countByEscala_Id(Long escalaId);
 
     long countByEscala_IdAndMilitarIsNull(Long escalaId);
+
+    long countByDataBetweenAndMilitarIsNull(LocalDate inicio, LocalDate fim);
 }

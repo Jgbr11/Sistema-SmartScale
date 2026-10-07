@@ -9,7 +9,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.NoSuchElementException;
 
-/** RF11 - publica a escala, tornando-a visivel para as pessoas escaladas. */
 @Service
 public class PublicarEscalaService {
 

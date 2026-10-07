@@ -11,7 +11,6 @@ import java.time.LocalTime;
 import java.util.List;
 import java.util.NoSuchElementException;
 
-/** RF06 - tipos de turno (tipos de servico) com efetivo e requisitos. */
 @Service
 public class TipoServicoService {
 

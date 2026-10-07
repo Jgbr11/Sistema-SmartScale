@@ -11,13 +11,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.NoSuchElementException;
 
-/**
- * O sininho. Diferente do log de auditoria (histórico, só pro
- * Sargenteante), aqui é um aviso direcionado que aparece pra pessoa
- * certa na hora que ela abre o sistema - principalmente trocas
- * esperando decisão, que hoje só apareciam se alguém fosse
- * manualmente na tela de Trocas conferir.
- */
 @Service
 public class NotificacaoService {
 
@@ -38,7 +31,6 @@ public class NotificacaoService {
                 .destinatario(destinatario).tipo(tipo).mensagem(mensagem).link(link).build());
     }
 
-    /** Notifica todo mundo que tem um dos perfis informados (ex.: todo Cabo e todo Sargenteante). */
     @Transactional
     public void registrarParaPerfis(List<String> nomesPerfis, String tipo, String mensagem, String link) {
         List<Usuario> destinatarios = usuarioRepository.findAll().stream()

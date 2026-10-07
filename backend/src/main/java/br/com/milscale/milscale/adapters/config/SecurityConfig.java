@@ -23,14 +23,6 @@ import org.springframework.http.HttpStatus;
 import java.io.IOException;
 import java.util.List;
 
-/**
- * Primeira fatia (RNF02): controle de acesso baseado em perfil,
- * validado no servidor. Sessao simples via cookie (formLogin), sem
- * JWT/refresh-token ainda - "mais raso agora, robustece depois" foi a
- * decisao explicita para esta fatia. CSRF fica desligado porque o
- * front-end e uma SPA separada consumindo a API via JSON, nao forms
- * HTML servidos pelo proprio backend.
- */
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity

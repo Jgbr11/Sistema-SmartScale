@@ -8,7 +8,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.NoSuchElementException;
 
-/** RF07 - regras da escala. Manutencao privativa do Sargenteante (RN11). */
 @Service
 public class RegraEscalaService {
 

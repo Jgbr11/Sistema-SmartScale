@@ -15,6 +15,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import br.com.milscale.milscale.adapters.persistence.RequisitoServicoRepository;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -24,7 +25,7 @@ class MassAssignmentIntegrationTest {
 
     @Autowired private MockMvc mvc;
     @Autowired private MilitarRepository militarRepository;
-    @Autowired private br.com.milscale.milscale.adapters.persistence.RequisitoServicoRepository requisitoServicoRepository;
+    @Autowired private RequisitoServicoRepository requisitoServicoRepository;
 
     @Test
     @WithUserDetails("00000000001")

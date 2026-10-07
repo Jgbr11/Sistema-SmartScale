@@ -9,7 +9,6 @@ import java.time.LocalDate;
 import java.time.YearMonth;
 import java.util.List;
 
-/** RF13 - a pessoa escalada consulta a propria escala. */
 @Service
 public class MinhaEscalaService {
 

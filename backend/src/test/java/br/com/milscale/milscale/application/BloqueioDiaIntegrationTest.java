@@ -31,7 +31,7 @@ class BloqueioDiaIntegrationTest {
     @BeforeEach
     void montar() {
         Usuario sargenteante = usuarioRepository.findByLogin("00000000001").orElseThrow();
-        tipo = tipoServicoRepository.findAll().get(0); // horaInicio 08:00
+        tipo = tipoServicoRepository.findAll().get(0);
         escala = escalaRepository.save(Escala.builder().descricao("teste")
                 .dataInicio(LocalDate.now().minusDays(5)).dataFim(LocalDate.now().plusDays(5))
                 .usuarioGeracao(sargenteante).build());

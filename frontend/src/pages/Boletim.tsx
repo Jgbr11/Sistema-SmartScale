@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { api, ApiError } from "../api/client";
-import type { Aviso, Boletim } from "../api/types";
+import type { Aviso, Boletim, BoletimResumo } from "../api/types";
 import { PageHeader } from "../components/Shell";
 import { RichEditor } from "../components/RichEditor";
 import { useAuth } from "../context/AuthContext";
@@ -14,7 +14,8 @@ export function BoletimPage() {
   const podeEditar = usuario?.perfil === "CABO_SARGENTEACAO" || usuario?.perfil === "SARGENTEANTE";
   const navigate = useNavigate();
 
-  const [boletins, setBoletins] = useState<Boletim[]>([]);
+  const [boletins, setBoletins] = useState<BoletimResumo[]>([]);
+  const [conteudos, setConteudos] = useState<Map<number, string>>(new Map());
   const [carregando, setCarregando] = useState(true);
   const [mostrarForm, setMostrarForm] = useState(false);
   const [editando, setEditando] = useState<Boletim | null>(null);
@@ -22,13 +23,34 @@ export function BoletimPage() {
 
   async function carregar() {
     setCarregando(true);
-    setBoletins(await api.get<Boletim[]>("/api/boletins"));
+    setBoletins(await api.get<BoletimResumo[]>("/api/boletins"));
+    setConteudos(new Map());
     setCarregando(false);
   }
 
   useEffect(() => {
     carregar();
   }, []);
+
+  async function detalhe(id: number): Promise<Boletim> {
+    const b = await api.get<Boletim>(`/api/boletins/${id}`);
+    setConteudos((atual) => new Map(atual).set(id, b.conteudoHtml));
+    return b;
+  }
+
+  async function alternar(id: number) {
+    if (aberto === id) {
+      setAberto(null);
+      return;
+    }
+    if (!conteudos.has(id)) await detalhe(id);
+    setAberto(id);
+  }
+
+  async function editar(id: number) {
+    setEditando(await detalhe(id));
+    setMostrarForm(true);
+  }
 
   async function remover(id: number) {
     if (!confirm("Remover este boletim?")) return;
@@ -62,10 +84,10 @@ export function BoletimPage() {
           boletins.map((b) => (
             <div key={b.id} className="card">
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-                <div style={{ cursor: "pointer", flex: 1 }} onClick={() => setAberto((atual) => (atual === b.id ? null : b.id))}>
+                <div style={{ cursor: "pointer", flex: 1 }} onClick={() => alternar(b.id)}>
                   <h3 style={{ marginBottom: 2 }}>{b.numero ? `BI nº ${b.numero} — ` : ""}{b.titulo}</h3>
                   <p className="sub">
-                    {b.autor.nomeExibicao} · {formatarDataHora(b.dataPublicacao)}
+                    {b.autor} · {formatarDataHora(b.dataPublicacao)}
                     {b.dataAtualizacao && ` · editado ${formatarDataHora(b.dataAtualizacao)}`}
                   </p>
                   {b.avisoRelacionadoDescricao && (
@@ -80,7 +102,7 @@ export function BoletimPage() {
                 </div>
                 {podeEditar && (
                   <div style={{ display: "flex", gap: 6, whiteSpace: "nowrap" }}>
-                    <button className="btn btn-outline" onClick={() => { setEditando(b); setMostrarForm(true); }}>Editar</button>
+                    <button className="btn btn-outline" onClick={() => editar(b.id)}>Editar</button>
                     <button className="btn btn-outline" onClick={() => remover(b.id)}>Remover</button>
                   </div>
                 )}
@@ -88,7 +110,7 @@ export function BoletimPage() {
               {aberto === b.id && (
                 <div
                   style={{ marginTop: 14, paddingTop: 14, borderTop: "1px solid var(--border-2)", fontSize: 13.5, lineHeight: 1.6 }}
-                  dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(b.conteudoHtml) }}
+                  dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(conteudos.get(b.id) ?? "") }}
                 />
               )}
             </div>

@@ -13,15 +13,6 @@ import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-/**
- * Teste de unidade puro (sem Spring, sem banco) da regra central de
- * elegibilidade (RF06). Cobre especificamente as duas exclusões que já
- * causaram bug nesta sessão:
- *   - qualificações excluídas (Sd EP com CFC/Motorista não tira Monitoramento)
- *   - subunidade excluída (ninguém do Aprovisionamento tira função fora do rancho)
- * Qualquer regressão futura nessas regras quebra este teste na hora,
- * sem precisar gerar uma escala inteira e conferir na mão.
- */
 class ElegibilidadeServiceTest {
 
     private final ElegibilidadeService service = new ElegibilidadeService();
@@ -85,8 +76,7 @@ class ElegibilidadeServiceTest {
 
     @Test
     void naoElegivel_quandoTemQualificacaoExcluida_regressaoMonitoramento() {
-        // Regra real: Sd EP com CFC ou Motorista nao tira Monitoramento,
-        // mesmo cumprindo posto. Bug real corrigido nesta sessao.
+
         PostoGraduacao sdEp = posto(1);
         Qualificacao cfc = qualificacao(1, "CFC");
         Qualificacao motorista = qualificacao(2, "Motorista");
@@ -101,9 +91,7 @@ class ElegibilidadeServiceTest {
 
     @Test
     void naoElegivel_quandoSubunidadeExcluida_regressaoAprovisionamento() {
-        // Regra real: ninguem lotado no Aprovisionamento tira funcao que
-        // nao seja do rancho, mesmo cumprindo posto. Bug real corrigido
-        // nesta sessao (achei 82 vagas em aberto quando testei isso).
+
         PostoGraduacao sdEp = posto(1);
         Subunidade aprov = subunidade(2, "Aprov");
         Subunidade ccap = subunidade(1, "CCAp");
@@ -120,7 +108,7 @@ class ElegibilidadeServiceTest {
         PostoGraduacao sdEp = posto(1);
         Subunidade aprov = subunidade(2, "Aprov");
         Subunidade ccap = subunidade(1, "CCAp");
-        // Cozinheiro de Dia: exige estar NO Aprov (subunidade exigida, nao excluida)
+
         RequisitoServico req = RequisitoServico.builder().posto(sdEp).subunidade(aprov).build();
         Militar deFora = militar(sdEp, ccap);
         Militar doAprov = militar(sdEp, aprov);

@@ -29,7 +29,6 @@ public class QualificacaoController {
         return qualificacaoService.listar();
     }
 
-    /** RN11 - catalogo (criar um novo tipo de curso) e privativo do Sargenteante. */
     @PreAuthorize("hasRole('SARGENTEANTE')")
     @PostMapping("/qualificacoes")
     public Qualificacao cadastrar(@Valid @RequestBody DadosQualificacao dados, Authentication auth) {
@@ -53,7 +52,6 @@ public class QualificacaoController {
         auditoriaService.registrar(auth.getName(), "QUALIFICACAO_EXCLUIDA", excluida.getNome() + " (id " + id + ")");
     }
 
-    /** Vincular um curso a uma pessoa e cadastro (RF04) - Cabo ou Sargenteante. */
     @PreAuthorize("hasAnyRole('CABO_SARGENTEACAO', 'SARGENTEANTE')")
     @PostMapping("/militares/{militarId}/qualificacoes/{qualificacaoId}")
     public Militar vincular(@PathVariable Long militarId, @PathVariable Long qualificacaoId, Authentication auth) {

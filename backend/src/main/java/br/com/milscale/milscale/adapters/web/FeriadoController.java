@@ -11,7 +11,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-/** Manutencao privativa do Sargenteante, consulta aberta a todos autenticados (RN11). */
 @RestController
 @RequestMapping("/api/feriados")
 public class FeriadoController {

@@ -11,7 +11,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.NoSuchElementException;
 
-/** RF25 - gestão de perfis e permissões. Privativo do Sargenteante. */
 @Service
 public class UsuarioService {
 
@@ -58,7 +57,6 @@ public class UsuarioService {
         return usuarioRepository.save(usuario);
     }
 
-    /** Reseta a senha de volta pro padrão (ex.: militar esqueceu a senha). */
     @Transactional
     public String resetarSenha(Long usuarioId) {
         Usuario usuario = buscar(usuarioId);

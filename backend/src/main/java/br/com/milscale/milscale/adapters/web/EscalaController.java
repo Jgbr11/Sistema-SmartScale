@@ -45,7 +45,6 @@ public class EscalaController {
         this.auditoriaService = auditoriaService;
     }
 
-    /** RF14 - visão completa do mês. Militar Escalado NÃO entra aqui (RF13 é o dele: só a própria escala + Escala do dia). */
     @PreAuthorize("hasAnyRole('CABO_SARGENTEACAO', 'SD_EP_SARGENTEACAO', 'SARGENTEANTE')")
     @GetMapping
     public List<EscalaResumo> listar() {
@@ -64,14 +63,11 @@ public class EscalaController {
         return consultaEscalaService.buscar(id);
     }
 
-    /** RF14 - roster de UM dia especifico, aberto a qualquer autenticado (inclusive Militar Escalado
-     *  pela tela "Escala do dia") - nunca devolve o mes inteiro, só a data pedida. */
     @GetMapping("/dia")
     public List<ServicoEscalado> escalaDoDia(@RequestParam String data, Authentication auth) {
         return consultaEscalaService.doDia(LocalDate.parse(data), PerfisSargenteacao.ehSargenteacao(auth));
     }
 
-    /** RF08 - gerar automaticamente. Privativo de Cabo da Sargenteacao ou Sargenteante. */
     @PreAuthorize("hasAnyRole('CABO_SARGENTEACAO', 'SARGENTEANTE')")
     @PostMapping("/gerar")
     public Escala gerar(@Valid @RequestBody GerarEscalaRequest req, Authentication auth) {
@@ -81,7 +77,6 @@ public class EscalaController {
         return escala;
     }
 
-    /** RF11/RN14 - publicar. Privativo do Sargenteante. */
     @PreAuthorize("hasRole('SARGENTEANTE')")
     @PostMapping("/{id}/publicar")
     public Escala publicar(@PathVariable Long id, Authentication auth) {
@@ -90,7 +85,6 @@ public class EscalaController {
         return escala;
     }
 
-    /** RF12/RN04 - travar um dia (nenhuma troca ou alteracao manual e aceita). Privativo do Sargenteante. */
     @PreAuthorize("hasRole('SARGENTEANTE')")
     @PostMapping("/dias/{data}/travar")
     public List<ServicoEscalado> travarDia(@PathVariable String data, Authentication auth) {

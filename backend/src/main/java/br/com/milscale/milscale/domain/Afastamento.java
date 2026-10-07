@@ -7,7 +7,6 @@ import lombok.*;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
-/** RF26 - impede a escalacao do militar no periodo informado (RN15). */
 @Entity
 @Table(name = "afastamento")
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
@@ -43,9 +42,6 @@ public class Afastamento {
     @Builder.Default
     private LocalDateTime dataRegistro = LocalDateTime.now();
 
-    /** Agrupa varios Afastamento (um por militar) que nasceram do mesmo
-     *  cadastro de missao com multiplas pessoas - null pra um afastamento
-     *  individual (dispensa/ferias/licenca de uma pessoa so). */
     @Column(name = "lote_missao", length = 40)
     private String loteMissao;
 

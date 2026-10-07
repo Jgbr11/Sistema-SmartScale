@@ -8,7 +8,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 
-/** "Minha conta" - dados da sessao e troca da propria senha. */
 @Service
 public class ContaService {
 

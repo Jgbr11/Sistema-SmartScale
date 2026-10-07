@@ -11,7 +11,9 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
-
+import br.com.smartscale.core.SituacaoPessoa;
+import java.util.ArrayList;
+import java.util.UUID;
 
 @Service
 public class AfastamentoService {
@@ -37,7 +39,6 @@ public class AfastamentoService {
         this.elegibilidadeService = elegibilidadeService;
     }
 
-    /** Lista os afastamentos vigentes ou futuros (nao mostra o historico antigo por padrao). */
     public List<Afastamento> listarVigentesEFuturos() {
         return afastamentoRepository.findByDataFimGreaterThanEqual(LocalDate.now().minusYears(1));
     }
@@ -52,12 +53,9 @@ public class AfastamentoService {
             throw new IllegalArgumentException("Selecione ao menos um militar");
         }
         var usuario = usuarioLogadoService.usuario(loginUsuarioRegistro);
-        // Um lote agrupa os N afastamentos (um por militar) que vieram do
-        // mesmo cadastro - assim a tela de Avisos consegue mostrar "Missão X:
-        // fulano, beltrano, sicrano" como um evento só, não N linhas soltas.
-        String loteMissao = java.util.UUID.randomUUID().toString();
+        String loteMissao = UUID.randomUUID().toString();
 
-        List<Afastamento> criados = new java.util.ArrayList<>();
+        List<Afastamento> criados = new ArrayList<>();
         for (Long militarId : militarIds) {
             Militar militarCompleto = militarRepository.findById(militarId)
                     .orElseThrow(() -> new NoSuchElementException("Militar não encontrado (id " + militarId + ")"));
@@ -99,10 +97,6 @@ public class AfastamentoService {
     public void cancelar(Long id) {
         if (!afastamentoRepository.existsById(id)) throw new NoSuchElementException("Afastamento nao encontrado");
         afastamentoRepository.deleteById(id);
-        // Nao desfazemos automaticamente as trocas ja feitas ao cancelar um
-        // afastamento - reatribuir de volta poderia colidir com outra coisa
-        // que a pessoa passou a fazer nesse meio tempo. Fica como ajuste
-        // manual (RN11) se for o caso.
     }
 
     private void reconciliarServicosJaMarcados(Afastamento afastamento) {
@@ -110,13 +104,13 @@ public class AfastamentoService {
         List<ServicoEscalado> conflitantes = servicoEscaladoRepository
                 .findByMilitar_IdAndDataBetween(afastado.getId(), afastamento.getDataInicio(), afastamento.getDataFim())
                 .stream()
-                .filter(s -> !s.isTravado()) // RN04 - dia travado nem o afastamento mexe
-                .filter(s -> !s.isJaComecou()) // dia que ja comecou tambem nao muda mais
+                .filter(s -> !s.isTravado())
+                .filter(s -> !s.isJaComecou())
                 .toList();
 
         if (conflitantes.isEmpty()) return;
 
-        List<Militar> ativos = militarRepository.findBySituacao(br.com.smartscale.core.SituacaoPessoa.ATIVO).stream()
+        List<Militar> ativos = militarRepository.findBySituacao(SituacaoPessoa.ATIVO).stream()
                 .filter(m -> !m.getId().equals(afastado.getId()))
                 .toList();
 
@@ -133,9 +127,6 @@ public class AfastamentoService {
             }
         }
 
-        // O afastado nao "gasta" mais a posicao na fila pelos servicos que
-        // foram tirados dele - recalcula o ultimo servico dele considerando
-        // só o que sobrou de fato atribuido a ele.
         recalcularUltimoServico(afastado);
     }
 
@@ -148,12 +139,11 @@ public class AfastamentoService {
 
         return candidatos.stream()
                 .filter(m -> elegibilidadeService.elegivel(m, requisitos))
-                .filter(m -> !servicoEscaladoRepository.existsByMilitar_IdAndData(m.getId(), dia)) // RN05
+                .filter(m -> !servicoEscaladoRepository.existsByMilitar_IdAndData(m.getId(), dia))
                 .filter(m -> !temImpedimentoNoDia(m, dia))
                 .filter(m -> respeitaIntervalo(m, dia, intervaloMinimo))
                 .max(Comparator.comparingLong(m -> diasSemServico(m, dia)));
     }
-
 
     private boolean temImpedimentoNoDia(Militar m, LocalDate dia) {
         return afastamentoRepository.existsByMilitar_IdAndDataInicioLessThanEqualAndDataFimGreaterThanEqual(m.getId(), dia, dia);

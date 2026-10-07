@@ -211,3 +211,22 @@ export interface RequisitoServico {
   qualificacoesExcluidas: Qualificacao[];
   subunidadeExcluida?: Subunidade | null;
 }
+
+export interface BoletimResumo {
+  id: number;
+  numero?: string;
+  titulo: string;
+  autor: string;
+  dataPublicacao: string;
+  dataAtualizacao?: string;
+  avisoRelacionado?: string;
+  avisoRelacionadoDescricao?: string;
+}
+
+export interface PainelResumo {
+  militaresAtivos: number;
+  vagasAbertasNoMes: number;
+  trocasEmTriagem: number;
+  trocasAguardandoAutorizacao: number;
+  afastadosHoje: number;
+}

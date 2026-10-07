@@ -12,10 +12,6 @@ services:
     volumes:
       - milscale_mysql_data:/var/lib/mysql
     healthcheck:
-      # O backend só sobe depois que o MySQL responde de verdade, não
-      # só quando o container "existe" - sem isso, o Spring tentaria
-      # conectar cedo demais e cairia de cara.
-      # $$ = variavel lida DENTRO do container (as mesmas do bloco environment).
       test: ["CMD-SHELL", "mysqladmin ping -h localhost -u $$MYSQL_USER -p$$MYSQL_PASSWORD"]
       interval: 5s
       timeout: 5s

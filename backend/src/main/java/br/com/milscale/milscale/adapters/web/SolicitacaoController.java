@@ -13,6 +13,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import br.com.milscale.milscale.domain.Militar;
 
 @RestController
 @RequestMapping("/api/solicitacoes")
@@ -26,19 +27,16 @@ public class SolicitacaoController {
         this.auditoriaService = auditoriaService;
     }
 
-    /** RF19 - qualquer um consulta as proprias solicitacoes. */
     @GetMapping("/minhas")
     public List<Solicitacao> minhas(Authentication auth) {
         return solicitacaoService.minhas(auth.getName());
     }
 
-    /** RF15 - pedidos onde eu fui sugerido como substituto e ainda nao respondi. */
     @GetMapping("/aguardando-minha-confirmacao")
     public List<Solicitacao> aguardandoMinhaConfirmacao(Authentication auth) {
         return solicitacaoService.aguardandoMinhaConfirmacao(auth.getName());
     }
 
-    /** RF15 - o substituto sugerido aceita ou recusa, antes de qualquer triagem. */
     @PostMapping("/{id}/confirmar-substituto")
     public Solicitacao confirmarSubstituto(@PathVariable Long id, @Valid @RequestBody ConfirmacaoSubstitutoRequest req, Authentication auth) {
         Solicitacao s = solicitacaoService.confirmarSubstituto(id, req.aceito(), req.comentario(), auth.getName());
@@ -46,22 +44,18 @@ public class SolicitacaoController {
         return s;
     }
 
-    /** RF17 - fila de triagem do Cabo. */
     @PreAuthorize("hasAnyRole('CABO_SARGENTEACAO', 'SARGENTEANTE')")
     @GetMapping("/triagem")
     public List<Solicitacao> emTriagem() {
         return solicitacaoService.emTriagem();
     }
 
-    /** RF18 - fila de autorizacao final do Sargenteante. */
     @PreAuthorize("hasRole('SARGENTEANTE')")
     @GetMapping("/autorizacao")
     public List<Solicitacao> aguardandoAutorizacao() {
         return solicitacaoService.aguardandoAutorizacao();
     }
 
-    /** RF15 - qualquer pessoa escalada pede a troca do proprio servico (substituição:
-     *  o outro assume e eu fico sem nada até o próximo serviço normal). */
     @PostMapping
     public Solicitacao criar(@Valid @RequestBody CriarSolicitacaoRequest req, Authentication auth) {
         Solicitacao s = solicitacaoService.criar(req.servicoOrigemId(), req.substitutoId(), req.justificativa(), auth.getName());
@@ -69,7 +63,6 @@ public class SolicitacaoController {
         return s;
     }
 
-    /** Troca mútua - os dois assumem o dia um do outro, dentro do mesmo tipo de serviço. */
     @PostMapping("/troca-mutua")
     public Solicitacao criarTrocaMutua(@Valid @RequestBody CriarTrocaMutuaRequest req, Authentication auth) {
         Solicitacao s = solicitacaoService.criarTrocaMutua(req.servicoOrigemId(), req.servicoDestinoId(), req.justificativa(), auth.getName());
@@ -77,13 +70,11 @@ public class SolicitacaoController {
         return s;
     }
 
-    /** RF15 - quem mais pode assumir esse serviço (pra sugerir substituto no pedido). */
     @GetMapping("/elegiveis")
-    public List<br.com.milscale.milscale.domain.Militar> elegiveis(@RequestParam Long servicoId, @RequestParam Long militarId) {
+    public List<Militar> elegiveis(@RequestParam Long servicoId, @RequestParam Long militarId) {
         return solicitacaoService.listarElegiveisParaTroca(servicoId, militarId);
     }
 
-    /** Candidatos a troca mútua - mesmo tipo de serviço, regra de 1x1 checada dos dois lados. */
     @GetMapping("/elegiveis-troca-mutua")
     public List<SolicitacaoService.CandidatoTrocaMutua> elegiveisTrocaMutua(@RequestParam Long servicoId, @RequestParam Long militarId) {
         return solicitacaoService.listarElegiveisParaTrocaMutua(servicoId, militarId);

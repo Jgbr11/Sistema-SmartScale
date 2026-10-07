@@ -12,11 +12,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-/**
- * Garante que todo erro da API volta com status previsivel e corpo
- * {"erro": ...} - o frontend (api/client.ts) depende dessa chave pra
- * mostrar a mensagem certa.
- */
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
@@ -25,7 +20,7 @@ class TratadorDeErrosIntegrationTest {
     @Autowired private MockMvc mvc;
 
     @Test
-    @WithUserDetails("00000000004") // Militar Escalado
+    @WithUserDetails("00000000004")
     void acessoNegado_volta403ComCorpo() throws Exception {
         mvc.perform(get("/api/usuarios"))
                 .andExpect(status().isForbidden())
@@ -33,7 +28,7 @@ class TratadorDeErrosIntegrationTest {
     }
 
     @Test
-    @WithUserDetails("00000000001") // Sargenteante
+    @WithUserDetails("00000000001")
     void idInexistente_volta404() throws Exception {
         mvc.perform(get("/api/militares/999999"))
                 .andExpect(status().isNotFound())
@@ -58,7 +53,7 @@ class TratadorDeErrosIntegrationTest {
     @Test
     @WithUserDetails("00000000001")
     void parametroObrigatorioFaltando_continua400() throws Exception {
-        mvc.perform(get("/api/avisos")) // exige ?mes=
+        mvc.perform(get("/api/avisos"))
                 .andExpect(status().isBadRequest());
     }
 }

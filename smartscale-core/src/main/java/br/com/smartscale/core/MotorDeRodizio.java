@@ -1,12 +1,12 @@
 package br.com.smartscale.core;
 
+// Núcleo reutilizável (LPS)
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Predicate;
 
-
 public class MotorDeRodizio<P extends PessoaEscalada, T extends TipoTurno> {
-
 
     public List<P> preencherVagas(List<P> elegiveisDisponiveis, T turno, CriterioDeOrdenacao<P> criterio) {
         List<P> fila = new ArrayList<>(elegiveisDisponiveis);
@@ -20,7 +20,6 @@ public class MotorDeRodizio<P extends PessoaEscalada, T extends TipoTurno> {
         return escalados;
     }
 
-  
     public List<P> preencherVagas(List<P> pool, Predicate<P> elegibilidadeExtra, T turno, CriterioDeOrdenacao<P> criterio) {
         List<P> filtrado = pool.stream().filter(elegibilidadeExtra).toList();
         return preencherVagas(filtrado, turno, criterio);

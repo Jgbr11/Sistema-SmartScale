@@ -214,6 +214,8 @@ de qualquer um dos ~200 militares gerados.
 
 ## Histórico
 
+A ligação entre requisitos (RF/RN) e código está em [docs/RASTREABILIDADE.md](docs/RASTREABILIDADE.md).
+
 O registro detalhado de cada entrega (decisões, bugs encontrados, como cada
 coisa foi testada) está em [docs/HISTORICO.md](docs/HISTORICO.md). Os planos
 de melhoria em execução estão em `docs/PLANO DE EXECUÇÃO/plans/`.

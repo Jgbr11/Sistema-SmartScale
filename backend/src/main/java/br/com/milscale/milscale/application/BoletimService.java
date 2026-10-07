@@ -9,7 +9,6 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.NoSuchElementException;
 
-/** Boletim Interno - aberto a leitura pra todo mundo, manutencao privativa de Cabo/Sargenteante. */
 @Service
 public class BoletimService {
 
@@ -23,8 +22,9 @@ public class BoletimService {
         this.sanitizador = sanitizador;
     }
 
-    public List<Boletim> listar() {
-        return boletimRepository.findAllByOrderByDataPublicacaoDesc();
+    @Transactional(readOnly = true)
+    public List<BoletimResumo> listar() {
+        return boletimRepository.findAllByOrderByDataPublicacaoDesc().stream().map(BoletimResumo::de).toList();
     }
 
     public Boletim buscar(Long id) {

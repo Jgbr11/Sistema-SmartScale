@@ -26,7 +26,6 @@ public class Notificacao {
     @Column(nullable = false, length = 200)
     private String mensagem;
 
-    /** Rota do front pra onde o clique leva (ex.: "/trocas"). */
     @Column(length = 60)
     private String link;
 

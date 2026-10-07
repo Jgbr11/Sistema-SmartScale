@@ -12,7 +12,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-/** RF26 - missoes, dispensas, ferias e licencas. Privativo de Cabo da Sargenteacao e Sargenteante. */
 @RestController
 @RequestMapping("/api/afastamentos")
 public class AfastamentoController {
@@ -31,8 +30,6 @@ public class AfastamentoController {
         return afastamentoService.listarVigentesEFuturos();
     }
 
-    /** RF26 - aceita um ou varios militares no mesmo cadastro (ex.: uma
-     *  missão com equipe inteira), agrupados internamente por lote. */
     @PreAuthorize("hasAnyRole('CABO_SARGENTEACAO', 'SARGENTEANTE')")
     @PostMapping
     public List<Afastamento> cadastrar(@Valid @RequestBody CadastrarAfastamentoRequest req, Authentication auth) {

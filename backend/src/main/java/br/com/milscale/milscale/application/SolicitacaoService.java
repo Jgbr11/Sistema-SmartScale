@@ -17,21 +17,9 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.NoSuchElementException;
+import br.com.smartscale.core.SituacaoPessoa;
+import java.util.ArrayList;
 
-/**
- * RF15/RF17/RF18/RF19 - fluxo de troca de servico (permuta):
- * pedir -> SUBSTITUTO CONFIRMA -> triagem do Cabo -> autorizacao do
- * Sargenteante -> troca efetivada.
- *
- * A confirmacao do substituto foi adicionada porque, sem ela, o pedido
- * decidia o destino de uma terceira pessoa sem consulta-la - agora o
- * proprio substituto precisa aceitar antes de qualquer triagem.
- *
- * Dois TIPOS de troca, ambos reais no quartel: SUBSTITUICAO (o substituto
- * assume e o solicitante fica sem nada ate o proximo servico normal) e
- * TROCA_MUTUA (os dois trocam de dia entre si, dentro do MESMO tipo de
- * servico). A troca mutua exige checar 1x1 dos DOIS lados.
- */
 @Service
 public class SolicitacaoService {
 
@@ -73,7 +61,6 @@ public class SolicitacaoService {
         return solicitacaoRepository.findBySolicitante_IdOrderByDataSolicitacaoDesc(militarId);
     }
 
-    /** RF15 - pedidos onde EU sou o substituto sugerido e ainda preciso aceitar ou recusar. */
     public List<Solicitacao> aguardandoMinhaConfirmacao(String loginUsuario) {
         Long militarId = usuarioLogadoService.militar(loginUsuario).getId();
         return solicitacaoRepository.findBySubstituto_IdAndSituacaoOrderByDataSolicitacaoAsc(militarId, SituacaoSolicitacao.AGUARDANDO_SUBSTITUTO);
@@ -87,7 +74,6 @@ public class SolicitacaoService {
         return solicitacaoRepository.findBySituacaoOrderByDataSolicitacaoAsc(SituacaoSolicitacao.AGUARDANDO_AUTORIZACAO);
     }
 
-    /** RF15 - "Passar meu serviço": o substituto assume, e o solicitante fica sem nada até o próximo. */
     @Transactional
     public Solicitacao criar(Long servicoOrigemId, Long substitutoId, String justificativa, String loginSolicitante) {
         ServicoEscalado servico = servicoEscaladoRepository.findById(servicoOrigemId)
@@ -115,9 +101,7 @@ public class SolicitacaoService {
         if (justificativa == null || justificativa.isBlank()) {
             throw new IllegalArgumentException("Informe uma justificativa");
         }
-        // RN06 - mesmo numa troca combinada espontaneamente, o 1x1 (so 1 dia de
-        // folga entre dois servicos) e proibido. 2x1 pra cima e aceitavel numa
-        // troca (e a unica flexibilidade além da regra normal, que exige 3x1).
+
         if (ficariaEm1x1(substituto.getId(), servico.getData(), servico.getId())) {
             throw new IllegalArgumentException(
                     "Esse substituto ficaria com apenas 1 dia de folga entre serviços (1x1) — proibido mesmo em troca combinada. O mínimo aceitável é 2x1 (2 dias de folga).");
@@ -141,13 +125,6 @@ public class SolicitacaoService {
         return salva;
     }
 
-    /** RF15 - a TROCA MÚTUA é um pedido diferente da substituição: os dois
-     *  lados assumem o dia um do outro, dentro do MESMO tipo de serviço
-     *  (não faria sentido trocar Cabo da Guarda por Motorista de Dia).
-     *  Por isso a checagem de 1x1 (RN06 relaxada) precisa valer pros DOIS
-     *  lados - o solicitante assumindo o dia do outro, E o outro assumindo
-     *  o dia do solicitante - cada um contra os PRÓPRIOS outros serviços
-     *  (excluindo o que está sendo trocado, que deixa de ser dele). */
     @Transactional
     public Solicitacao criarTrocaMutua(Long servicoOrigemId, Long servicoDestinoId, String justificativa, String loginSolicitante) {
         ServicoEscalado servicoOrigem = servicoEscaladoRepository.findById(servicoOrigemId)
@@ -213,7 +190,6 @@ public class SolicitacaoService {
         return salva;
     }
 
-    /** RF15 - o substituto sugerido precisa aceitar antes de qualquer triagem. */
     @Transactional
     public Solicitacao confirmarSubstituto(Long id, boolean aceito, String comentario, String loginUsuario) {
         Solicitacao s = buscar(id);
@@ -252,8 +228,6 @@ public class SolicitacaoService {
         return solicitacaoRepository.save(s);
     }
 
-    /** RF18/RN14 - autorizacao final. Se aprovado, a troca e efetivada de verdade no ServicoEscalado.
-     *  Em TROCA_MUTUA os DOIS lados trocam de dono; em SUBSTITUICAO so o servicoOrigem muda. */
     @Transactional
     public Solicitacao autorizar(Long id, boolean aprovado, String comentario) {
         Solicitacao s = buscar(id);
@@ -305,40 +279,24 @@ public class SolicitacaoService {
         return solicitacaoRepository.save(s);
     }
 
-    /**
-     * RF15 - lista quem mais e elegivel pro mesmo tipo de servico, pra sugerir substituto.
-     * Aberto a qualquer autenticado (e so uma lista minima, nao o cadastro completo).
-     *
-     * A regra normal do motor de geracao exige 3x1 (3 dias de folga entre dois
-     * servicos - RN06, intervaloMinimo=3). Mas numa TROCA, por ser escolha
-     * propria de quem assume, o minimo aceitavel e mais frouxo: 2x1 (2 dias de
-     * folga) e permitido, so o 1x1 (1 dia de folga ou menos) e proibido mesmo
-     * em troca. Essa exclusao vale so pra SUGESTAO automatica: se os dois
-     * militares combinarem espontaneamente uma troca fora dessa lista (mas
-     * ainda respeitando o 2x1), o cadastro (criar) nao bloqueia isso - a
-     * decisao de quem assume e sempre de quem pede.
-     */
     public List<Militar> listarElegiveisParaTroca(Long servicoOrigemId, Long excluirMilitarId) {
         ServicoEscalado servico = servicoEscaladoRepository.findById(servicoOrigemId)
                 .orElseThrow(() -> new NoSuchElementException("Serviço não encontrado"));
         List<RequisitoServico> requisitos = requisitoServicoRepository.findByTipoServico_Id(servico.getTipoServico().getId());
-        return militarRepository.findBySituacao(br.com.smartscale.core.SituacaoPessoa.ATIVO).stream()
+        return militarRepository.findBySituacao(SituacaoPessoa.ATIVO).stream()
                 .filter(m -> !m.getId().equals(excluirMilitarId))
                 .filter(m -> elegibilidadeService.elegivel(m, requisitos))
                 .filter(m -> !ficariaEm1x1(m.getId(), servico.getData(), servico.getId()))
                 .toList();
     }
 
-    /** RF15 - candidatos pra troca mútua: gente com serviço do MESMO tipo
-     *  que o solicitante quer trocar, onde os dois lados continuam
-     *  respeitando pelo menos 2x1 depois da troca (ver criarTrocaMutua). */
     public List<CandidatoTrocaMutua> listarElegiveisParaTrocaMutua(Long servicoOrigemId, Long militarSolicitanteId) {
         ServicoEscalado servicoOrigem = servicoEscaladoRepository.findById(servicoOrigemId)
                 .orElseThrow(() -> new NoSuchElementException("Serviço não encontrado"));
         List<ServicoEscalado> candidatosBrutos = servicoEscaladoRepository
                 .findByTipoServico_IdAndSituacao(servicoOrigem.getTipoServico().getId(), SituacaoServico.PREVISTO);
 
-        List<CandidatoTrocaMutua> candidatos = new java.util.ArrayList<>();
+        List<CandidatoTrocaMutua> candidatos = new ArrayList<>();
         for (ServicoEscalado candidato : candidatosBrutos) {
             if (candidato.getId().equals(servicoOrigem.getId())) continue;
             if (candidato.getMilitar() == null) continue;
@@ -354,9 +312,6 @@ public class SolicitacaoService {
 
     public record CandidatoTrocaMutua(Militar militar, Long servicoId, LocalDate data) {}
 
-    /** Verdadeiro se MILITAR, ao assumir um serviço em NOVADATA, ficaria com
-     *  só 1 dia de folga (1x1) contra algum outro serviço PREVISTO dele -
-     *  ignorando o servico EXCLUIRSERVICOID (o que ele está abrindo mão). */
     private boolean ficariaEm1x1(Long militarId, LocalDate novaData, Long excluirServicoId) {
         int janela = PoliticaDeDescanso.DISTANCIA_MINIMA_EM_TROCA - 1;
         return servicoEscaladoRepository.findByMilitar_IdAndDataBetween(militarId, novaData.minusDays(janela), novaData.plusDays(janela)).stream()

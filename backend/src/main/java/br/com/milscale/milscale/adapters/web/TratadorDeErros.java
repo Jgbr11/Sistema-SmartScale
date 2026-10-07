@@ -17,10 +17,6 @@ import org.springframework.web.method.annotation.MethodArgumentTypeMismatchExcep
 import java.time.format.DateTimeParseException;
 import java.util.NoSuchElementException;
 
-/**
- * Tratamento de erro centralizado - toda falha vira um status HTTP
- * previsivel com corpo {"erro": ...}, nunca um 500 cru nem um 403 vazio.
- */
 @RestControllerAdvice
 public class TratadorDeErros {
 
@@ -42,7 +38,6 @@ public class TratadorDeErros {
         return ResponseEntity.badRequest().body(new ErroResposta(ex.getMessage() != null ? ex.getMessage() : "Requisicao invalida"));
     }
 
-    /** Bean Validation nos DTOs de entrada (@Valid) - devolve a mensagem do primeiro campo invalido. */
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ErroResposta> validacao(MethodArgumentNotValidException ex) {
         String msg = ex.getBindingResult().getFieldErrors().stream()
@@ -65,7 +60,7 @@ public class TratadorDeErros {
 
     @ExceptionHandler(DataIntegrityViolationException.class)
     public ResponseEntity<ErroResposta> violacaoDeIntegridade(DataIntegrityViolationException ex) {
-        // ex.: CPF ou login duplicado, campo obrigatorio nulo
+
         return ResponseEntity.status(HttpStatus.CONFLICT).body(new ErroResposta("Dado duplicado ou invalido (ex.: CPF/login ja cadastrado)"));
     }
 
@@ -74,17 +69,11 @@ public class TratadorDeErros {
         return ResponseEntity.badRequest().body(new ErroResposta("Corpo da requisicao invalido ou faltando campos"));
     }
 
-    /** @PreAuthorize negado. Sem este handler o Spring devolveria 403 sem corpo. */
     @ExceptionHandler(AccessDeniedException.class)
     public ResponseEntity<ErroResposta> acessoNegado(AccessDeniedException ex) {
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new ErroResposta("Acesso negado"));
     }
 
-    /**
-     * Rede de seguranca. Excecoes do proprio Spring MVC (rota inexistente,
-     * metodo nao suportado, parametro faltando...) ja carregam o status
-     * certo via ErrorResponse - so o que sobrar vira 500, sempre logado.
-     */
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErroResposta> inesperado(Exception ex) {
         if (ex instanceof ErrorResponse er) {

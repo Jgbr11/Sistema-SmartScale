@@ -3,7 +3,6 @@ package br.com.milscale.milscale.domain;
 import jakarta.persistence.*;
 import lombok.*;
 
-/** Especializacao MilScale de "funcao" (RF04) - define tambem a antiguidade (RN, elegibilidade). */
 @Entity
 @Table(name = "posto_graduacao")
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder

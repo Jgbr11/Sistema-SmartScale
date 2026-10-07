@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { api } from "../api/client";
-import type { Afastamento, EscalaDoMes, Militar, ServicoEscalado, Solicitacao } from "../api/types";
+import type { PainelResumo, ServicoEscalado, Solicitacao } from "../api/types";
 import { PageHeader } from "../components/Shell";
 import { MilitarDetalheOverlay } from "../components/MilitarDetalheOverlay";
 import { useAuth } from "../context/AuthContext";
@@ -15,12 +15,10 @@ export function PainelPage() {
   const podeAutorizar = usuario?.perfil === "SARGENTEANTE";
 
   const [carregando, setCarregando] = useState(true);
-  const [militares, setMilitares] = useState<Militar[]>([]);
-  const [servicosDoMes, setServicosDoMes] = useState<ServicoEscalado[]>([]);
+  const [resumo, setResumo] = useState<PainelResumo | null>(null);
   const [servicosHoje, setServicosHoje] = useState<ServicoEscalado[]>([]);
   const [emTriagem, setEmTriagem] = useState<Solicitacao[]>([]);
   const [aguardandoAutorizacao, setAguardandoAutorizacao] = useState<Solicitacao[]>([]);
-  const [afastamentos, setAfastamentos] = useState<Afastamento[]>([]);
   const [militarSelecionado, setMilitarSelecionado] = useState<number | null>(null);
 
   useEffect(() => {
@@ -29,11 +27,9 @@ export function PainelPage() {
       const agora = new Date();
       const hoje = `${agora.getFullYear()}-${String(agora.getMonth() + 1).padStart(2, "0")}-${String(agora.getDate()).padStart(2, "0")}`;
       const chamadas: Promise<unknown>[] = [
-        api.get<Militar[]>("/api/militares").then(setMilitares),
+        api.get<PainelResumo>("/api/painel/resumo").then(setResumo),
         api.get<ServicoEscalado[]>(`/api/escalas/dia?data=${hoje}`).then((s) => setServicosHoje(ordenarPorTipo(s))),
-        api.get<Afastamento[]>("/api/afastamentos").then(setAfastamentos),
       ];
-      chamadas.push(api.get<EscalaDoMes>(`/api/escalas/mes?mes=${hoje.slice(0, 7)}`).then((m) => setServicosDoMes(m.servicos)));
       if (podeTriagem) chamadas.push(api.get<Solicitacao[]>("/api/solicitacoes/triagem").then(setEmTriagem));
       if (podeAutorizar) chamadas.push(api.get<Solicitacao[]>("/api/solicitacoes/autorizacao").then(setAguardandoAutorizacao));
       await Promise.all(chamadas);
@@ -43,12 +39,10 @@ export function PainelPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const ativos = militares.filter((m) => m.situacao === "ATIVO").length;
-  const vagasAbertas = servicosDoMes.filter((s) => !s.militar).length;
+  const ativos = resumo?.militaresAtivos ?? 0;
+  const vagasAbertas = resumo?.vagasAbertasNoMes ?? 0;
   const trocasPendentes = emTriagem.length + aguardandoAutorizacao.length;
-  const agoraLocal = new Date();
-  const hojeStr = `${agoraLocal.getFullYear()}-${String(agoraLocal.getMonth() + 1).padStart(2, "0")}-${String(agoraLocal.getDate()).padStart(2, "0")}`;
-  const afastamentosHoje = afastamentos.filter((a) => a.dataInicio <= hojeStr && a.dataFim >= hojeStr);
+  const afastadosHoje = resumo?.afastadosHoje ?? 0;
 
   const nomeMesEscala = new Date().toLocaleDateString("pt-BR", { month: "long", year: "numeric" });
 
@@ -78,7 +72,7 @@ export function PainelPage() {
                 <div className="rotulo">trocas aguardando decisão</div>
               </div>
               <div className="stat-card">
-                <div className="valor">{afastamentosHoje.length}</div>
+                <div className="valor">{afastadosHoje}</div>
                 <div className="rotulo">em missão/dispensa hoje</div>
               </div>
             </div>
@@ -202,13 +196,13 @@ export function PainelPage() {
                         Aguardando triagem ou autorização.
                       </div>
                     )}
-                    {afastamentosHoje.length > 0 && (
+                    {afastadosHoje > 0 && (
                       <div className="alert-item">
-                        <strong>{afastamentosHoje.length} militar(es) fora hoje</strong>
+                        <strong>{afastadosHoje} militar(es) fora hoje</strong>
                         Em missão, dispensa, férias ou licença.
                       </div>
                     )}
-                    {vagasAbertas === 0 && trocasPendentes === 0 && afastamentosHoje.length === 0 && (
+                    {vagasAbertas === 0 && trocasPendentes === 0 && afastadosHoje === 0 && (
                       <p className="sub">Nenhum ponto de atenção no momento.</p>
                     )}
                   </div>
