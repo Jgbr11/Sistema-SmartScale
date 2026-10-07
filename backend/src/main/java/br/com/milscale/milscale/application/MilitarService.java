@@ -3,6 +3,7 @@ package br.com.milscale.milscale.application;
 import br.com.smartscale.core.SituacaoPessoa;
 import br.com.milscale.milscale.adapters.persistence.AfastamentoRepository;
 import br.com.milscale.milscale.adapters.persistence.MilitarRepository;
+import br.com.milscale.milscale.adapters.persistence.PerfilAcessoRepository;
 import br.com.milscale.milscale.adapters.persistence.RequisitoServicoRepository;
 import br.com.milscale.milscale.adapters.persistence.ServicoEscaladoRepository;
 import br.com.milscale.milscale.adapters.persistence.SolicitacaoRepository;
@@ -10,10 +11,14 @@ import br.com.milscale.milscale.adapters.persistence.TipoServicoRepository;
 import br.com.milscale.milscale.adapters.persistence.UsuarioRepository;
 import br.com.milscale.milscale.domain.Afastamento;
 import br.com.milscale.milscale.domain.Militar;
+import br.com.milscale.milscale.domain.PerfilAcesso;
 import br.com.milscale.milscale.domain.RequisitoServico;
 import br.com.milscale.milscale.domain.ServicoEscalado;
+import br.com.milscale.milscale.domain.SituacaoEscala;
 import br.com.milscale.milscale.domain.Solicitacao;
 import br.com.milscale.milscale.domain.TipoServico;
+import br.com.milscale.milscale.domain.Usuario;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -35,11 +40,16 @@ public class MilitarService {
     private final AfastamentoRepository afastamentoRepository;
     private final SolicitacaoRepository solicitacaoRepository;
     private final UsuarioRepository usuarioRepository;
+    private final PerfilAcessoRepository perfilAcessoRepository;
+    private final PasswordEncoder passwordEncoder;
+    private final GeradorDeSenha geradorDeSenha;
 
     public MilitarService(MilitarRepository militarRepository, TipoServicoRepository tipoServicoRepository,
                            RequisitoServicoRepository requisitoServicoRepository, ElegibilidadeService elegibilidadeService,
                            ServicoEscaladoRepository servicoEscaladoRepository, AfastamentoRepository afastamentoRepository,
-                           SolicitacaoRepository solicitacaoRepository, UsuarioRepository usuarioRepository) {
+                           SolicitacaoRepository solicitacaoRepository, UsuarioRepository usuarioRepository,
+                           PerfilAcessoRepository perfilAcessoRepository, PasswordEncoder passwordEncoder,
+                           GeradorDeSenha geradorDeSenha) {
         this.militarRepository = militarRepository;
         this.tipoServicoRepository = tipoServicoRepository;
         this.requisitoServicoRepository = requisitoServicoRepository;
@@ -48,6 +58,9 @@ public class MilitarService {
         this.afastamentoRepository = afastamentoRepository;
         this.solicitacaoRepository = solicitacaoRepository;
         this.usuarioRepository = usuarioRepository;
+        this.perfilAcessoRepository = perfilAcessoRepository;
+        this.passwordEncoder = passwordEncoder;
+        this.geradorDeSenha = geradorDeSenha;
     }
 
     public List<Militar> listar() {
@@ -71,8 +84,10 @@ public class MilitarService {
     }
 
     /** RF04 - Ficha do Militar: historico completo de servicos, afastamentos e trocas da pessoa. */
-    public List<ServicoEscalado> historicoServicos(Long militarId) {
-        return servicoEscaladoRepository.findByMilitar_IdOrderByDataDesc(militarId);
+    public List<ServicoEscalado> historicoServicos(Long militarId, boolean incluirRascunho) {
+        return incluirRascunho
+                ? servicoEscaladoRepository.findByMilitar_IdOrderByDataDesc(militarId)
+                : servicoEscaladoRepository.findByMilitar_IdAndEscala_SituacaoOrderByDataDesc(militarId, SituacaoEscala.PUBLICADA);
     }
 
     public List<Afastamento> historicoAfastamentos(Long militarId) {
@@ -101,16 +116,37 @@ public class MilitarService {
     }
 
     @Transactional
-    public Militar cadastrar(Militar militar) {
+    public MilitarCadastrado cadastrar(Militar militar) {
         militar.setId(null);
         militar.setSituacao(SituacaoPessoa.ATIVO);
+        militar.setCpf(normalizarCpf(militar.getCpf()));
+        validarCpfUnico(militar.getCpf(), null);
         validarNomeGuerraUnicoNoPosto(militar.getPosto().getId(), militar.getNomeGuerra(), null);
-        return militarRepository.save(militar);
+        Militar salvo = militarRepository.save(militar);
+        PerfilAcesso perfil = perfilAcessoRepository.findByNome("MILITAR_ESCALADO")
+                .orElseThrow(() -> new IllegalStateException("Perfil MILITAR_ESCALADO não cadastrado"));
+        String senha = geradorDeSenha.gerar();
+        usuarioRepository.save(Usuario.builder()
+                .militar(salvo).perfil(perfil).login(salvo.getCpf())
+                .senhaHash(passwordEncoder.encode(senha)).senhaTemporaria(true)
+                .build());
+        return new MilitarCadastrado(salvo, senha);
+    }
+
+    public record MilitarCadastrado(Militar militar, String senhaTemporaria) {}
+
+    private static String normalizarCpf(String cpf) {
+        String digitos = cpf == null ? "" : cpf.replaceAll("\\D", "");
+        if (digitos.length() != 11) {
+            throw new IllegalArgumentException("O CPF precisa ter 11 números");
+        }
+        return digitos;
     }
 
     @Transactional
     public Militar atualizar(Long id, Militar dados) {
         Militar existente = buscar(id);
+        dados.setCpf(normalizarCpf(dados.getCpf()));
         validarNomeGuerraUnicoNoPosto(dados.getPosto().getId(), dados.getNomeGuerra(), id);
         validarCpfUnico(dados.getCpf(), id);
         boolean cpfMudou = !existente.getCpf().equals(dados.getCpf());
@@ -163,6 +199,10 @@ public class MilitarService {
     public Militar desligar(Long id) {
         Militar existente = buscar(id);
         existente.setSituacao(SituacaoPessoa.DESLIGADO);
+        usuarioRepository.findByMilitar_Id(id).ifPresent(usuario -> {
+            usuario.setAtivo(false);
+            usuarioRepository.save(usuario);
+        });
         return militarRepository.save(existente);
     }
 }

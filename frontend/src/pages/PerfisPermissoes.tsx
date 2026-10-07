@@ -59,12 +59,14 @@ export function PerfisPermissoesPage() {
   }
 
   async function resetarSenha(usuarioId: number, nome: string) {
-    if (!confirm(`Resetar a senha de ${nome} pro padrão (milscale123)?`)) return;
+    if (!confirm(`Gerar uma senha temporária para ${nome}? A senha atual deixa de funcionar.`)) return;
     setErro(null);
     setProcessando(usuarioId);
     try {
-      await api.post(`/api/usuarios/${usuarioId}/resetar-senha`, {});
-      alert("Senha resetada para milscale123 — avise a pessoa pra trocar assim que entrar.");
+      const r = await api.post<{ senhaTemporaria: string }>(`/api/usuarios/${usuarioId}/resetar-senha`, {});
+      alert(`Senha temporária de ${nome}: ${r.senhaTemporaria}
+
+Ela aparece só agora. Entregue pessoalmente — no primeiro acesso a pessoa vai ser obrigada a criar uma senha nova.`);
     } catch (e) {
       setErro(e instanceof ApiError ? e.message : "Não foi possível resetar a senha.");
     } finally {

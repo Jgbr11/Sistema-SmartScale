@@ -92,7 +92,7 @@ const MENU_POR_PERFIL: Record<string, { topo?: Item[]; grupos: Grupo[]; rodape?:
 
 export function Shell({ children }: { children: React.ReactNode }) {
   const { usuario, sair } = useAuth();
-  const menu = usuario ? MENU_POR_PERFIL[usuario.perfil] : undefined;
+  const menu = usuario && !usuario.trocarSenha ? MENU_POR_PERFIL[usuario.perfil] : undefined;
   const [menuAberto, setMenuAberto] = useState(false);
   const local = useLocation();
 
@@ -106,7 +106,7 @@ export function Shell({ children }: { children: React.ReactNode }) {
       <div className="mobile-topbar">
         <button className="hamburger" onClick={() => setMenuAberto(true)} aria-label="Abrir menu">☰</button>
         <span className="brand-mini" style={{ flex: 1 }}>MilScale</span>
-        {usuario && <NotificacaoSino />}
+        {usuario && !usuario.trocarSenha && <NotificacaoSino />}
       </div>
       <div className={"sidebar-backdrop" + (menuAberto ? " open" : "")} onClick={() => setMenuAberto(false)} />
       <aside className={"sidebar" + (menuAberto ? " open" : "")}>
@@ -118,7 +118,7 @@ export function Shell({ children }: { children: React.ReactNode }) {
               <span>Escala de serviço</span>
             </div>
           </div>
-          {usuario && <NotificacaoSino />}
+          {usuario && !usuario.trocarSenha && <NotificacaoSino />}
         </div>
         <nav style={{ flex: 1 }}>
           {menu?.topo?.map((item) => <ItemLink key={item.to} item={item} />)}

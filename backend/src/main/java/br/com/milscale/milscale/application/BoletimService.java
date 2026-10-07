@@ -15,10 +15,12 @@ public class BoletimService {
 
     private final BoletimRepository boletimRepository;
     private final UsuarioLogadoService usuarioLogadoService;
+    private final SanitizadorHtml sanitizador;
 
-    public BoletimService(BoletimRepository boletimRepository, UsuarioLogadoService usuarioLogadoService) {
+    public BoletimService(BoletimRepository boletimRepository, UsuarioLogadoService usuarioLogadoService, SanitizadorHtml sanitizador) {
         this.boletimRepository = boletimRepository;
         this.usuarioLogadoService = usuarioLogadoService;
+        this.sanitizador = sanitizador;
     }
 
     public List<Boletim> listar() {
@@ -35,6 +37,7 @@ public class BoletimService {
         if (titulo == null || titulo.isBlank()) {
             throw new IllegalArgumentException("Informe um título");
         }
+        conteudoHtml = sanitizador.sanitizar(conteudoHtml);
         if (conteudoHtml == null || conteudoHtml.isBlank()) {
             throw new IllegalArgumentException("O boletim não pode ficar vazio");
         }
@@ -52,6 +55,7 @@ public class BoletimService {
         if (titulo == null || titulo.isBlank()) {
             throw new IllegalArgumentException("Informe um título");
         }
+        conteudoHtml = sanitizador.sanitizar(conteudoHtml);
         if (conteudoHtml == null || conteudoHtml.isBlank()) {
             throw new IllegalArgumentException("O boletim não pode ficar vazio");
         }

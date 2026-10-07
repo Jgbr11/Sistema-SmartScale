@@ -1,5 +1,7 @@
 package br.com.milscale.milscale.adapters.config;
 
+import jakarta.servlet.http.HttpServletResponse;
+import br.com.milscale.milscale.adapters.persistence.UsuarioRepository;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -10,6 +12,7 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.access.intercept.AuthorizationFilter;
 import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
@@ -32,9 +35,12 @@ import java.util.List;
 public class SecurityConfig {
 
     private final List<String> origensPermitidas;
+    private final UsuarioRepository usuarioRepository;
 
-    public SecurityConfig(@Value("${milscale.cors.origens:http://localhost:*}") List<String> origensPermitidas) {
+    public SecurityConfig(@Value("${milscale.cors.origens:http://localhost:*}") List<String> origensPermitidas,
+                          UsuarioRepository usuarioRepository) {
         this.origensPermitidas = origensPermitidas;
+        this.usuarioRepository = usuarioRepository;
     }
 
     @Bean
@@ -49,7 +55,7 @@ public class SecurityConfig {
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
             .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/auth/**", "/api/organizacao").permitAll()
+                .requestMatchers("/api/auth/login", "/api/organizacao").permitAll()
                 .anyRequest().authenticated()
             )
             .formLogin(form -> form
@@ -57,8 +63,11 @@ public class SecurityConfig {
                 .successHandler((req, res, a) -> res.setStatus(200))
                 .failureHandler((req, res, e) -> res.setStatus(401))
             )
-            .logout(logout -> logout.logoutUrl("/api/auth/logout"))
+            .logout(logout -> logout
+                .logoutUrl("/api/auth/logout")
+                .logoutSuccessHandler((req, res, a) -> res.setStatus(HttpServletResponse.SC_NO_CONTENT)))
             .exceptionHandling(ex -> ex.authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED)));
+        http.addFilterAfter(new SenhaTemporariaFilter(usuarioRepository), AuthorizationFilter.class);
         return http.build();
     }
 

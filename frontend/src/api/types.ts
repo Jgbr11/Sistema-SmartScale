@@ -4,6 +4,7 @@ export interface Usuario {
   perfil: "MILITAR_ESCALADO" | "SD_EP_SARGENTEACAO" | "CABO_SARGENTEACAO" | "SARGENTEANTE";
   militarId: number;
   nomeExibicao: string;
+  trocarSenha: boolean;
 }
 
 export interface PostoGraduacao {
@@ -30,11 +31,11 @@ export interface Militar {
   id: number;
   nomeCompleto: string;
   nomeGuerra: string;
-  cpf: string;
+  cpf?: string;
   numeroRegistro?: string;
   dataNascimento?: string;
   fusex?: string;
-  fotoBase64?: string;
+  temFoto: boolean;
   posto: PostoGraduacao;
   subunidade: Subunidade;
   email?: string;

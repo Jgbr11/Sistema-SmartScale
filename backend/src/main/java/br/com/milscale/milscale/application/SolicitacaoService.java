@@ -5,6 +5,7 @@ import br.com.milscale.milscale.domain.Militar;
 import br.com.milscale.milscale.domain.PoliticaDeDescanso;
 import br.com.milscale.milscale.domain.RequisitoServico;
 import br.com.milscale.milscale.domain.ServicoEscalado;
+import br.com.milscale.milscale.domain.SituacaoEscala;
 import br.com.milscale.milscale.domain.SituacaoServico;
 import br.com.milscale.milscale.domain.SituacaoSolicitacao;
 import br.com.milscale.milscale.domain.Solicitacao;
@@ -93,6 +94,9 @@ public class SolicitacaoService {
         if (servico.getMilitar() == null || !servico.getMilitar().getId().equals(solicitante.getId())) {
             throw new IllegalArgumentException("Esse serviço não é seu — só quem está escalado pode pedir a troca");
         }
+        if (servico.getEscala().getSituacao() != SituacaoEscala.PUBLICADA) {
+            throw new IllegalArgumentException("Essa escala ainda não foi publicada — só dá pra pedir troca depois da publicação");
+        }
         if (servico.isTravado()) {
             throw new IllegalArgumentException("Esse dia está travado — não é possível pedir troca (RN04)");
         }
@@ -148,6 +152,10 @@ public class SolicitacaoService {
 
         if (servicoOrigem.getMilitar() == null || !servicoOrigem.getMilitar().getId().equals(solicitante.getId())) {
             throw new IllegalArgumentException("Esse serviço não é seu — só quem está escalado pode pedir a troca");
+        }
+        if (servicoOrigem.getEscala().getSituacao() != SituacaoEscala.PUBLICADA
+                || servicoDestino.getEscala().getSituacao() != SituacaoEscala.PUBLICADA) {
+            throw new IllegalArgumentException("Essa escala ainda não foi publicada — só dá pra pedir troca depois da publicação");
         }
         if (servicoOrigem.isTravado() || servicoDestino.isTravado()) {
             throw new IllegalArgumentException("Um dos dois dias está travado — não é possível pedir troca (RN04)");
@@ -324,6 +332,7 @@ public class SolicitacaoService {
             if (candidato.getMilitar() == null) continue;
             if (candidato.getMilitar().getId().equals(militarSolicitanteId)) continue;
             if (candidato.isTravado() || candidato.isJaComecou()) continue;
+            if (candidato.getEscala().getSituacao() != SituacaoEscala.PUBLICADA) continue;
             if (ficariaEm1x1(militarSolicitanteId, candidato.getData(), servicoOrigem.getId())) continue;
             if (ficariaEm1x1(candidato.getMilitar().getId(), servicoOrigem.getData(), candidato.getId())) continue;
             candidatos.add(new CandidatoTrocaMutua(candidato.getMilitar(), candidato.getId(), candidato.getData()));

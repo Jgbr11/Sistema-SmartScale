@@ -66,7 +66,7 @@ class TrocaIntervaloIntegrationTest {
         escalaTeste = escalaRepository.save(Escala.builder()
                 .descricao("Escala de teste").dataInicio(LocalDate.now().plusMonths(2).withDayOfMonth(1))
                 .dataFim(LocalDate.now().plusMonths(2).withDayOfMonth(28))
-                .usuarioGeracao(usuarioGeracao).build());
+                .situacao(SituacaoEscala.PUBLICADA).usuarioGeracao(usuarioGeracao).build());
 
         dia = LocalDate.now().plusMonths(2).withDayOfMonth(5);
 

@@ -183,7 +183,7 @@ function VisaoDados({ militar }: { militar: Militar }) {
     <div className="form-grid" style={{ marginTop: 10 }}>
       <CampoLeitura label="Nome completo" valor={militar.nomeCompleto} />
       <CampoLeitura label="Nome de guerra" valor={militar.nomeGuerra} />
-      <CampoLeitura label="CPF" valor={formatarCpf(militar.cpf)} />
+      <CampoLeitura label="CPF" valor={militar.cpf ? formatarCpf(militar.cpf) : "—"} />
       <CampoLeitura label="Posto/graduação" valor={militar.posto.descricao} />
       <CampoLeitura label="Subunidade" valor={militar.subunidade.nome} />
       <CampoLeitura label="Situação" valor={militar.situacao} />
@@ -209,7 +209,7 @@ function EditarForm({ militar, onSalvou, onCancelar }: { militar: Militar; onSal
   const [dados, setDados] = useState({
     nomeCompleto: militar.nomeCompleto,
     nomeGuerra: militar.nomeGuerra,
-    cpf: mascararCpf(militar.cpf),
+    cpf: mascararCpf(militar.cpf ?? ""),
     postoId: militar.posto.id,
     subunidadeId: militar.subunidade.id,
     numeroRegistro: militar.numeroRegistro || "",

@@ -7,6 +7,7 @@ import { RichEditor } from "../components/RichEditor";
 import { useAuth } from "../context/AuthContext";
 import { TIPO_AFASTAMENTO_LABEL } from "../utils/afastamentoTipos";
 import { formatarDataBR, formatarDataHora } from "../utils/formatadores";
+import DOMPurify from "dompurify";
 
 export function BoletimPage() {
   const { usuario } = useAuth();
@@ -87,7 +88,7 @@ export function BoletimPage() {
               {aberto === b.id && (
                 <div
                   style={{ marginTop: 14, paddingTop: 14, borderTop: "1px solid var(--border-2)", fontSize: 13.5, lineHeight: 1.6 }}
-                  dangerouslySetInnerHTML={{ __html: b.conteudoHtml }}
+                  dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(b.conteudoHtml) }}
                 />
               )}
             </div>

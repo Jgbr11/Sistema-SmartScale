@@ -2,6 +2,7 @@ package br.com.milscale.milscale.domain;
 
 import br.com.smartscale.core.PessoaEscalada;
 import br.com.smartscale.core.SituacaoPessoa;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -27,17 +28,21 @@ public class Militar implements PessoaEscalada {
     private String nomeGuerra;
 
     @Column(nullable = false, unique = true, length = 11)
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private String cpf;
 
     /** Numero de registro (NR REGISTRO na carteira de identidade militar). */
     @Column(name = "numero_registro", length = 20)
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private String numeroRegistro;
 
     @Column(name = "data_nascimento")
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private LocalDate dataNascimento;
 
     /** Numero do FUSEX (sistema de saude do Exercito) - aparece na carteira de identidade. */
     @Column(length = 20)
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private String fusex;
 
     /** Foto 3x4 da carteira de identidade, guardada como data URL base64.
@@ -46,6 +51,7 @@ public class Militar implements PessoaEscalada {
      *  arquivo de verdade (S3 etc.) é o próximo passo natural se crescer. */
     @Lob
     @Column(name = "foto_base64")
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private String fotoBase64;
 
     @ManyToOne(optional = false)
@@ -57,9 +63,11 @@ public class Militar implements PessoaEscalada {
     private Subunidade subunidade;
 
     @Column(length = 120)
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private String email;
 
     @Column(length = 20)
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private String telefone;
 
     @Enumerated(EnumType.STRING)
@@ -80,6 +88,10 @@ public class Militar implements PessoaEscalada {
             inverseJoinColumns = @JoinColumn(name = "id_qualificacao"))
     @Builder.Default
     private Set<Qualificacao> qualificacoes = new HashSet<>();
+
+    public boolean isTemFoto() {
+        return fotoBase64 != null && !fotoBase64.isBlank();
+    }
 
     @Override
     public String getNomeExibicao() {

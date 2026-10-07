@@ -197,7 +197,7 @@ function NovoMilitarForm({
     setSalvando(true);
     setErro(null);
     try {
-      await api.post("/api/militares", {
+      const r = await api.post<{ militar: { nomeExibicao: string }; senhaTemporaria: string }>("/api/militares", {
         nomeCompleto,
         nomeGuerra,
         cpf: somenteDigitos(cpf),
@@ -209,6 +209,11 @@ function NovoMilitarForm({
         posto: { id: postoId },
         subunidade: { id: subunidadeId },
       });
+      alert(
+        `Conta criada para ${r.militar.nomeExibicao}.\n\n` +
+        `Login: ${mascararCpf(cpf)}\nSenha temporária: ${r.senhaTemporaria}\n\n` +
+        `Ela aparece só agora. No primeiro acesso a pessoa vai criar a própria senha.`
+      );
       onCriado();
     } catch (e) {
       setErro(e instanceof ApiError ? e.message : "Não foi possível cadastrar.");

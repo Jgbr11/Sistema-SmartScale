@@ -1,5 +1,6 @@
 package br.com.milscale.milscale.domain;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -45,6 +46,7 @@ public class Escala {
 
     @ManyToOne(optional = false)
     @JoinColumn(name = "id_usuario_geracao")
+    @JsonIgnore
     private Usuario usuarioGeracao;
 
     @OneToMany(mappedBy = "escala", cascade = CascadeType.ALL, orphanRemoval = true)

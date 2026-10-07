@@ -36,6 +36,10 @@ public class Usuario {
     @Builder.Default
     private boolean ativo = true;
 
+    @Column(name = "senha_temporaria", nullable = false)
+    @Builder.Default
+    private boolean senhaTemporaria = false;
+
     @Column(name = "ultimo_acesso")
     private LocalDateTime ultimoAcesso;
 }

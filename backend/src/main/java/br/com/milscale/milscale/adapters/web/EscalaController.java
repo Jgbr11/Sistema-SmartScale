@@ -58,8 +58,8 @@ public class EscalaController {
     /** RF14 - roster de UM dia especifico, aberto a qualquer autenticado (inclusive Militar Escalado
      *  pela tela "Escala do dia") - nunca devolve o mes inteiro, só a data pedida. */
     @GetMapping("/dia")
-    public List<ServicoEscalado> escalaDoDia(@RequestParam String data) {
-        return consultaEscalaService.doDia(LocalDate.parse(data));
+    public List<ServicoEscalado> escalaDoDia(@RequestParam String data, Authentication auth) {
+        return consultaEscalaService.doDia(LocalDate.parse(data), PerfisSargenteacao.ehSargenteacao(auth));
     }
 
     /** RF08 - gerar automaticamente. Privativo de Cabo da Sargenteacao ou Sargenteante. */

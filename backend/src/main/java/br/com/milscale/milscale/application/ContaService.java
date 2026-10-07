@@ -43,6 +43,7 @@ public class ContaService {
             throw new IllegalArgumentException("A nova senha precisa ter pelo menos 6 caracteres");
         }
         usuario.setSenhaHash(passwordEncoder.encode(senhaNova));
+        usuario.setSenhaTemporaria(false);
         usuarioRepository.save(usuario);
     }
 }

@@ -1,5 +1,6 @@
 package br.com.milscale.milscale.domain;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -35,6 +36,7 @@ public class Afastamento {
 
     @ManyToOne(optional = false)
     @JoinColumn(name = "id_usuario_registro")
+    @JsonIgnore
     private Usuario usuarioRegistro;
 
     @Column(name = "data_registro", nullable = false)

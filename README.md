@@ -125,6 +125,9 @@ Pra recomeçar do zero: `docker compose down -v`.
 | `MILSCALE_CORS_ORIGENS` | backend | origens aceitas pelo CORS (padrão `http://localhost:*`) — só importa se o front estiver em outro domínio |
 | `VITE_API_URL` | frontend (build) | endereço do backend; vazio = mesmo domínio |
 | `MAIL_*`, `MILSCALE_EMAIL_HABILITADO`, `MILSCALE_LEMBRETE_CRON` | backend | lembrete de serviço por email |
+| `MILSCALE_SEED_DEMO` | backend / `.env` | `true` cria os ~200 militares de demonstração (senha `milscale123`); padrão `true` no H2 e `false` no perfil `mysql` |
+| `MILSCALE_ADMIN_CPF`, `MILSCALE_ADMIN_SENHA` | backend / `.env` | primeiro Sargenteante, criado só se o banco não tiver nenhum usuário; troca a senha no primeiro acesso |
+| `MILSCALE_COOKIE_SEGURO` | backend | `true` quando o sistema for servido por HTTPS (cookie de sessão só por conexão segura) |
 | `MILSCALE_CRITERIO_ORDENACAO` | backend / `.env` | critério da fila da escala (variabilidade da linha de produto): `maior-folga` (padrão), `menor-carga` ou `mais-moderno` |
 
 ## Testes

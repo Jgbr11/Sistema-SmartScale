@@ -7,11 +7,11 @@ import { PERFIL_LABEL } from "../utils/perfis";
 import { formatarCpf, formatarDataBR } from "../utils/formatadores";
 
 export function MinhaContaPage() {
-  const { usuario } = useAuth();
+  const { usuario, recarregar } = useAuth();
   const [militar, setMilitar] = useState<Militar | null>(null);
 
   useEffect(() => {
-    if (!usuario) return;
+    if (!usuario || usuario.trocarSenha) return;
     api.get<Militar>(`/api/militares/${usuario.militarId}`).then(setMilitar);
   }, [usuario]);
 
@@ -19,6 +19,15 @@ export function MinhaContaPage() {
     <>
       <PageHeader title="Minha conta" subtitle="Seus dados e sua senha de acesso" />
       <div className="body">
+        {usuario?.trocarSenha && (
+          <div className="card" style={{ background: "var(--amber-bg)", border: "none" }}>
+            <p style={{ fontSize: 13, color: "var(--amber-text)", fontWeight: 600 }}>
+              Sua senha é temporária. Crie uma senha nova para continuar usando o sistema.
+            </p>
+          </div>
+        )}
+
+        {!usuario?.trocarSenha && (
         <div className="card">
           <h3>Meus dados</h3>
           {!militar ? (
@@ -29,7 +38,7 @@ export function MinhaContaPage() {
               <CampoLeitura label="Nome de guerra" valor={militar.nomeGuerra} />
               <CampoLeitura label="Posto/graduação" valor={militar.posto.descricao} />
               <CampoLeitura label="Subunidade" valor={militar.subunidade.nome} />
-              <CampoLeitura label="CPF" valor={formatarCpf(militar.cpf)} />
+              <CampoLeitura label="CPF" valor={militar.cpf ? formatarCpf(militar.cpf) : "—"} />
               <CampoLeitura label="NR Registro" valor={militar.numeroRegistro || "—"} />
               <CampoLeitura label="Data de nascimento" valor={militar.dataNascimento ? formatarDataBR(militar.dataNascimento) : "—"} />
               <CampoLeitura label="FUSEX" valor={militar.fusex || "—"} />
@@ -40,8 +49,9 @@ export function MinhaContaPage() {
             Pra corrigir algum desses dados, fale com o Cabo da Sargenteação ou o Sargenteante.
           </p>
         </div>
+        )}
 
-        <TrocarSenhaForm />
+        <TrocarSenhaForm onTrocou={recarregar} />
       </div>
     </>
   );
@@ -56,7 +66,7 @@ function CampoLeitura({ label, valor }: { label: string; valor: string }) {
   );
 }
 
-function TrocarSenhaForm() {
+function TrocarSenhaForm({ onTrocou }: { onTrocou: () => Promise<void> }) {
   const [senhaAtual, setSenhaAtual] = useState("");
   const [senhaNova, setSenhaNova] = useState("");
   const [confirmarSenha, setConfirmarSenha] = useState("");
@@ -82,6 +92,7 @@ function TrocarSenhaForm() {
       setSenhaAtual("");
       setSenhaNova("");
       setConfirmarSenha("");
+      await onTrocou();
     } catch (e) {
       setErro(e instanceof ApiError ? e.message : "Não foi possível trocar a senha.");
     } finally {

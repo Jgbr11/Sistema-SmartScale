@@ -1,6 +1,7 @@
 package br.com.milscale.milscale.adapters.persistence;
 
 import br.com.milscale.milscale.domain.ServicoEscalado;
+import br.com.milscale.milscale.domain.SituacaoEscala;
 import br.com.milscale.milscale.domain.SituacaoServico;
 import org.springframework.data.jpa.repository.JpaRepository;
 
@@ -26,6 +27,12 @@ public interface ServicoEscaladoRepository extends JpaRepository<ServicoEscalado
 
     /** RF14 - roster de um unico dia, independente de qual escala cobre a data (linha do tempo continua). */
     List<ServicoEscalado> findByData(LocalDate data);
+
+    List<ServicoEscalado> findByDataAndEscala_Situacao(LocalDate data, SituacaoEscala situacao);
+
+    List<ServicoEscalado> findByMilitar_IdAndDataBetweenAndEscala_Situacao(Long militarId, LocalDate inicio, LocalDate fim, SituacaoEscala situacao);
+
+    List<ServicoEscalado> findByMilitar_IdAndEscala_SituacaoOrderByDataDesc(Long militarId, SituacaoEscala situacao);
 
     /** RF15 - candidatos a troca mutua: todo mundo com servico do mesmo tipo, ainda previsto. */
     List<ServicoEscalado> findByTipoServico_IdAndSituacao(Long tipoServicoId, SituacaoServico situacao);

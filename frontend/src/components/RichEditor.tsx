@@ -1,4 +1,5 @@
 import { useEffect, useRef } from "react";
+import DOMPurify from "dompurify";
 
 
 export function RichEditor({ valorInicial, onChange }: { valorInicial: string; onChange: (html: string) => void }) {
@@ -7,7 +8,7 @@ export function RichEditor({ valorInicial, onChange }: { valorInicial: string; o
 
   useEffect(() => {
     if (!iniciou.current && ref.current) {
-      ref.current.innerHTML = valorInicial || "";
+      ref.current.innerHTML = DOMPurify.sanitize(valorInicial || "");
       iniciou.current = true;
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps

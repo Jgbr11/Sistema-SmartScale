@@ -1,4 +1,4 @@
-import { Navigate, Route, BrowserRouter, Routes } from "react-router-dom";
+import { Navigate, Route, BrowserRouter, Routes, useLocation } from "react-router-dom";
 import { AuthProvider, useAuth } from "./context/AuthContext";
 import { Shell } from "./components/Shell";
 import { LoginPage } from "./pages/Login";
@@ -27,8 +27,10 @@ import { HistoricoPage } from "./pages/Historico";
 
 function RotaProtegida({ children }: { children: React.ReactNode }) {
   const { usuario, carregando } = useAuth();
+  const local = useLocation();
   if (carregando) return <div style={{ padding: 40 }}>Carregando…</div>;
   if (!usuario) return <Navigate to="/login" replace />;
+  if (usuario.trocarSenha && local.pathname !== "/minha-conta") return <Navigate to="/minha-conta" replace />;
   return <Shell>{children}</Shell>;
 }
 

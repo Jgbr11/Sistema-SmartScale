@@ -3,11 +3,15 @@ package br.com.milscale.milscale.adapters.web;
 import br.com.milscale.milscale.application.AuditoriaService;
 import br.com.milscale.milscale.application.MilitarService;
 import br.com.milscale.milscale.domain.Militar;
+import br.com.milscale.milscale.adapters.web.dto.MilitarCadastradoResponse;
+import br.com.milscale.milscale.adapters.web.dto.MilitarDetalheResponse;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/militares")
@@ -28,12 +32,18 @@ public class MilitarController {
         return militarService.listar();
     }
 
-    /** Aberto a qualquer autenticado - o popup de detalhes na Escala do dia
-     *  usa isso, e Militar Escalado tambem precisa ver colegas dessa forma
-     *  mesmo sem acesso ao cadastro completo (listar()) acima. */
     @GetMapping("/{id}")
-    public Militar buscar(@PathVariable Long id) {
-        return militarService.buscar(id);
+    public MilitarDetalheResponse buscar(@PathVariable Long id, Authentication auth) {
+        Militar militar = militarService.buscar(id);
+        boolean completo = PerfisSargenteacao.ehSargenteacao(auth) || militarService.ehOProprio(id, auth.getName());
+        return completo ? MilitarDetalheResponse.completo(militar) : MilitarDetalheResponse.publico(militar);
+    }
+
+    @GetMapping("/{id}/foto")
+    public ResponseEntity<Map<String, String>> foto(@PathVariable Long id) {
+        Militar militar = militarService.buscar(id);
+        if (!militar.isTemFoto()) return ResponseEntity.noContent().build();
+        return ResponseEntity.ok(Map.of("fotoBase64", militar.getFotoBase64()));
     }
 
     /** RF06 - quais tipos de servico esse militar e elegivel pra assumir, dado
@@ -47,8 +57,8 @@ public class MilitarController {
      *  OU a propria pessoa vendo o proprio historico (RF - "Meu historico", aberto a todo mundo). */
     @PreAuthorize("hasAnyRole('CABO_SARGENTEACAO', 'SD_EP_SARGENTEACAO', 'SARGENTEANTE') or @militarService.ehOProprio(#id, authentication.name)")
     @GetMapping("/{id}/historico-servicos")
-    public List<br.com.milscale.milscale.domain.ServicoEscalado> historicoServicos(@PathVariable Long id) {
-        return militarService.historicoServicos(id);
+    public List<br.com.milscale.milscale.domain.ServicoEscalado> historicoServicos(@PathVariable Long id, Authentication auth) {
+        return militarService.historicoServicos(id, PerfisSargenteacao.ehSargenteacao(auth));
     }
 
     @PreAuthorize("hasAnyRole('CABO_SARGENTEACAO', 'SD_EP_SARGENTEACAO', 'SARGENTEANTE') or @militarService.ehOProprio(#id, authentication.name)")
@@ -73,10 +83,11 @@ public class MilitarController {
     /** RF04 - manter o cadastro e privativo de Cabo da Sargenteacao e Sargenteante. */
     @PreAuthorize("hasAnyRole('CABO_SARGENTEACAO', 'SARGENTEANTE')")
     @PostMapping
-    public Militar cadastrar(@RequestBody Militar militar, Authentication auth) {
-        Militar salvo = militarService.cadastrar(militar);
-        auditoriaService.registrar(auth.getName(), "MILITAR_CADASTRADO", salvo.getNomeExibicao() + " (id " + salvo.getId() + ")");
-        return salvo;
+    public MilitarCadastradoResponse cadastrar(@RequestBody Militar militar, Authentication auth) {
+        MilitarService.MilitarCadastrado cadastrado = militarService.cadastrar(militar);
+        Militar salvo = cadastrado.militar();
+        auditoriaService.registrar(auth.getName(), "MILITAR_CADASTRADO", salvo.getNomeExibicao() + " (id " + salvo.getId() + ") - conta criada");
+        return new MilitarCadastradoResponse(MilitarDetalheResponse.completo(salvo), cadastrado.senhaTemporaria());
     }
 
     @PreAuthorize("hasAnyRole('CABO_SARGENTEACAO', 'SARGENTEANTE')")

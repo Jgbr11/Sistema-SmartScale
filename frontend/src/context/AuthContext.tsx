@@ -7,6 +7,7 @@ interface AuthContextValue {
   carregando: boolean;
   entrar: (login: string, senha: string) => Promise<void>;
   sair: () => Promise<void>;
+  recarregar: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
@@ -41,7 +42,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   return (
-    <AuthContext.Provider value={{ usuario, carregando, entrar, sair }}>
+    <AuthContext.Provider value={{ usuario, carregando, entrar, sair, recarregar: carregarSessao }}>
       {children}
     </AuthContext.Provider>
   );

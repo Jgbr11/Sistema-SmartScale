@@ -55,8 +55,8 @@ public class UsuarioController {
 
     @PostMapping("/{id}/resetar-senha")
     public Map<String, String> resetarSenha(@PathVariable Long id, Authentication auth) {
-        usuarioService.resetarSenha(id);
+        String senhaTemporaria = usuarioService.resetarSenha(id);
         auditoriaService.registrar(auth.getName(), "SENHA_RESETADA", "usuário id " + id);
-        return Map.of("mensagem", "Senha resetada para o padrão");
+        return Map.of("mensagem", "Senha temporária gerada", "senhaTemporaria", senhaTemporaria);
     }
 }

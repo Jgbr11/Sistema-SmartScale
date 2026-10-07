@@ -1,5 +1,6 @@
 package br.com.milscale.milscale.domain;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -16,6 +17,7 @@ public class Notificacao {
 
     @ManyToOne(optional = false)
     @JoinColumn(name = "id_usuario_destinatario")
+    @JsonIgnore
     private Usuario destinatario;
 
     @Column(nullable = false, length = 40)

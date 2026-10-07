@@ -58,7 +58,7 @@ export function EscalaDoDiaPage() {
           {carregando ? (
             <p className="sub">Carregando…</p>
           ) : servicos.length === 0 ? (
-            <p className="sub">Nenhum serviço registrado para esse dia.</p>
+            <p className="sub">Nenhuma escala publicada para esse dia ainda.</p>
           ) : (
             <table>
               <tbody>

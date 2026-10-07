@@ -4,6 +4,7 @@ import br.com.milscale.milscale.adapters.persistence.EscalaRepository;
 import br.com.milscale.milscale.adapters.persistence.ServicoEscaladoRepository;
 import br.com.milscale.milscale.domain.Escala;
 import br.com.milscale.milscale.domain.ServicoEscalado;
+import br.com.milscale.milscale.domain.SituacaoEscala;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -30,7 +31,9 @@ public class ConsultaEscalaService {
         return escalaRepository.findById(id).orElseThrow(() -> new NoSuchElementException("Escala não encontrada"));
     }
 
-    public List<ServicoEscalado> doDia(LocalDate data) {
-        return servicoEscaladoRepository.findByData(data);
+    public List<ServicoEscalado> doDia(LocalDate data, boolean incluirRascunho) {
+        return incluirRascunho
+                ? servicoEscaladoRepository.findByData(data)
+                : servicoEscaladoRepository.findByDataAndEscala_Situacao(data, SituacaoEscala.PUBLICADA);
     }
 }

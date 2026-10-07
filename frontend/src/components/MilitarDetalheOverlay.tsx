@@ -7,6 +7,7 @@ import { formatarCpf, formatarDataBR } from "../utils/formatadores";
 
 export function MilitarDetalheOverlay({ militarId, onFechar }: { militarId: number | null; onFechar: () => void }) {
   const [militar, setMilitar] = useState<Militar | null>(null);
+  const [foto, setFoto] = useState<string | null>(null);
   const organizacao = useOrganizacao();
   const [funcoes, setFuncoes] = useState<TipoServico[]>([]);
   const [afastamento, setAfastamento] = useState<Afastamento | null>(null);
@@ -22,6 +23,12 @@ export function MilitarDetalheOverlay({ militarId, onFechar }: { militarId: numb
       api.get<Afastamento | null>(`/api/militares/${militarId}/afastamento-atual`),
     ]).then(([m, f, a]) => {
       setMilitar(m);
+      setFoto(null);
+      if (m.temFoto) {
+        api.get<{ fotoBase64: string } | undefined>(`/api/militares/${militarId}/foto`)
+          .then((r) => setFoto(r?.fotoBase64 ?? null))
+          .catch(() => setFoto(null));
+      }
       setFuncoes(f);
       setAfastamento(a);
       setCarregando(false);
@@ -69,8 +76,8 @@ export function MilitarDetalheOverlay({ militarId, onFechar }: { militarId: numb
                   display: "flex", alignItems: "center", justifyContent: "center",
                 }}
               >
-                {militar.fotoBase64 ? (
-                  <img src={militar.fotoBase64} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                {foto ? (
+                  <img src={foto} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                 ) : (
                   <span style={{ fontSize: 32, color: "var(--grey-light)", fontFamily: "var(--font-display)", fontWeight: 700 }}>
                     {militar.nomeGuerra.charAt(0)}
@@ -103,10 +110,14 @@ export function MilitarDetalheOverlay({ militarId, onFechar }: { militarId: numb
             </div>
 
             <div className="popup-dados-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12, marginTop: 16, paddingTop: 14, borderTop: "1px solid var(--border-2)" }}>
-              <CampoDado label="CPF" valor={formatarCpf(militar.cpf)} />
-              <CampoDado label="NR REGISTRO" valor={militar.numeroRegistro || "—"} />
-              <CampoDado label="DATA NASCIMENTO" valor={militar.dataNascimento ? formatarDataBR(militar.dataNascimento) : "—"} />
-              <CampoDado label="FUSEX" valor={militar.fusex || "—"} />
+              {militar.cpf !== undefined && (
+                <>
+                  <CampoDado label="CPF" valor={formatarCpf(militar.cpf)} />
+                  <CampoDado label="NR REGISTRO" valor={militar.numeroRegistro || "—"} />
+                  <CampoDado label="DATA NASCIMENTO" valor={militar.dataNascimento ? formatarDataBR(militar.dataNascimento) : "—"} />
+                  <CampoDado label="FUSEX" valor={militar.fusex || "—"} />
+                </>
+              )}
               <CampoDado label="SITUAÇÃO" valor={militar.situacao} />
               <CampoDado label="ÚLTIMO SERVIÇO" valor={formatarContador(militar.contadorRodizio)} />
             </div>

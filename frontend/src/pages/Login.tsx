@@ -69,11 +69,13 @@ export function LoginPage() {
           <button className="btn btn-primary" style={{ width: "100%" }} disabled={enviando}>
             {enviando ? "Entrando…" : "Entrar"}
           </button>
-          <p style={{ fontSize: 11, color: "#8a9188", marginTop: 14 }}>
-            Contas de demonstração (senha <code>milscale123</code>): 000.000.000-01
-            (sargenteante), 000.000.000-02 (cabo), 000.000.000-03 (soldado),
-            000.000.000-04 (nogueira).
-          </p>
+          {import.meta.env.DEV && (
+            <p style={{ fontSize: 11, color: "#8a9188", marginTop: 14 }}>
+              Contas de demonstração (senha <code>milscale123</code>): 000.000.000-01
+              (sargenteante), 000.000.000-02 (cabo), 000.000.000-03 (soldado),
+              000.000.000-04 (nogueira).
+            </p>
+          )}
         </form>
       </div>
     </div>
