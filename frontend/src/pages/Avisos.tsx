@@ -5,6 +5,7 @@ import type { Aviso, BoletimResumo } from "../api/types";
 import { PageHeader } from "../components/layout/PageHeader";
 import { capitalizar, formatarDataBR, formatarPeriodo } from "../utils/formatadores";
 import { CalendarioMensal } from "../components/ui/CalendarioMensal";
+import { Esqueleto } from "../components/ui/Esqueleto";
 
 const TIPO_LABEL: Record<string, string> = {
   FERIADO: "Feriado",
@@ -81,7 +82,7 @@ export function AvisosPage() {
           </div>
 
           {carregando ? (
-            <p className="sub">Carregando…</p>
+            <Esqueleto />
           ) : (
             <CalendarioMensal
               ano={mesExibido.ano}

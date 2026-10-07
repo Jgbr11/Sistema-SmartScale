@@ -8,6 +8,8 @@ import { ordenarPorTipo } from "../utils/ordemTipos";
 import { capitalizar, formatarDataBR } from "../utils/formatadores";
 import { usePermissoes } from "../hooks/usePermissoes";
 import { useAoMudar } from "../hooks/useAoMudar";
+import { Esqueleto } from "../components/ui/Esqueleto";
+import { FitaDoServico } from "../components/ui/FitaDoServico";
 
 export function PainelPage() {
   const { fazTriagem: podeTriagem, autorizaTrocas: podeAutorizar } = usePermissoes();
@@ -49,8 +51,9 @@ export function PainelPage() {
     <>
       <PageHeader title="Painel" subtitle="Visão geral da escala e principais informações do batalhão" />
       <div className="body">
+        <FitaDoServico />
         {carregando ? (
-          <div className="card">Carregando…</div>
+          <Esqueleto />
         ) : (
           <>
             <div className="stat-grid">

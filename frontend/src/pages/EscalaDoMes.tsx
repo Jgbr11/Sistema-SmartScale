@@ -9,6 +9,8 @@ import { capitalizar, formatarDataBR } from "../utils/formatadores";
 import { usePermissoes } from "../hooks/usePermissoes";
 import { useAoMudar } from "../hooks/useAoMudar";
 import { CalendarioMensal } from "../components/ui/CalendarioMensal";
+import { progressoDoDia } from "../utils/servico";
+import { Esqueleto } from "../components/ui/Esqueleto";
 
 interface MesAno {
   ano: number;
@@ -183,7 +185,7 @@ export function EscalaDoMesPage() {
             </div>
           </div>
           {carregando ? (
-            <p className="sub">Carregando…</p>
+            <Esqueleto />
           ) : (
             <CalendarioMensal
               ano={mesExibido.ano}
@@ -197,9 +199,17 @@ export function EscalaDoMesPage() {
                 return {
                   rotulo: `${servicosDoDia.length} serviço${servicosDoDia.length === 1 ? "" : "s"}${travadoNoDia ? " · travado" : ""}`,
                   destaque: servicosDoDia.some((s) => !s.militar) ? "atencao" : undefined,
+                  progresso: progressoDoDia(dataStr),
                 };
               }}
             />
+          )}
+          {!carregando && (
+            <div className="calendar-legenda">
+              <span><i className="legenda-atencao" />Vaga em aberto</span>
+              <span><i className="legenda-hoje" />Hoje</span>
+              <span><i className="legenda-cumprido" />Serviço cumprido</span>
+            </div>
           )}
         </div>
 

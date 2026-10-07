@@ -7,6 +7,7 @@ import { PERFIL_LABEL } from "../utils/perfis";
 import { formatarCpf } from "../utils/formatadores";
 import { useAoMudar } from "../hooks/useAoMudar";
 import { useFeedback } from "../components/ui/Feedback";
+import { Esqueleto } from "../components/ui/Esqueleto";
 
 export function PerfisPermissoesPage() {
   const { confirmar } = useFeedback();
@@ -90,7 +91,7 @@ Ela aparece só agora. Entregue pessoalmente — no primeiro acesso a pessoa vai
 
         <div className="card" style={{ padding: 0 }}>
           {carregando ? (
-            <div style={{ padding: 20 }}>Carregando…</div>
+            <Esqueleto />
           ) : (
             <table>
               <thead>

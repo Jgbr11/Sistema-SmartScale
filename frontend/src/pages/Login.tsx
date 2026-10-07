@@ -4,6 +4,7 @@ import { ApiError } from "../api/client";
 import { useAuth } from "../context/AuthContext";
 import { useOrganizacao } from "../hooks/useOrganizacao";
 import { mascararCpf, somenteDigitos } from "../utils/mascaras";
+import { FitaDoServico } from "../components/ui/FitaDoServico";
 
 export function LoginPage() {
   const { entrar } = useAuth();
@@ -31,15 +32,10 @@ export function LoginPage() {
   return (
     <div className="login-wrap">
       <div className="login-ident">
+        <span className="sobrelinha sobrelinha-clara">{organizacao ? organizacao.nome : "Escala de serviço"}</span>
         <h1>MilScale</h1>
-        <p style={{ fontSize: 20, fontWeight: 500, color: "#c7d2ba" }}>
-          {organizacao ? `Escala de serviço do ${organizacao.nome}` : "Escala de serviço"}
-        </p>
-        <div className="rule" />
-        <p>
-          A escala de 24 horas do batalhão, montada automaticamente pela ordem
-          de quem está há mais tempo sem tirar serviço.
-        </p>
+        <p>Escala de serviço de 24 horas, montada pela ordem de quem está há mais tempo sem tirar serviço.</p>
+        <FitaDoServico />
       </div>
       <div className="login-form-wrap">
         <form className="login-card" onSubmit={handleSubmit}>
@@ -70,7 +66,7 @@ export function LoginPage() {
             {enviando ? "Entrando…" : "Entrar"}
           </button>
           {import.meta.env.DEV && (
-            <p style={{ fontSize: 11, color: "#8a9188", marginTop: 14 }}>
+            <p className="login-demo">
               Contas de demonstração (senha <code>milscale123</code>): 000.000.000-01
               (sargenteante), 000.000.000-02 (cabo), 000.000.000-03 (soldado),
               000.000.000-04 (nogueira).

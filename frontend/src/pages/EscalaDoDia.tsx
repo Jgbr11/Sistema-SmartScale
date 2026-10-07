@@ -7,6 +7,8 @@ import { MilitarDetalheOverlay } from "../components/militar/MilitarDetalheOverl
 import { ordenarPorTipo } from "../utils/ordemTipos";
 import { hojeISO } from "../utils/datas";
 import { useAoMudar } from "../hooks/useAoMudar";
+import { Esqueleto } from "../components/ui/Esqueleto";
+import { FitaDoServico } from "../components/ui/FitaDoServico";
 
 export function EscalaDoDiaPage() {
   const [data, setData] = useState(hojeISO());
@@ -33,6 +35,7 @@ export function EscalaDoDiaPage() {
     <>
       <PageHeader title="Escala do dia" subtitle="Escolha um dia pra ver quem está escalado" />
       <div className="body">
+        <FitaDoServico />
         <div className="card">
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
             <div className="field" style={{ marginBottom: 0 }}>
@@ -48,7 +51,7 @@ export function EscalaDoDiaPage() {
           </div>
 
           {carregando ? (
-            <p className="sub">Carregando…</p>
+            <Esqueleto />
           ) : servicos.length === 0 ? (
             <p className="sub">Nenhuma escala publicada para esse dia ainda.</p>
           ) : (

@@ -10,6 +10,7 @@ import DOMPurify from "dompurify";
 import { usePermissoes } from "../hooks/usePermissoes";
 import { useAoMudar } from "../hooks/useAoMudar";
 import { useFeedback } from "../components/ui/Feedback";
+import { Esqueleto } from "../components/ui/Esqueleto";
 
 export function BoletimPage() {
   const { avisar, confirmar } = useFeedback();
@@ -68,7 +69,7 @@ export function BoletimPage() {
       <PageHeader title="Boletim Interno" subtitle="Comunicados do batalhão — texto e imagens" />
       <div className="body">
         {podeEditar && !mostrarForm && (
-          <div style={{ display: "flex", justifyContent: "flex-end" }}>
+          <div className="linha-fim">
             <button className="btn btn-primary" onClick={() => { setEditando(null); setMostrarForm(true); }}>Novo boletim</button>
           </div>
         )}
@@ -82,7 +83,7 @@ export function BoletimPage() {
         )}
 
         {carregando ? (
-          <div className="card">Carregando…</div>
+          <Esqueleto />
         ) : boletins.length === 0 ? (
           <div className="card" style={{ color: "var(--grey)", fontSize: 13 }}>Nenhum boletim publicado ainda.</div>
         ) : (

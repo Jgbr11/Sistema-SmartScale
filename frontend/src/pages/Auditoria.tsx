@@ -3,6 +3,7 @@ import { api } from "../api/client";
 import type { LogAuditoria } from "../api/types";
 import { PageHeader } from "../components/layout/PageHeader";
 import { formatarDataHora } from "../utils/formatadores";
+import { Esqueleto } from "../components/ui/Esqueleto";
 
 const ACAO_LABEL: Record<string, string> = {
   MILITAR_CADASTRADO: "Militar cadastrado",
@@ -84,7 +85,7 @@ export function AuditoriaPage() {
         </div>
         <div className="card" style={{ padding: 0 }}>
           {carregando ? (
-            <div style={{ padding: 20 }}>Carregando…</div>
+            <Esqueleto />
           ) : filtrados.length === 0 ? (
             <div style={{ padding: 20, color: "var(--grey)", fontSize: 13 }}>Nenhum registro ainda.</div>
           ) : (

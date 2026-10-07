@@ -6,6 +6,7 @@ import { formatarPeriodo } from "../utils/formatadores";
 import { usePermissoes } from "../hooks/usePermissoes";
 import { useAoMudar } from "../hooks/useAoMudar";
 import { useFeedback } from "../components/ui/Feedback";
+import { Esqueleto } from "../components/ui/Esqueleto";
 
 const TIPOS: { valor: Feriado["tipo"]; label: string }[] = [
   { valor: "NACIONAL", label: "Nacional" },
@@ -59,7 +60,7 @@ export function FeriadosPage() {
       />
       <div className="body">
         {podeEditar && (
-          <div style={{ display: "flex", justifyContent: "flex-end" }}>
+          <div className="linha-fim">
             <button className="btn btn-primary" onClick={() => { setEditando(null); setMostrarForm((v) => !v); }}>
               {mostrarForm ? "Cancelar" : "Novo feriado"}
             </button>
@@ -74,7 +75,7 @@ export function FeriadosPage() {
 
         <div className="card" style={{ padding: 0 }}>
           {carregando ? (
-            <div style={{ padding: 20 }}>Carregando…</div>
+            <Esqueleto />
           ) : feriados.length === 0 ? (
             <div style={{ padding: 20, color: "var(--grey)", fontSize: 13 }}>Nenhum feriado cadastrado.</div>
           ) : (

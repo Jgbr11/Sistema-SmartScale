@@ -9,6 +9,7 @@ import { hojeISO } from "../utils/datas";
 import { useAoMudar } from "../hooks/useAoMudar";
 import { useFeedback } from "../components/ui/Feedback";
 import { TabelaSolicitacoes, type Coluna } from "../components/trocas/TabelaSolicitacoes";
+import { Esqueleto } from "../components/ui/Esqueleto";
 
 const NOTA = { display: "block", fontSize: 11, color: "var(--grey)" } as const;
 
@@ -158,7 +159,7 @@ export function TrocasPage() {
 
         {aba === "minhas" && (
           <>
-            <div style={{ display: "flex", justifyContent: "flex-end" }}>
+            <div className="linha-fim">
               <button className="btn btn-primary" onClick={() => setMostrarForm((v) => !v)}>
                 {mostrarForm ? "Cancelar" : "Pedir troca"}
               </button>
@@ -166,7 +167,7 @@ export function TrocasPage() {
             {mostrarForm && <PedirTrocaForm onCriado={() => { setMostrarForm(false); carregar(); }} />}
             <div className="card" style={{ padding: 0 }}>
               {carregando ? (
-                <div className="vazio">Carregando…</div>
+                <Esqueleto />
               ) : (
                 <TabelaSolicitacoes
                   itens={minhas}

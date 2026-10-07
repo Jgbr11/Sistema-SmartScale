@@ -9,6 +9,7 @@ import { usePermissoes } from "../hooks/usePermissoes";
 import { hojeISO } from "../utils/datas";
 import { useAoMudar } from "../hooks/useAoMudar";
 import { useFeedback } from "../components/ui/Feedback";
+import { Esqueleto } from "../components/ui/Esqueleto";
 
 interface GrupoAfastamento {
   loteOuId: string;
@@ -116,7 +117,7 @@ export function MissoesDispensasPage() {
           </div>
         )}
 
-        <div style={{ display: "flex", justifyContent: "flex-end", gap: 8 }}>
+        <div className="linha-fim">
           <BotaoBaixarCsv caminho={`afastamentos.csv?mes=${hoje.slice(0, 7)}`} rotulo="Baixar CSV do mês" />
           {podeEditar && (
             <button className="btn btn-primary" onClick={() => { setEditando(null); setMostrarForm((v) => !v); }}>
@@ -140,7 +141,7 @@ export function MissoesDispensasPage() {
 
         <div className="card" style={{ padding: 0 }}>
           {carregando ? (
-            <div style={{ padding: 20 }}>Carregando…</div>
+            <Esqueleto />
           ) : grupos.length === 0 ? (
             <div style={{ padding: 20, color: "var(--grey)", fontSize: 13 }}>Nenhum afastamento registrado.</div>
           ) : (

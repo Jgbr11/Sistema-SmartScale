@@ -87,13 +87,13 @@ Três frentes:
 
 | Ordem | Task | Status | Commit | Resumo |
 |---|---|---|---|---|
-| 1 | 0 — Preparação e capturas "antes" | ⬜ Pendente | — | — |
-| 2 | 1 — Tokens, fontes e base | ⬜ Pendente | — | — |
-| 3 | 2 — Menu com ícones e cabeçalho com seção | ⬜ Pendente | — | — |
-| 4 | 3 — Componentes de estado (vazio, carregando, etiqueta) | ⬜ Pendente | — | — |
-| 5 | 4 — Assinatura: fita do serviço | ⬜ Pendente | — | — |
-| 6 | 5 — Calendário "quadro de escala" | ⬜ Pendente | — | — |
-| 7 | 6 — Tela de login | ⬜ Pendente | — | — |
+| 1 | 0 — Preparação e capturas "antes" | 🟡 Lote 6, aguardando commit | — | Branch `melhoria/visual` a partir de `melhoria/qualidade`; inline 307 no início. **Capturas não feitas** (sem navegador no ambiente) — o `git show 72cfbf4` guarda o visual anterior |
+| 2 | 1 — Tokens, fontes e base | 🟡 Lote 6, aguardando commit | — | `styles.css` reescrito com os tokens, as 4 fontes e apelidos para os nomes antigos; mesmas classes |
+| 3 | 2 — Menu com ícones e cabeçalho com seção | 🟡 Lote 6, aguardando commit | — | `Icone` (+ `postos` e `subunidades`), `secaoDaRota` com teste, `PageHeader` com sobrelinha e `acoes`; menu com ícones e "Sair". Botões de topo foram para `.linha-fim` (mover para `acoes` fica para a Task 7) |
+| 4 | 3 — Componentes de estado (vazio, carregando, etiqueta) | 🟡 Lote 6, aguardando commit | — | `EstadoVazio`, `Esqueleto`, `Etiqueta`; 19 "Carregando…" viraram `<Esqueleto />`. As `.pill-*` ganharam o mesmo visual de `Etiqueta` |
+| 5 | 4 — Assinatura: fita do serviço | 🟡 Lote 6, aguardando commit | — | `servicoEmCurso` (3 testes) + `FitaDoServico` no Painel, na Escala do dia e no Login |
+| 6 | 5 — Calendário "quadro de escala" | 🟡 Lote 6, aguardando commit | — | Numerais em estêncil, filete de progresso por dia (`progressoDoDia`), "hoje" em latão, legenda na Escala do mês |
+| 7 | 6 — Tela de login | 🟡 Lote 6, aguardando commit | — | Lado de identidade com sobrelinha da OM, letreiro e a fita; cartão com filete oliva |
 | 8 | 7 — Tabelas, formulários e fim dos estilos inline | ⬜ Pendente | — | — |
 | 9 | 8 — Acessibilidade e responsivo | ⬜ Pendente | — | — |
 | 10 | 9 — Textos de interface | ⬜ Pendente | — | — |

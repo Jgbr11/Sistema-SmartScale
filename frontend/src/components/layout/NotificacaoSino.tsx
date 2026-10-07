@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { api } from "../../api/client";
 import type { Notificacao } from "../../api/types";
+import { Esqueleto } from "../ui/Esqueleto";
 
 export function NotificacaoSino() {
   const [contagem, setContagem] = useState(0);
@@ -116,7 +117,7 @@ export function NotificacaoSino() {
             )}
           </div>
           {carregando ? (
-            <div style={{ padding: 16, fontSize: 12, color: "var(--grey)" }}>Carregando…</div>
+            <Esqueleto />
           ) : notificacoes.length === 0 ? (
             <div style={{ padding: 16, fontSize: 12, color: "var(--grey)" }}>Nenhuma notificação ainda.</div>
           ) : (

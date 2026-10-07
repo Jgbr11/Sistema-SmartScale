@@ -5,6 +5,7 @@ import { PageHeader } from "../components/layout/PageHeader";
 import { useAuth } from "../context/AuthContext";
 import { PERFIL_LABEL } from "../utils/perfis";
 import { formatarCpf, formatarDataBR } from "../utils/formatadores";
+import { Esqueleto } from "../components/ui/Esqueleto";
 
 export function MinhaContaPage() {
   const { usuario, recarregar } = useAuth();
@@ -31,7 +32,7 @@ export function MinhaContaPage() {
         <div className="card">
           <h3>Meus dados</h3>
           {!militar ? (
-            <p className="sub">Carregando…</p>
+            <Esqueleto />
           ) : (
             <div className="form-grid" style={{ marginTop: 10 }}>
               <CampoLeitura label="Nome completo" valor={militar.nomeCompleto} />

@@ -6,6 +6,7 @@ export interface InfoDoDia {
   rotulo?: string;
   destaque?: "atencao" | "positivo" | "servico";
   habilitado?: boolean;
+  progresso?: number;
 }
 
 interface Props {
@@ -41,6 +42,11 @@ export function CalendarioMensal({ ano, mes, diaSelecionado = null, onSelecionar
           >
             {dia}
             {info.rotulo && <span className="tipo">{info.rotulo}</span>}
+            {info.progresso !== undefined && info.progresso > 0 && (
+              <span className="dia-fita" aria-hidden="true">
+                <span style={{ width: `${Math.min(1, info.progresso) * 100}%` }} />
+              </span>
+            )}
           </button>
         );
       })}

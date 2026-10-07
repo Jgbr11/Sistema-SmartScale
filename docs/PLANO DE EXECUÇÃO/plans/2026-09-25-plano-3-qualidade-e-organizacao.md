@@ -39,15 +39,15 @@
 | 1 | 0 — Preparação | ✅ Lote 4 | `53c7fd3` | backend 160 | Branch `melhoria/qualidade` a partir de `melhoria/implementacoes` (Planos 2 e 5 inclusos); linha de base: 514 comentários no backend, 87 no front, 19 avisos de lint |
 | 2 | 1 — Matriz de rastreabilidade RF/RN | ✅ Lote 4 | `53c7fd3` | backend 160 | `docs/RASTREABILIDADE.md` (RF, RN e itens da disciplina) + link no README |
 | 3 | 2 — Limpeza de comentários (backend e configuração) | ✅ Lote 4 | `53c7fd3` | backend 160 | Script que respeita strings: 514 → 19 linhas (só delimitadores e marcações LPS); `INTERVALO_MINIMO_SEM_REGRA_CADASTRADA`; properties com delimitadores; migrations intocadas |
-| 4 | 3 — Limpeza de comentários e de códigos RF/RN (frontend) | 🟡 Lote 5, aguardando commit | — | front 18 | Comentários 87 → 0; 20 textos de tela sem RF/RN; `EmConstrucao.tsx` apagada |
+| 4 | 3 — Limpeza de comentários e de códigos RF/RN (frontend) | ✅ Lote 5 | `72cfbf4` | front 18 | Comentários 87 → 0; 20 textos de tela sem RF/RN; `EmConstrucao.tsx` apagada |
 | 5 | 4 — Higiene do backend | ✅ Lote 4 | `53c7fd3` | backend 160 | Auditoria loga a falha; nomes completos viraram imports (12 arquivos); `CadastroApoio*` já tinha saído no Plano 5 |
 | 6 | 5 — Testes de arquitetura (ArchUnit) | ✅ Lote 4 | `53c7fd3` | backend 160 | ArchUnit 1.3.0, 4 regras, todas verdes (a de e-mail já nasce ativa por causa da Task 6 no mesmo lote) |
 | 7 | 6 — Porta de e-mail e agendador como adaptadores | ✅ Lote 4 | `53c7fd3` | backend 160 | `EnvioDeEmail` (porta) + `EnvioDeEmailSmtp` (mascara o e-mail no log) + `LembreteServicoAgendador`; `LembreteServicoService` testado |
 | 8 | 7 — Respostas leves (Boletim e Painel) | ✅ Lote 4 | `53c7fd3` | backend 160 | `BoletimResumo` na lista (conteúdo sob demanda); `GET /api/painel/resumo` com contagens no banco; Painel não baixa mais militares e afastamentos |
-| 9 | 8 — Frontend: hooks, datas e organização de pastas | 🟡 Lote 5, aguardando commit | — | front 18 | `utils/datas` (corrige o bug do `toISOString`), `usePermissoes`, `useCarregamento` e `useAoMudar` (com `useEffectEvent`); pastas `layout/ui/militar/boletim/servico/trocas`; zero `eslint-disable`; lint 19 → 8 |
-| 10 | 9 — Frontend: rotas protegidas por perfil | 🟡 Lote 5, aguardando commit | — | front 18 | `RotaProtegida perfis={...}`; página 404; rota `/bloqueio` removida |
-| 11 | 10 — Frontend: diálogos, avisos e tratamento de erro | 🟡 Lote 5, aguardando commit | — | front 18 | `FeedbackProvider`/`useFeedback` com teste (jsdom); 19 `confirm/alert/prompt` trocados; ações de Trocas, Boletim, Missões, Qualificações e Tipos com `try/catch` e aviso |
-| 12 | 11 — Frontend: calendário e tabela de trocas compartilhados | 🟡 Lote 5, aguardando commit | — | front 18 | `CalendarioMensal` (com destaque de hoje) em Escala do mês, Avisos e Minha escala; `TabelaSolicitacoes` nas 4 abas de Trocas |
+| 9 | 8 — Frontend: hooks, datas e organização de pastas | ✅ Lote 5 | `72cfbf4` | front 18 | `utils/datas` (corrige o bug do `toISOString`), `usePermissoes`, `useCarregamento` e `useAoMudar` (com `useEffectEvent`); pastas `layout/ui/militar/boletim/servico/trocas`; zero `eslint-disable`; lint 19 → 8 |
+| 10 | 9 — Frontend: rotas protegidas por perfil | ✅ Lote 5 | `72cfbf4` | front 18 | `RotaProtegida perfis={...}`; página 404; rota `/bloqueio` removida |
+| 11 | 10 — Frontend: diálogos, avisos e tratamento de erro | ✅ Lote 5 | `72cfbf4` | front 18 | `FeedbackProvider`/`useFeedback` com teste (jsdom); 19 `confirm/alert/prompt` trocados; ações de Trocas, Boletim, Missões, Qualificações e Tipos com `try/catch` e aviso |
+| 12 | 11 — Frontend: calendário e tabela de trocas compartilhados | ✅ Lote 5 | `72cfbf4` | front 18 | `CalendarioMensal` (com destaque de hoje) em Escala do mês, Avisos e Minha escala; `TabelaSolicitacoes` nas 4 abas de Trocas |
 
 ---
 

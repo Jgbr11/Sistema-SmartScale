@@ -5,6 +5,7 @@ import { PageHeader } from "../components/layout/PageHeader";
 import { capitalizar } from "../utils/formatadores";
 import { useAoMudar } from "../hooks/useAoMudar";
 import { CalendarioMensal } from "../components/ui/CalendarioMensal";
+import { progressoDoDia } from "../utils/servico";
 
 export function MinhaEscalaPage() {
   const hoje = new Date();
@@ -73,7 +74,7 @@ export function MinhaEscalaPage() {
             mes={mes}
             infoDoDia={(dataStr) => {
               const servico = servicoPorDia.get(Number(dataStr.slice(8)));
-              return servico ? { rotulo: servico.tipoServico.nome, destaque: "servico" } : {};
+              return servico ? { rotulo: servico.tipoServico.nome, destaque: "servico", progresso: progressoDoDia(dataStr) } : {};
             }}
           />
         </div>

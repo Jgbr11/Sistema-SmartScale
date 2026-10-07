@@ -5,6 +5,7 @@ import { PageHeader } from "../components/layout/PageHeader";
 import { usePermissoes } from "../hooks/usePermissoes";
 import { useAoMudar } from "../hooks/useAoMudar";
 import { useFeedback } from "../components/ui/Feedback";
+import { Esqueleto } from "../components/ui/Esqueleto";
 
 interface Rascunho {
   sigla: string;
@@ -80,7 +81,7 @@ export function SubunidadesPage() {
       />
       <div className="body">
         {podeEditar && (
-          <div style={{ display: "flex", justifyContent: "flex-end" }}>
+          <div className="linha-fim">
             <button className="btn btn-primary" onClick={() => setMostrarForm((v) => !v)}>
               {mostrarForm ? "Cancelar" : "Nova subunidade"}
             </button>
@@ -100,7 +101,7 @@ export function SubunidadesPage() {
 
         <div className="card" style={{ padding: 0 }}>
           {carregando ? (
-            <div style={{ padding: 20 }}>Carregando…</div>
+            <Esqueleto />
           ) : (
             <table>
               <thead>

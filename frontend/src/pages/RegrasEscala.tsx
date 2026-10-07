@@ -4,6 +4,7 @@ import type { RegraEscala } from "../api/types";
 import { PageHeader } from "../components/layout/PageHeader";
 import { usePermissoes } from "../hooks/usePermissoes";
 import { useAoMudar } from "../hooks/useAoMudar";
+import { Esqueleto } from "../components/ui/Esqueleto";
 
 export function RegrasEscalaPage() {
   const { mantemConfiguracoes: podeEditar } = usePermissoes();
@@ -58,7 +59,7 @@ export function RegrasEscalaPage() {
         {erro && <div className="error-box">{erro}</div>}
         <div className="card" style={{ padding: 0 }}>
           {carregando ? (
-            <div style={{ padding: 20 }}>Carregando…</div>
+            <Esqueleto />
           ) : (
             <table>
               <thead>

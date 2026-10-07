@@ -7,6 +7,7 @@ import { mascararCpf, mascararFusex, mascararTelefone, somenteDigitos } from "..
 import { usePermissoes } from "../hooks/usePermissoes";
 import { useAoMudar } from "../hooks/useAoMudar";
 import { useFeedback } from "../components/ui/Feedback";
+import { Esqueleto } from "../components/ui/Esqueleto";
 
 export function MilitaresPage() {
   const { gerenciaCadastros: podeEditar } = usePermissoes();
@@ -48,7 +49,7 @@ export function MilitaresPage() {
       <PageHeader title="Militares" subtitle={`${ativos} militares ativos`} />
       <div className="body">
         {podeEditar && (
-          <div style={{ display: "flex", justifyContent: "flex-end" }}>
+          <div className="linha-fim">
             <button className="btn btn-primary" onClick={() => setMostrarForm((v) => !v)}>
               {mostrarForm ? "Cancelar" : "Novo militar"}
             </button>
@@ -68,7 +69,7 @@ export function MilitaresPage() {
 
         <div className="card" style={{ padding: 0 }}>
           {carregando ? (
-            <div style={{ padding: 20 }}>Carregando…</div>
+            <Esqueleto />
           ) : (
             <table>
               <thead>

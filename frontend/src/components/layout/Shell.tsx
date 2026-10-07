@@ -3,6 +3,27 @@ import { useEffect, useState } from "react";
 import { useAuth } from "../../context/AuthContext";
 import { NotificacaoSino } from "./NotificacaoSino";
 import { PERFIL_LABEL } from "../../utils/perfis";
+import { Icone, type NomeIcone } from "../ui/Icone";
+
+const ICONE_POR_ROTA: Record<string, NomeIcone> = {
+  "/painel": "painel",
+  "/boletim": "boletim",
+  "/escala": "escala",
+  "/minha-escala": "escala",
+  "/trocas": "trocas",
+  "/militares": "militares",
+  "/qualificacoes": "cursos",
+  "/missoes": "missoes",
+  "/tipos-servico": "tipos",
+  "/regras": "regras",
+  "/feriados": "feriados",
+  "/postos-graduacao": "postos",
+  "/subunidades": "subunidades",
+  "/perfis": "perfis",
+  "/auditoria": "auditoria",
+  "/historico": "historico",
+  "/avisos": "avisos",
+};
 
 interface Item {
   label: string;
@@ -99,14 +120,14 @@ export function Shell({ children }: { children: React.ReactNode }) {
   return (
     <div className="app-shell">
       <div className="mobile-topbar">
-        <button className="hamburger" onClick={() => setMenuAberto(true)} aria-label="Abrir menu">☰</button>
-        <span className="brand-mini" style={{ flex: 1 }}>MilScale</span>
+        <button className="hamburger" onClick={() => setMenuAberto(true)} aria-label="Abrir menu" aria-expanded={menuAberto} aria-controls="menu-lateral">☰</button>
+        <span className="brand-mini">MilScale</span>
         {usuario && !usuario.trocarSenha && <NotificacaoSino />}
       </div>
       <div className={"sidebar-backdrop" + (menuAberto ? " open" : "")} onClick={() => setMenuAberto(false)} />
-      <aside className={"sidebar" + (menuAberto ? " open" : "")}>
-        <div className="brand" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
+      <aside id="menu-lateral" className={"sidebar" + (menuAberto ? " open" : "")}>
+        <div className="brand brand-linha">
+          <div className="linha">
             <div className="crest">M</div>
             <div>
               <h1>MilScale</h1>
@@ -115,28 +136,28 @@ export function Shell({ children }: { children: React.ReactNode }) {
           </div>
           {usuario && !usuario.trocarSenha && <NotificacaoSino />}
         </div>
-        <nav style={{ flex: 1 }}>
+        <nav className="menu-itens">
           {menu?.topo?.map((item) => <ItemLink key={item.to} item={item} />)}
           {menu?.grupos.map((g, i) => (
-            <div key={i} style={{ marginTop: i === 0 && !menu.topo ? 0 : 14 }}>
+            <div key={i} className="menu-grupo">
               {g.label && <div className="section-label">{g.label}</div>}
               {g.itens.map((item) => <ItemLink key={item.to} item={item} />)}
             </div>
           ))}
           {menu?.rodape && (
-            <div style={{ marginTop: 14 }}>
+            <div className="menu-grupo">
               <ItemLink item={menu.rodape} />
             </div>
           )}
         </nav>
         {usuario && (
-          <NavLink to="/minha-conta" className="user-box" style={{ cursor: "pointer" }}>
+          <NavLink to="/minha-conta" className="user-box">
             <strong>{usuario.nomeExibicao}</strong>
             <small>{PERFIL_LABEL[usuario.perfil] ?? usuario.perfil}</small>
           </NavLink>
         )}
         <button className="logout" onClick={sair}>
-          ↩ Log out
+          <Icone nome="sair" tamanho={16} /> Sair
         </button>
       </aside>
       <div className="content">{children}</div>
@@ -147,7 +168,8 @@ export function Shell({ children }: { children: React.ReactNode }) {
 function ItemLink({ item }: { item: Item }) {
   return (
     <NavLink to={item.to} className={({ isActive }) => (isActive ? "active" : "")}>
-      {item.label}
+      <Icone nome={ICONE_POR_ROTA[item.to] ?? "escala"} />
+      <span>{item.label}</span>
     </NavLink>
   );
 }

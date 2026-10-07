@@ -4,6 +4,7 @@ import type { Afastamento, Militar, TipoServico } from "../../api/types";
 import { useOrganizacao } from "../../hooks/useOrganizacao";
 import { TIPO_AFASTAMENTO_LABEL } from "../../utils/afastamentoTipos";
 import { formatarCpf, formatarDataBR } from "../../utils/formatadores";
+import { Esqueleto } from "../ui/Esqueleto";
 
 export function MilitarDetalheOverlay({ militarId, onFechar }: { militarId: number | null; onFechar: () => void }) {
   const [militar, setMilitar] = useState<Militar | null>(null);
@@ -65,7 +66,7 @@ export function MilitarDetalheOverlay({ militarId, onFechar }: { militarId: numb
         </div>
 
         {carregando || !militar ? (
-          <div style={{ padding: 30 }}>Carregando…</div>
+          <Esqueleto />
         ) : (
           <div style={{ padding: 20 }}>
             <div style={{ display: "flex", gap: 18 }}>
