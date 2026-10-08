@@ -75,24 +75,17 @@ export function NotificacaoSino() {
   }
 
   return (
-    <div style={{ position: "relative" }}>
+    <div className="sino">
       <button
         ref={botaoRef}
         onClick={abrirPainel}
         aria-label="Notificações"
-        style={{
-          position: "relative", background: "none", border: "1px solid var(--footer-border)",
-          borderRadius: 6, width: 34, height: 34, color: "#fff", fontSize: 15, cursor: "pointer",
-        }}
+        className="sino-botao"
       >
         🔔
         {contagem > 0 && (
           <span
-            style={{
-              position: "absolute", top: -5, right: -5, background: "var(--red-text)", color: "#fff",
-              borderRadius: 999, fontSize: 10, fontWeight: 700, minWidth: 16, height: 16,
-              display: "flex", alignItems: "center", justifyContent: "center", padding: "0 3px",
-            }}
+            className="sino-contador"
           >
             {contagem > 9 ? "9+" : contagem}
           </span>
@@ -108,10 +101,10 @@ export function NotificacaoSino() {
             zIndex: 500,
           }}
         >
-          <div style={{ padding: "10px 14px", borderBottom: "1px solid var(--border-2)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-            <strong style={{ fontSize: 12.5 }}>Notificações</strong>
+          <div className="sino-cabecalho">
+            <strong className="texto-125">Notificações</strong>
             {contagem > 0 && (
-              <button onClick={marcarTodasLidas} style={{ background: "none", border: "none", color: "var(--sidebar-active)", fontSize: 11, cursor: "pointer" }}>
+              <button onClick={marcarTodasLidas} className="link-pequeno">
                 Marcar tudo como lido
               </button>
             )}
@@ -119,7 +112,7 @@ export function NotificacaoSino() {
           {carregando ? (
             <Esqueleto />
           ) : notificacoes.length === 0 ? (
-            <div style={{ padding: 16, fontSize: 12, color: "var(--grey)" }}>Nenhuma notificação ainda.</div>
+            <div className="vazio">Nenhuma notificação ainda.</div>
           ) : (
             notificacoes.map((n) => (
               <button
@@ -132,7 +125,7 @@ export function NotificacaoSino() {
                 }}
               >
                 <div style={{ fontSize: 12, color: "var(--dark)", fontWeight: n.lida ? 400 : 600 }}>{n.mensagem}</div>
-                <div style={{ fontSize: 10.5, color: "var(--grey)", marginTop: 2 }}>{formatarQuando(n.dataCriacao)}</div>
+                <div className="nota-mini mt-2">{formatarQuando(n.dataCriacao)}</div>
               </button>
             ))
           )}

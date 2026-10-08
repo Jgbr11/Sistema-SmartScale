@@ -101,14 +101,14 @@ export function MissoesDispensasPage() {
       />
       <div className="body">
         {ofertaRegenerar && (
-          <div className="card" style={{ background: "var(--amber-bg)", border: "none" }}>
+          <div className="card card-atencao">
             <p style={{ fontSize: 13, marginBottom: erroRegenerar ? 4 : 10 }}>
               Afastamento cancelado. A escala de {formatarDataBR(ofertaRegenerar.dataInicio)} a{" "}
               {formatarDataBR(ofertaRegenerar.dataFim)} ainda reflete a redistribuição feita na hora do
               cadastro. Quer regenerar esse período agora, pra redistribuir de forma justa?
             </p>
-            {erroRegenerar && <div className="error-box" style={{ marginBottom: 10 }}>{erroRegenerar}</div>}
-            <div style={{ display: "flex", gap: 8 }}>
+            {erroRegenerar && <div className="error-box mb-10">{erroRegenerar}</div>}
+            <div className="linha">
               <button className="btn btn-primary" onClick={regenerarPeriodo} disabled={regenerando}>
                 {regenerando ? "Regenerando…" : "Regenerar este período"}
               </button>
@@ -139,11 +139,11 @@ export function MissoesDispensasPage() {
           />
         )}
 
-        <div className="card" style={{ padding: 0 }}>
+        <div className="card card-tabela">
           {carregando ? (
             <Esqueleto />
           ) : grupos.length === 0 ? (
-            <div style={{ padding: 20, color: "var(--grey)", fontSize: 13 }}>Nenhum afastamento registrado.</div>
+            <div className="vazio">Nenhum afastamento registrado.</div>
           ) : (
             <table>
               <thead>
@@ -172,8 +172,8 @@ export function MissoesDispensasPage() {
                         </span>
                       </td>
                       {podeEditar && (
-                        <td style={{ whiteSpace: "nowrap" }}>
-                          <button className="btn btn-outline" style={{ marginRight: 6 }} onClick={() => { setMostrarForm(false); setEditando(g); }}>Editar</button>
+                        <td className="nowrap">
+                          <button className="btn btn-outline mr-6" onClick={() => { setMostrarForm(false); setEditando(g); }}>Editar</button>
                           <button className="btn btn-outline" onClick={() => cancelarGrupo(g.ids, g.dataInicio, g.dataFim)}>Cancelar</button>
                         </td>
                       )}
@@ -246,10 +246,10 @@ function NovoAfastamentoForm({ militares, onCriado }: { militares: Militar[]; on
 
       <div className="field">
         <label>Militares ({militarIds.size} selecionado{militarIds.size === 1 ? "" : "s"})</label>
-        <input value={busca} onChange={(e) => setBusca(e.target.value)} placeholder="Buscar por nome…" style={{ marginBottom: 8 }} />
-        <div style={{ maxHeight: 180, overflowY: "auto", border: "1px solid var(--border)", borderRadius: 5, padding: 8 }}>
+        <input value={busca} onChange={(e) => setBusca(e.target.value)} placeholder="Buscar por nome…" className="mb-8" />
+        <div className="lista-rolagem">
           {militaresFiltrados.slice(0, 60).map((m) => (
-            <label key={m.id} style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12.5, padding: "3px 0", cursor: "pointer" }}>
+            <label key={m.id} className="opcao-check">
               <input type="checkbox" checked={militarIds.has(m.id)} onChange={() => alternar(m.id)} />
               {m.nomeExibicao}
             </label>
@@ -341,7 +341,7 @@ function EditarAfastamentoForm({ grupo, onSalvo, onCancelar }: { grupo: GrupoAfa
         <label>Descrição</label>
         <input value={descricao} onChange={(e) => setDescricao(e.target.value)} />
       </div>
-      <div style={{ display: "flex", gap: 8 }}>
+      <div className="linha">
         <button className="btn btn-primary" onClick={salvar} disabled={salvando}>
           {salvando ? "Salvando…" : "Salvar alterações"}
         </button>

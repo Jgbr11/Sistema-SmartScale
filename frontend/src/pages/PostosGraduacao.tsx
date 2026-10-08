@@ -88,7 +88,7 @@ export function PostosGraduacaoPage() {
 
         {erro && <div className="error-box">{erro}</div>}
 
-        <div className="card" style={{ padding: 0 }}>
+        <div className="card card-tabela">
           {carregando ? (
             <Esqueleto />
           ) : (
@@ -108,32 +108,32 @@ export function PostosGraduacaoPage() {
                     <tr key={p.id}>
                       <td>
                         {editando ? (
-                          <input type="number" min={1} max={99} style={{ width: 70 }} value={rascunho.nivelHierarquico}
+                          <input type="number" min={1} max={99} className="w-70" value={rascunho.nivelHierarquico}
                             onChange={(e) => setRascunho((s) => ({ ...s, nivelHierarquico: e.target.value }))} />
                         ) : p.nivelHierarquico}
                       </td>
                       <td>
                         {editando ? (
-                          <input style={{ width: 90 }} value={rascunho.sigla}
+                          <input className="w-90" value={rascunho.sigla}
                             onChange={(e) => setRascunho((s) => ({ ...s, sigla: e.target.value }))} />
                         ) : p.sigla}
                       </td>
                       <td>
                         {editando ? (
-                          <input style={{ width: "100%" }} value={rascunho.descricao}
+                          <input className="largura-total" value={rascunho.descricao}
                             onChange={(e) => setRascunho((s) => ({ ...s, descricao: e.target.value }))} />
                         ) : p.descricao}
                       </td>
                       {podeEditar && (
-                        <td style={{ whiteSpace: "nowrap" }}>
+                        <td className="nowrap">
                           {editando ? (
                             <>
-                              <button className="btn btn-primary" style={{ marginRight: 6 }} onClick={() => salvarEdicao(p.id)}>Salvar</button>
+                              <button className="btn btn-primary mr-6" onClick={() => salvarEdicao(p.id)}>Salvar</button>
                               <button className="btn btn-outline" onClick={() => setEditandoId(null)}>Cancelar</button>
                             </>
                           ) : (
                             <>
-                              <button className="btn btn-outline" style={{ marginRight: 6 }} onClick={() => iniciarEdicao(p)}>Editar</button>
+                              <button className="btn btn-outline mr-6" onClick={() => iniciarEdicao(p)}>Editar</button>
                               <button className="btn btn-outline" onClick={() => excluir(p)}>Excluir</button>
                             </>
                           )}

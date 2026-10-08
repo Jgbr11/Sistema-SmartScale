@@ -80,14 +80,14 @@ export function AuditoriaPage() {
     <>
       <PageHeader title="Log de auditoria" subtitle="Quem fez o quê no sistema — só o Sargenteante vê" />
       <div className="body">
-        <div className="field" style={{ maxWidth: 320 }}>
+        <div className="field max-320">
           <input value={busca} onChange={(e) => setBusca(e.target.value)} placeholder="Buscar por pessoa, ação ou detalhe…" />
         </div>
-        <div className="card" style={{ padding: 0 }}>
+        <div className="card card-tabela">
           {carregando ? (
             <Esqueleto />
           ) : filtrados.length === 0 ? (
-            <div style={{ padding: 20, color: "var(--grey)", fontSize: 13 }}>Nenhum registro ainda.</div>
+            <div className="vazio">Nenhum registro ainda.</div>
           ) : (
             <table>
               <thead>
@@ -101,10 +101,10 @@ export function AuditoriaPage() {
               <tbody>
                 {filtrados.map((l) => (
                   <tr key={l.id}>
-                    <td style={{ whiteSpace: "nowrap", fontSize: 12 }}>{formatarDataHora(l.dataHora)}</td>
+                    <td className="nowrap texto-12">{formatarDataHora(l.dataHora)}</td>
                     <td>{l.usuarioNomeExibicao ?? "sistema"}</td>
                     <td><span className="pill pill-grey">{ACAO_LABEL[l.acao] ?? l.acao}</span></td>
-                    <td style={{ fontSize: 12 }}>{l.descricao ?? "—"}</td>
+                    <td className="texto-12">{l.descricao ?? "—"}</td>
                   </tr>
                 ))}
               </tbody>

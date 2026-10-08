@@ -78,12 +78,12 @@ export function PainelPage() {
             </div>
 
             <div className="dashboard-grid">
-              <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+              <div className="pilha">
                 <div className="card">
                   <h3>Serviço de hoje — {capitalizar(hojeExtenso)}</h3>
                   <p className="sub">Quem está escalado neste exato momento</p>
                   {servicosHoje.length === 0 ? (
-                    <p className="sub" style={{ marginTop: 8 }}>
+                    <p className="sub mt-8">
                       Nenhuma escala publicada cobre o dia de hoje.
                     </p>
                   ) : (
@@ -104,7 +104,7 @@ export function PainelPage() {
                               {s.militar ? (
                                 <button
                                   onClick={() => setMilitarSelecionado(s.militar!.id)}
-                                  style={{ background: "none", border: "none", padding: 0, color: "var(--sidebar-active)", fontWeight: 600, cursor: "pointer", textDecoration: "underline" }}
+                                  className="link-nome"
                                 >
                                   {s.militar.nomeGuerra.toUpperCase()}
                                 </button>
@@ -151,17 +151,17 @@ export function PainelPage() {
                         ))}
                       </tbody>
                     </table>
-                    <button className="btn btn-outline" style={{ marginTop: 12 }} onClick={() => navigate("/trocas")}>
+                    <button className="btn btn-outline mt-12" onClick={() => navigate("/trocas")}>
                       Ver todas as trocas
                     </button>
                   </div>
                 )}
               </div>
 
-              <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+              <div className="pilha">
                 <div className="card">
                   <h3>Ações rápidas</h3>
-                  <div className="quick-actions" style={{ marginTop: 10 }}>
+                  <div className="quick-actions mt-10">
                     {podeTriagem && (
                       <button className="quick-action" onClick={() => navigate("/escala")}>
                         Montar a escala do mês
@@ -183,7 +183,7 @@ export function PainelPage() {
 
                 <div className="card">
                   <h3>Precisa de atenção</h3>
-                  <div style={{ marginTop: 10 }}>
+                  <div className="mt-10">
                     {vagasAbertas > 0 && (
                       <div className="alert-item critico">
                         <strong>{vagasAbertas} vaga(s) em aberto</strong>

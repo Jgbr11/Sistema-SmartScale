@@ -73,9 +73,9 @@ export function AvisosPage() {
       <PageHeader title="Avisos" subtitle="Feriados e missões do mês — clique num dia pra ver o detalhe" />
       <div className="body">
         <div className="card">
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+          <div className="linha-entre mb-16">
             <h3>{nomeMes}</h3>
-            <div style={{ display: "flex", gap: 8 }}>
+            <div className="linha">
               <button className="btn btn-outline" onClick={() => mudarMes(-1)}>← Mês anterior</button>
               <button className="btn btn-outline" onClick={() => mudarMes(1)}>Próximo mês →</button>
             </div>
@@ -103,7 +103,7 @@ export function AvisosPage() {
 
         {diaEscolhido && (
           <div className="card">
-            <h3 style={{ marginBottom: 12 }}>Avisos de {formatarDataBR(diaEscolhido)}</h3>
+            <h3 className="mb-12">Avisos de {formatarDataBR(diaEscolhido)}</h3>
             {avisosDoDiaEscolhido.length === 0 ? (
               <p className="sub">Nada registrado para esse dia.</p>
             ) : (
@@ -113,7 +113,7 @@ export function AvisosPage() {
         )}
 
         <div className="card">
-          <h3 style={{ marginBottom: 12 }}>Todos os avisos do mês</h3>
+          <h3 className="mb-12">Todos os avisos do mês</h3>
           {avisos.length === 0 ? (
             <p className="sub">Nenhum feriado ou missão neste mês.</p>
           ) : (
@@ -138,12 +138,12 @@ export function AvisosPage() {
                     <td>
                       {a.descricao}
                       {boletimRelacionado(a.chave) && (
-                        <button onClick={() => navigate("/boletim")} style={{ marginLeft: 8, fontSize: 11, color: "var(--sidebar-active)", background: "none", border: "none", cursor: "pointer", textDecoration: "underline" }}>
+                        <button onClick={() => navigate("/boletim")} className="link-pequeno ml-8">
                           Ver Boletim
                         </button>
                       )}
                     </td>
-                    <td style={{ fontSize: 12 }}>
+                    <td className="texto-12">
                       {a.militares.length > 0 ? a.militares.map((m) => m.nomeExibicao).join(", ") : "—"}
                     </td>
                   </tr>
@@ -160,17 +160,17 @@ export function AvisosPage() {
 function AvisoDetalhe({ aviso, boletim, onVerBoletim }: { aviso: Aviso; boletim?: BoletimResumo; onVerBoletim: () => void }) {
   return (
     <div className="card" style={{ background: aviso.tipo === "FERIADO" ? "var(--green-pill-bg)" : "var(--amber-bg)", border: "none", marginBottom: 10 }}>
-      <strong style={{ fontSize: 13 }}>{TIPO_LABEL[aviso.tipo] ?? aviso.tipo} — {aviso.descricao}</strong>
-      <p style={{ fontSize: 12, marginTop: 4 }}>
+      <strong className="texto-13">{TIPO_LABEL[aviso.tipo] ?? aviso.tipo} — {aviso.descricao}</strong>
+      <p className="texto-12 mt-4">
         Período: {formatarPeriodo(aviso.dataInicio, aviso.dataFim)}
       </p>
       {aviso.militares.length > 0 && (
-        <p style={{ fontSize: 12, marginTop: 4 }}>
+        <p className="texto-12 mt-4">
           Militares: {aviso.militares.map((m) => m.nomeExibicao).join(", ")}
         </p>
       )}
       {boletim && (
-        <button onClick={onVerBoletim} className="btn btn-outline" style={{ marginTop: 8, fontSize: 11.5 }}>
+        <button onClick={onVerBoletim} className="btn btn-outline nota mt-8">
           Ver Boletim relacionado — {boletim.titulo}
         </button>
       )}

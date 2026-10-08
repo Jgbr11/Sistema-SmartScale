@@ -234,6 +234,70 @@ td.acoes { white-space: nowrap; }
 .aviso-sucesso { background: var(--positivo-texto); }
 .aviso-erro { background: var(--sinal); }
 
+/* ---- Cartões de destaque ---- */
+.card-atencao { background: var(--atencao-fundo); border-color: #e6d5ad; border-left: 3px solid var(--latao); }
+.card-positivo { background: var(--positivo-fundo); border-color: #c8dcc1; padding: 10px; margin-bottom: 14px; }
+.cabeca-tabela { padding: var(--espaco-4) var(--espaco-4) 0; }
+.secao-divisoria { margin-top: var(--espaco-4); padding-top: 14px; border-top: 1px solid var(--areia-clara); }
+.linha-item { display: flex; justify-content: space-between; align-items: center; padding: var(--espaco-2) 0; border-bottom: 1px solid var(--areia-clara); }
+.linha-resumo { display: flex; gap: var(--espaco-6); margin-top: 14px; flex-wrap: wrap; }
+.numero-grande { font-family: var(--fonte-estencil); font-size: 24px; line-height: 1; }
+.col-nome { font-weight: 600; width: 220px; }
+.col-hora { color: var(--grafite-suave); width: 90px; }
+.item-forte { padding: 7px 0; font-size: 13px; font-weight: 600; }
+.lista-rolagem { max-height: 180px; overflow-y: auto; border: 1px solid var(--areia); border-radius: var(--raio); padding: var(--espaco-2); background: #fff; }
+.opcao-check { display: flex; align-items: center; gap: 6px; font-size: 12.5px; padding: 3px 0; cursor: pointer; }
+.opcao-inline { font-weight: 400; display: flex; gap: var(--espaco-1); align-items: center; }
+.carregando-rota { padding: 40px; }
+
+/* ---- Popup do militar ---- */
+.popup-janela { width: 520px; max-width: 92vw; background: var(--folha); border-radius: var(--raio); overflow: hidden; border: 1px solid var(--areia); border-top: 3px solid var(--latao); }
+.popup-topo { background: var(--caserna); padding: 14px 20px; display: flex; justify-content: space-between; align-items: center; }
+.popup-titulo { color: #fff; font-family: var(--fonte-letreiro); font-weight: 700; font-size: 15px; letter-spacing: 0.08em; text-transform: uppercase; }
+.popup-sub { color: var(--caserna-apagado); font-size: 10.5px; }
+.popup-fechar { background: none; border: none; color: #fff; font-size: 18px; cursor: pointer; line-height: 1; }
+.popup-nome { font-size: 15px; font-weight: 700; }
+.popup-grade { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: var(--espaco-3); }
+.foto-inicial { font-family: var(--fonte-estencil); font-size: 34px; color: var(--grafite-suave); }
+.foto-vazia { font-size: 11px; color: var(--grafite-suave); text-align: center; padding: var(--espaco-2); }
+.foto-cheia { width: 100%; height: 100%; object-fit: cover; }
+.rotulo-campo { font-family: var(--fonte-letreiro); text-transform: uppercase; letter-spacing: 0.06em; font-size: 11px; color: var(--grafite-suave); font-weight: 600; }
+.rotulo-mini { font-family: var(--fonte-letreiro); text-transform: uppercase; letter-spacing: 0.06em; font-size: 10.5px; color: var(--grafite-suave); font-weight: 600; }
+.etiqueta-lista { margin: 0 6px 6px 0; display: inline-block; }
+.etiqueta-botao { border: none; cursor: pointer; }
+
+/* ---- Notificações ---- */
+.sino { position: relative; }
+.sino-botao { position: relative; background: none; border: 1px solid var(--oliva); border-radius: var(--raio); width: 34px; height: 34px; color: #fff; font-size: 15px; cursor: pointer; }
+.sino-contador { position: absolute; top: -5px; right: -5px; background: var(--sinal); color: #fff; border-radius: 999px; font-family: var(--fonte-dados); font-size: 10px; font-weight: 700; min-width: 16px; height: 16px; display: flex; align-items: center; justify-content: center; padding: 0 3px; }
+.sino-cabecalho { padding: 10px 14px; border-bottom: 1px solid var(--areia-clara); display: flex; justify-content: space-between; align-items: center; }
+.link-pequeno { background: none; border: none; color: var(--oliva); font-size: 11px; cursor: pointer; text-decoration: underline; }
+
+/* ---- Requisitos, boletim, trocas ---- */
+.requisitos-topo { padding: var(--espaco-3) var(--espaco-4); background: var(--areia-clara); }
+.requisitos-lista { margin: 0 0 10px 18px; }
+.requisitos-botao { margin-left: var(--espaco-2); padding: 1px 8px; }
+.editor-barra { display: flex; gap: 6px; margin-bottom: var(--espaco-2); flex-wrap: wrap; }
+.editor-area { min-height: 220px; border: 1px solid var(--areia); border-radius: var(--raio); padding: var(--espaco-3); font-size: 13.5px; line-height: 1.5; background: #fff; outline: none; }
+.editor-area:focus { border-color: var(--oliva); }
+.boletim-corpo { margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--areia-clara); font-size: 13.5px; line-height: 1.6; }
+.trocas-detalhe { font-size: 11.5px; color: var(--grafite-suave); padding-left: 22px; }
+
+/* ---- Escala em PDF ---- */
+.pdf-pagina { padding: 40px; font-family: var(--fonte-texto); background: #fff; color: #000; min-height: 100vh; }
+.pdf-barra { padding: 12px 20px; background: var(--papel); border-bottom: 1px solid var(--areia); }
+.pdf-botao { padding: 6px 14px; cursor: pointer; }
+.pdf-dica { margin-left: 10px; font-size: 12px; color: var(--grafite-suave); }
+.pdf-titulo { font-size: 20px; margin-bottom: 2px; }
+.pdf-sub { font-size: 13px; color: #555; margin-bottom: 20px; }
+.pdf-tabela { width: 100%; border-collapse: collapse; font-size: 13px; }
+.pdf-tabela th, .pdf-tabela td { background: none; color: #000; font-family: var(--fonte-texto); text-transform: none; letter-spacing: 0; font-size: 13px; }
+.pdf-th { text-align: left; padding: 6px 8px; }
+.pdf-td { padding: 6px 8px; }
+.pdf-linha-cabeca { border-bottom: 2px solid #333; }
+.pdf-linha { border-bottom: 1px solid #ccc; }
+.pdf-rodape { margin-top: 30px; font-size: 10.5px; color: #888; }
+
 /* ---- Utilitários ---- */
 .linha { display: flex; align-items: center; gap: var(--espaco-2); flex-wrap: wrap; }
 .linha-entre { display: flex; justify-content: space-between; align-items: center; gap: var(--espaco-2); flex-wrap: wrap; }
@@ -246,6 +310,61 @@ td.acoes { white-space: nowrap; }
 .link-nome { background: none; border: none; padding: 0; color: var(--oliva); font-weight: 600; text-decoration: underline; text-underline-offset: 2px; cursor: pointer; }
 .foto-3x4 { width: 108px; height: 130px; border: 1px solid var(--areia); background: var(--areia-clara); overflow: hidden; display: flex; align-items: center; justify-content: center; }
 .foto-3x4 img { width: 100%; height: 100%; object-fit: cover; }
+.foto-3x4 { flex-shrink: 0; border-radius: var(--raio); }
+.linha-larga { display: flex; gap: 20px; }
+.linha-compacta { display: flex; gap: 6px; white-space: nowrap; }
+.linha-entre-topo { display: flex; justify-content: space-between; align-items: flex-start; gap: var(--espaco-2); }
+.pilha-compacta { display: flex; flex-direction: column; gap: var(--espaco-2); }
+.link-texto { color: var(--oliva); font-weight: 600; text-decoration: underline; text-underline-offset: 2px; }
+.nota-pequena { font-size: 11px; color: var(--grafite-suave); }
+.nota-mini { font-size: 10.5px; color: var(--grafite-suave); }
+.nota-alerta { font-size: 12px; color: var(--atencao-texto); }
+.texto-suave { color: var(--grafite-suave); font-size: 13px; }
+.texto-erro { font-size: 12.5px; color: var(--sinal); }
+.texto-forte { font-size: 13px; font-weight: 600; }
+.texto-oliva { color: var(--oliva); }
+.texto-positivo { color: var(--positivo-texto); }
+.texto-11 { font-size: 11px; }
+.texto-12 { font-size: 12px; }
+.texto-125 { font-size: 12.5px; }
+.texto-13 { font-size: 13px; }
+.negrito { font-weight: 700; }
+.negrito-medio { font-weight: 600; }
+.italico { font-style: italic; }
+.nowrap { white-space: nowrap; }
+.clicavel { cursor: pointer; }
+.oculto { display: none; }
+.fixo { flex-shrink: 0; }
+.flex-1 { flex: 1; min-width: 0; }
+.alinhar-fim { align-self: end; }
+.largura-total { width: 100%; }
+.max-320 { max-width: 320px; }
+.w-70 { width: 70px; }
+.w-90 { width: 90px; }
+.w-100 { width: 100px; }
+.w-108 { width: 108px; }
+.w-160 { width: 160px; }
+.p-12 { padding: var(--espaco-3); }
+.p-20 { padding: 20px; }
+.m-0 { margin: 0; }
+.mb-0 { margin-bottom: 0; }
+.mb-2 { margin-bottom: 2px; }
+.mb-4 { margin-bottom: var(--espaco-1); }
+.mb-6 { margin-bottom: 6px; }
+.mb-8 { margin-bottom: var(--espaco-2); }
+.mb-10 { margin-bottom: 10px; }
+.mb-12 { margin-bottom: var(--espaco-3); }
+.mb-16 { margin-bottom: var(--espaco-4); }
+.mt-2 { margin-top: 2px; }
+.mt-4 { margin-top: var(--espaco-1); }
+.mt-6 { margin-top: 6px; }
+.mt-8 { margin-top: var(--espaco-2); }
+.mt-10 { margin-top: 10px; }
+.mt-12 { margin-top: var(--espaco-3); }
+.mt-14 { margin-top: 14px; }
+.mr-4 { margin-right: var(--espaco-1); }
+.mr-6 { margin-right: 6px; }
+.ml-8 { margin-left: var(--espaco-2); }
 
 /* ---- Acessibilidade ---- */
 :focus-visible { outline: 2px solid var(--latao); outline-offset: 2px; }

@@ -73,11 +73,11 @@ export function FeriadosPage() {
           <FeriadoForm key={editando.id} feriado={editando} onSalvo={fecharFormularios} onCancelar={() => setEditando(null)} />
         )}
 
-        <div className="card" style={{ padding: 0 }}>
+        <div className="card card-tabela">
           {carregando ? (
             <Esqueleto />
           ) : feriados.length === 0 ? (
-            <div style={{ padding: 20, color: "var(--grey)", fontSize: 13 }}>Nenhum feriado cadastrado.</div>
+            <div className="vazio">Nenhum feriado cadastrado.</div>
           ) : (
             <table>
               <thead>
@@ -99,8 +99,8 @@ export function FeriadosPage() {
                       </span>
                     </td>
                     {podeEditar && (
-                      <td style={{ whiteSpace: "nowrap" }}>
-                        <button className="btn btn-outline" style={{ marginRight: 6 }} onClick={() => abrirEdicao(f)}>Editar</button>
+                      <td className="nowrap">
+                        <button className="btn btn-outline mr-6" onClick={() => abrirEdicao(f)}>Editar</button>
                         <button className="btn btn-outline" onClick={() => remover(f.id)}>Remover</button>
                       </td>
                     )}
@@ -167,7 +167,7 @@ function FeriadoForm({ feriado, onSalvo, onCancelar }: { feriado?: Feriado; onSa
         <label>Descrição</label>
         <input value={descricao} onChange={(e) => setDescricao(e.target.value)} placeholder="Ex.: Recesso de fim de ano" />
       </div>
-      <div style={{ display: "flex", gap: 8 }}>
+      <div className="linha">
         <button className="btn btn-primary" onClick={salvar} disabled={salvando}>
           {salvando ? "Salvando…" : feriado ? "Salvar alterações" : "Salvar"}
         </button>

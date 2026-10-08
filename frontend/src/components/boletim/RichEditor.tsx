@@ -44,9 +44,9 @@ export function RichEditor({ valorInicial, onChange }: { valorInicial: string; o
 
   return (
     <div>
-      <div style={{ display: "flex", gap: 6, marginBottom: 8, flexWrap: "wrap" }}>
-        <button type="button" className="btn btn-outline" onMouseDown={(e) => e.preventDefault()} onClick={() => comando("bold")} style={{ fontWeight: 700 }}>N</button>
-        <button type="button" className="btn btn-outline" onMouseDown={(e) => e.preventDefault()} onClick={() => comando("italic")} style={{ fontStyle: "italic" }}>I</button>
+      <div className="editor-barra">
+        <button type="button" className="btn btn-outline negrito" onMouseDown={(e) => e.preventDefault()} onClick={() => comando("bold")}>N</button>
+        <button type="button" className="btn btn-outline italico" onMouseDown={(e) => e.preventDefault()} onClick={() => comando("italic")}>I</button>
         <button type="button" className="btn btn-outline" onMouseDown={(e) => e.preventDefault()} onClick={() => comando("insertUnorderedList")}>Lista</button>
         <button
           type="button"
@@ -56,12 +56,12 @@ export function RichEditor({ valorInicial, onChange }: { valorInicial: string; o
         >
           Título
         </button>
-        <label className="btn btn-outline" style={{ cursor: "pointer" }}>
+        <label className="btn btn-outline clicavel">
           Inserir imagem
           <input
             type="file"
             accept="image/*"
-            style={{ display: "none" }}
+            className="oculto"
             onChange={(e) => {
               const arquivo = e.target.files?.[0];
               if (arquivo) inserirImagem(arquivo);
@@ -70,7 +70,7 @@ export function RichEditor({ valorInicial, onChange }: { valorInicial: string; o
           />
         </label>
       </div>
-      <p style={{ fontSize: 11, color: "var(--grey)", marginBottom: 8 }}>
+      <p className="nota-pequena mb-8">
         Pode colar uma imagem direto (Ctrl+V) no meio do texto, ou usar o botão "Inserir imagem".
       </p>
       <div
@@ -79,10 +79,7 @@ export function RichEditor({ valorInicial, onChange }: { valorInicial: string; o
         onInput={emitirMudanca}
         onPaste={aoColar}
         onBlur={emitirMudanca}
-        style={{
-          minHeight: 220, border: "1px solid var(--border)", borderRadius: 5, padding: 12,
-          fontSize: 13.5, lineHeight: 1.5, background: "#fff", outline: "none",
-        }}
+        className="editor-area"
       />
     </div>
   );

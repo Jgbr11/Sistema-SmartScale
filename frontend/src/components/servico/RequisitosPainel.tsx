@@ -76,22 +76,22 @@ export function RequisitosPainel({ tipo, podeEditar, onMudou }: { tipo: TipoServ
   }
 
   return (
-    <div style={{ padding: "12px 16px", background: "var(--table-head-bg)" }}>
-      <p className="sub" style={{ marginBottom: 8 }}>
+    <div className="requisitos-topo">
+      <p className="sub mb-8">
         Quem pode tirar <strong>{tipo.nome}</strong> — basta cumprir uma das linhas:
       </p>
       {erro && <div className="error-box">{erro}</div>}
       {requisitos.length === 0 ? (
-        <p style={{ fontSize: 12.5, color: "var(--red-text, #a33)" }}>
+        <p className="texto-erro">
           Ninguém pode tirar este serviço ainda — toda geração vai deixar vaga em aberto.
         </p>
       ) : (
-        <ul style={{ margin: "0 0 10px 18px" }}>
+        <ul className="requisitos-lista">
           {requisitos.map((r) => (
-            <li key={r.id} style={{ fontSize: 13, marginBottom: 4 }}>
+            <li key={r.id} className="texto-13 mb-4">
               {descreverRequisito(r)}
               {podeEditar && (
-                <button className="btn btn-outline" style={{ marginLeft: 8, padding: "1px 8px" }} onClick={() => remover(r)}>
+                <button className="btn btn-outline requisitos-botao" onClick={() => remover(r)}>
                   Remover
                 </button>
               )}
@@ -101,7 +101,7 @@ export function RequisitosPainel({ tipo, podeEditar, onMudou }: { tipo: TipoServ
       )}
 
       {podeEditar && (
-        <div className="form-grid" style={{ marginTop: 8 }}>
+        <div className="form-grid mt-8">
           <div className="field">
             <label>Posto/graduação *</label>
             <select value={postoId} onChange={(e) => setPostoId(e.target.value === "" ? "" : Number(e.target.value))}>
@@ -132,16 +132,16 @@ export function RequisitosPainel({ tipo, podeEditar, onMudou }: { tipo: TipoServ
           </div>
           <div className="field">
             <label>Exceto quem tem</label>
-            <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+            <div className="linha">
               {cursos.map((q) => (
-                <label key={q.id} style={{ fontWeight: 400, display: "flex", gap: 4, alignItems: "center" }}>
+                <label key={q.id} className="opcao-inline">
                   <input type="checkbox" checked={cursosExcluidos.includes(q.id)} onChange={() => alternarCursoExcluido(q.id)} />
                   {q.nome}
                 </label>
               ))}
             </div>
           </div>
-          <div className="field" style={{ alignSelf: "end" }}>
+          <div className="field alinhar-fim">
             <button className="btn btn-primary" onClick={adicionar}>Adicionar combinação</button>
           </div>
         </div>

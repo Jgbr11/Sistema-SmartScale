@@ -37,12 +37,12 @@ export function EscalaDoDiaPage() {
       <div className="body">
         <FitaDoServico />
         <div className="card">
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
-            <div className="field" style={{ marginBottom: 0 }}>
+          <div className="linha-entre mb-16">
+            <div className="field mb-0">
               <label>Dia</label>
               <input type="date" value={data} onChange={(e) => setData(e.target.value)} />
             </div>
-            <div style={{ display: "flex", gap: 8 }}>
+            <div className="linha">
               <button className="btn btn-outline" onClick={() => mudarDia(-1)}>← Dia anterior</button>
               <button className="btn btn-outline" onClick={() => mudarDia(1)}>Próximo dia →</button>
               <button className="btn btn-outline" onClick={() => window.open(`/escala/pdf/${data}`, "_blank")}>Gerar PDF</button>
@@ -59,13 +59,13 @@ export function EscalaDoDiaPage() {
               <tbody>
                 {servicos.map((s) => (
                   <tr key={s.id}>
-                    <td style={{ fontWeight: 600, width: 220 }}>{s.tipoServico.nome}</td>
-                    <td style={{ color: "var(--grey)", width: 90 }}>{s.militar?.posto.sigla ?? "—"}</td>
+                    <td className="col-nome">{s.tipoServico.nome}</td>
+                    <td className="col-hora">{s.militar?.posto.sigla ?? "—"}</td>
                     <td>
                       {s.militar ? (
                         <button
                           onClick={() => setMilitarSelecionado(s.militar!.id)}
-                          style={{ background: "none", border: "none", padding: 0, color: "var(--sidebar-active)", fontWeight: 600, cursor: "pointer", textDecoration: "underline" }}
+                          className="link-nome"
                         >
                           {s.militar.nomeGuerra.toUpperCase()}
                         </button>

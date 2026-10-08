@@ -40,26 +40,23 @@ export function MilitarDetalheOverlay({ militarId, onFechar }: { militarId: numb
 
   return (
     <div
-      style={{
-        position: "fixed", inset: 0, background: "rgba(28,33,23,0.55)",
-        display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000,
-      }}
+      className="dialogo-fundo"
       onClick={onFechar}
     >
       <div
-        style={{ width: 520, maxWidth: "92vw", background: "#fff", borderRadius: 8, overflow: "hidden", border: "1px solid var(--border)" }}
+        className="popup-janela"
         onClick={(e) => e.stopPropagation()}
       >
-        <div style={{ background: "var(--sidebar)", padding: "14px 20px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <div className="popup-topo">
           <div>
-            <div style={{ color: "#fff", fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 13, letterSpacing: 0.5 }}>
+            <div className="popup-titulo">
               CARTEIRA DE IDENTIDADE MILITAR
             </div>
-            <div style={{ color: "var(--sidebar-sub)", fontSize: 10.5 }}>{organizacao?.nome ?? ""}</div>
+            <div className="popup-sub">{organizacao?.nome ?? ""}</div>
           </div>
           <button
             onClick={onFechar}
-            style={{ background: "none", border: "none", color: "#fff", fontSize: 18, cursor: "pointer", lineHeight: 1 }}
+            className="popup-fechar"
           >
             ✕
           </button>
@@ -68,49 +65,45 @@ export function MilitarDetalheOverlay({ militarId, onFechar }: { militarId: numb
         {carregando || !militar ? (
           <Esqueleto />
         ) : (
-          <div style={{ padding: 20 }}>
-            <div style={{ display: "flex", gap: 18 }}>
+          <div className="p-20">
+            <div className="linha-larga">
               <div
-                style={{
-                  width: 108, height: 130, borderRadius: 4, background: "var(--table-head-bg)",
-                  border: "1px solid var(--border)", flexShrink: 0, overflow: "hidden",
-                  display: "flex", alignItems: "center", justifyContent: "center",
-                }}
+                className="foto-3x4"
               >
                 {foto ? (
-                  <img src={foto} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                  <img src={foto} alt="" className="foto-cheia" />
                 ) : (
-                  <span style={{ fontSize: 32, color: "var(--grey-light)", fontFamily: "var(--font-display)", fontWeight: 700 }}>
+                  <span className="foto-inicial">
                     {militar.nomeGuerra.charAt(0)}
                   </span>
                 )}
               </div>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: 10.5, color: "var(--grey)", fontWeight: 600 }}>NOME</div>
-                <div style={{ fontSize: 15, fontWeight: 700, marginBottom: 8 }}>{militar.nomeCompleto}</div>
-                <div style={{ fontSize: 10.5, color: "var(--grey)", fontWeight: 600 }}>NOME DE GUERRA</div>
-                <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
-                  <div style={{ fontSize: 15, fontWeight: 700 }}>{militar.nomeGuerra.toUpperCase()}</div>
+              <div className="flex-1">
+                <div className="rotulo-campo">NOME</div>
+                <div className="popup-nome mb-8">{militar.nomeCompleto}</div>
+                <div className="rotulo-campo">NOME DE GUERRA</div>
+                <div className="linha mb-8">
+                  <div className="popup-nome">{militar.nomeGuerra.toUpperCase()}</div>
                   {afastamento && (
                     <span className="pill pill-amber" title="Motivo completo visível em Missões e Dispensas">
                       {TIPO_AFASTAMENTO_LABEL[afastamento.tipo]}
                     </span>
                   )}
                 </div>
-                <div style={{ display: "flex", gap: 20 }}>
+                <div className="linha-larga">
                   <div>
-                    <div style={{ fontSize: 10.5, color: "var(--grey)", fontWeight: 600 }}>POSTO/GRAD</div>
-                    <div style={{ fontSize: 13, fontWeight: 600 }}>{militar.posto.descricao}</div>
+                    <div className="rotulo-campo">POSTO/GRAD</div>
+                    <div className="texto-forte">{militar.posto.descricao}</div>
                   </div>
                   <div>
-                    <div style={{ fontSize: 10.5, color: "var(--grey)", fontWeight: 600 }}>SUBUNIDADE</div>
-                    <div style={{ fontSize: 13, fontWeight: 600 }}>{militar.subunidade.nome}</div>
+                    <div className="rotulo-campo">SUBUNIDADE</div>
+                    <div className="texto-forte">{militar.subunidade.nome}</div>
                   </div>
                 </div>
               </div>
             </div>
 
-            <div className="popup-dados-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12, marginTop: 16, paddingTop: 14, borderTop: "1px solid var(--border-2)" }}>
+            <div className="popup-dados-grid popup-grade secao-divisoria">
               {militar.cpf !== undefined && (
                 <>
                   <CampoDado label="CPF" valor={formatarCpf(militar.cpf)} />
@@ -123,24 +116,24 @@ export function MilitarDetalheOverlay({ militarId, onFechar }: { militarId: numb
               <CampoDado label="ÚLTIMO SERVIÇO" valor={formatarContador(militar.contadorRodizio)} />
             </div>
 
-            <div style={{ marginTop: 16, paddingTop: 14, borderTop: "1px solid var(--border-2)" }}>
-              <div style={{ fontSize: 10.5, color: "var(--grey)", fontWeight: 600, marginBottom: 6 }}>CURSOS</div>
+            <div className="secao-divisoria">
+              <div className="rotulo-campo mb-6">CURSOS</div>
               {militar.qualificacoes.length === 0 ? (
-                <span style={{ fontSize: 12, color: "var(--grey)" }}>Nenhum curso registrado</span>
+                <span className="nota">Nenhum curso registrado</span>
               ) : (
                 militar.qualificacoes.map((q) => (
-                  <span key={q.id} className="pill pill-grey" style={{ marginRight: 6 }}>{q.nome}</span>
+                  <span key={q.id} className="pill pill-grey mr-6">{q.nome}</span>
                 ))
               )}
             </div>
 
-            <div style={{ marginTop: 14 }}>
-              <div style={{ fontSize: 10.5, color: "var(--grey)", fontWeight: 600, marginBottom: 6 }}>PODE SERVIR EM</div>
+            <div className="mt-14">
+              <div className="rotulo-campo mb-6">PODE SERVIR EM</div>
               {funcoes.length === 0 ? (
-                <span style={{ fontSize: 12, color: "var(--grey)" }}>Nenhuma função elegível no momento</span>
+                <span className="nota">Nenhuma função elegível no momento</span>
               ) : (
                 funcoes.map((f) => (
-                  <span key={f.id} className="pill pill-green" style={{ marginRight: 6, marginBottom: 6, display: "inline-block" }}>{f.nome}</span>
+                  <span key={f.id} className="pill pill-green etiqueta-lista">{f.nome}</span>
                 ))
               )}
             </div>
@@ -154,8 +147,8 @@ export function MilitarDetalheOverlay({ militarId, onFechar }: { militarId: numb
 function CampoDado({ label, valor }: { label: string; valor: string }) {
   return (
     <div>
-      <div style={{ fontSize: 10, color: "var(--grey)", fontWeight: 600 }}>{label}</div>
-      <div style={{ fontSize: 12.5, fontWeight: 600 }}>{valor}</div>
+      <div className="rotulo-mini">{label}</div>
+      <div className="texto-125 negrito-medio">{valor}</div>
     </div>
   );
 }

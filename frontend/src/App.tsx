@@ -36,7 +36,7 @@ const SARGENTEANTE: Perfil[] = ["SARGENTEANTE"];
 function RotaProtegida({ children, perfis }: { children: React.ReactNode; perfis?: Perfil[] }) {
   const { usuario, carregando } = useAuth();
   const local = useLocation();
-  if (carregando) return <div style={{ padding: 40 }}>Carregando…</div>;
+  if (carregando) return <div className="carregando-rota">Carregando…</div>;
   if (!usuario) return <Navigate to="/login" replace />;
   if (usuario.trocarSenha && local.pathname !== "/minha-conta") return <Navigate to="/minha-conta" replace />;
   if (perfis && !perfis.includes(usuario.perfil)) return <Navigate to="/" replace />;
@@ -45,7 +45,7 @@ function RotaProtegida({ children, perfis }: { children: React.ReactNode; perfis
 
 function RotaProtegidaSemMenu({ children }: { children: React.ReactNode }) {
   const { usuario, carregando } = useAuth();
-  if (carregando) return <div style={{ padding: 40 }}>Carregando…</div>;
+  if (carregando) return <div className="carregando-rota">Carregando…</div>;
   if (!usuario) return <Navigate to="/login" replace />;
   return <>{children}</>;
 }

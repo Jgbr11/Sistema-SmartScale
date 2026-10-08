@@ -85,13 +85,13 @@ export function BoletimPage() {
         {carregando ? (
           <Esqueleto />
         ) : boletins.length === 0 ? (
-          <div className="card" style={{ color: "var(--grey)", fontSize: 13 }}>Nenhum boletim publicado ainda.</div>
+          <div className="card texto-suave">Nenhum boletim publicado ainda.</div>
         ) : (
           boletins.map((b) => (
             <div key={b.id} className="card">
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-                <div style={{ cursor: "pointer", flex: 1 }} onClick={() => alternar(b.id)}>
-                  <h3 style={{ marginBottom: 2 }}>{b.numero ? `BI nº ${b.numero} — ` : ""}{b.titulo}</h3>
+              <div className="linha-entre-topo">
+                <div className="clicavel flex-1" onClick={() => alternar(b.id)}>
+                  <h3 className="mb-2">{b.numero ? `BI nº ${b.numero} — ` : ""}{b.titulo}</h3>
                   <p className="sub">
                     {b.autor} · {formatarDataHora(b.dataPublicacao)}
                     {b.dataAtualizacao && ` · editado ${formatarDataHora(b.dataAtualizacao)}`}
@@ -99,15 +99,15 @@ export function BoletimPage() {
                   {b.avisoRelacionadoDescricao && (
                     <button
                       onClick={(e) => { e.stopPropagation(); navigate("/avisos"); }}
-                      className="pill pill-amber"
-                      style={{ marginTop: 4, cursor: "pointer", border: "none" }}
+                      className="pill pill-amber etiqueta-botao mt-4"
+
                     >
                       Relacionado: {b.avisoRelacionadoDescricao}
                     </button>
                   )}
                 </div>
                 {podeEditar && (
-                  <div style={{ display: "flex", gap: 6, whiteSpace: "nowrap" }}>
+                  <div className="linha-compacta">
                     <button className="btn btn-outline" onClick={() => editar(b.id)}>Editar</button>
                     <button className="btn btn-outline" onClick={() => remover(b.id)}>Remover</button>
                   </div>
@@ -115,7 +115,7 @@ export function BoletimPage() {
               </div>
               {aberto === b.id && (
                 <div
-                  style={{ marginTop: 14, paddingTop: 14, borderTop: "1px solid var(--border-2)", fontSize: 13.5, lineHeight: 1.6 }}
+                  className="boletim-corpo"
                   dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(conteudos.get(b.id) ?? "") }}
                 />
               )}
@@ -198,7 +198,7 @@ function BoletimForm({ boletim, onSalvou, onCancelar }: { boletim: Boletim | nul
             </option>
           ))}
         </select>
-        <p style={{ fontSize: 11, color: "var(--grey)", marginTop: 4 }}>
+        <p className="nota-pequena mt-4">
           Conecta esse boletim ao evento na tela de Avisos, pra quem estiver lá ver o comunicado relacionado.
         </p>
       </div>
@@ -206,7 +206,7 @@ function BoletimForm({ boletim, onSalvou, onCancelar }: { boletim: Boletim | nul
         <label>Conteúdo</label>
         <RichEditor valorInicial={conteudoHtml} onChange={setConteudoHtml} />
       </div>
-      <div style={{ display: "flex", gap: 8, marginTop: 10 }}>
+      <div className="linha mt-10">
         <button className="btn btn-primary" onClick={salvar} disabled={salvando}>
           {salvando ? "Salvando…" : "Publicar"}
         </button>

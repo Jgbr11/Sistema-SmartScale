@@ -41,10 +41,10 @@ export function HistoricoPage() {
     <>
       <PageHeader title="Meu histórico" subtitle={`Serviços, missões/dispensas e trocas de ${usuario?.nomeExibicao}`} />
       <div className="body">
-        <div className="card" style={{ padding: 0 }}>
-          <h3 style={{ padding: "16px 16px 0" }}>Histórico de serviços ({servicos.length})</h3>
+        <div className="card card-tabela">
+          <h3 className="cabeca-tabela">Histórico de serviços ({servicos.length})</h3>
           {servicos.length === 0 ? (
-            <div style={{ padding: 16, color: "var(--grey)", fontSize: 13 }}>Nenhum serviço registrado ainda.</div>
+            <div className="vazio">Nenhum serviço registrado ainda.</div>
           ) : (
             <table>
               <thead><tr><th>Data</th><th>Serviço</th><th>Situação</th></tr></thead>
@@ -59,13 +59,13 @@ export function HistoricoPage() {
               </tbody>
             </table>
           )}
-          {servicos.length > 50 && <p className="sub" style={{ padding: 12 }}>Mostrando os 50 mais recentes de {servicos.length}.</p>}
+          {servicos.length > 50 && <p className="sub p-12">Mostrando os 50 mais recentes de {servicos.length}.</p>}
         </div>
 
-        <div className="card" style={{ padding: 0 }}>
-          <h3 style={{ padding: "16px 16px 0" }}>Histórico de missões e dispensas ({afastamentos.length})</h3>
+        <div className="card card-tabela">
+          <h3 className="cabeca-tabela">Histórico de missões e dispensas ({afastamentos.length})</h3>
           {afastamentos.length === 0 ? (
-            <div style={{ padding: 16, color: "var(--grey)", fontSize: 13 }}>Nenhum afastamento registrado ainda.</div>
+            <div className="vazio">Nenhum afastamento registrado ainda.</div>
           ) : (
             <table>
               <thead><tr><th>Período</th><th>Tipo</th><th>Descrição</th></tr></thead>
@@ -82,10 +82,10 @@ export function HistoricoPage() {
           )}
         </div>
 
-        <div className="card" style={{ padding: 0 }}>
-          <h3 style={{ padding: "16px 16px 0" }}>Histórico de trocas ({trocas.length})</h3>
+        <div className="card card-tabela">
+          <h3 className="cabeca-tabela">Histórico de trocas ({trocas.length})</h3>
           {trocas.length === 0 ? (
-            <div style={{ padding: 16, color: "var(--grey)", fontSize: 13 }}>Nenhuma troca pedida ou recebida ainda.</div>
+            <div className="vazio">Nenhuma troca pedida ou recebida ainda.</div>
           ) : (
             <table>
               <thead><tr><th>Data</th><th>Papel</th><th>Serviço</th><th>Situação</th></tr></thead>

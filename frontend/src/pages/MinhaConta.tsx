@@ -21,8 +21,8 @@ export function MinhaContaPage() {
       <PageHeader title="Minha conta" subtitle="Seus dados e sua senha de acesso" />
       <div className="body">
         {usuario?.trocarSenha && (
-          <div className="card" style={{ background: "var(--amber-bg)", border: "none" }}>
-            <p style={{ fontSize: 13, color: "var(--amber-text)", fontWeight: 600 }}>
+          <div className="card card-atencao">
+            <p className="nota-alerta texto-13 negrito-medio">
               Sua senha é temporária. Crie uma senha nova para continuar usando o sistema.
             </p>
           </div>
@@ -34,7 +34,7 @@ export function MinhaContaPage() {
           {!militar ? (
             <Esqueleto />
           ) : (
-            <div className="form-grid" style={{ marginTop: 10 }}>
+            <div className="form-grid mt-10">
               <CampoLeitura label="Nome completo" valor={militar.nomeCompleto} />
               <CampoLeitura label="Nome de guerra" valor={militar.nomeGuerra} />
               <CampoLeitura label="Posto/graduação" valor={militar.posto.descricao} />
@@ -46,7 +46,7 @@ export function MinhaContaPage() {
               <CampoLeitura label="Perfil de acesso" valor={usuario ? (PERFIL_LABEL[usuario.perfil] ?? usuario.perfil) : "—"} />
             </div>
           )}
-          <p style={{ fontSize: 11, color: "var(--grey)", marginTop: 10 }}>
+          <p className="nota-pequena mt-10">
             Pra corrigir algum desses dados, fale com o Cabo da Sargenteação ou o Sargenteante.
           </p>
         </div>
@@ -62,7 +62,7 @@ function CampoLeitura({ label, valor }: { label: string; valor: string }) {
   return (
     <div className="field">
       <label>{label}</label>
-      <div style={{ padding: "7px 0", fontSize: 13, fontWeight: 600 }}>{valor}</div>
+      <div className="item-forte">{valor}</div>
     </div>
   );
 }
@@ -107,8 +107,8 @@ function TrocarSenhaForm({ onTrocou }: { onTrocou: () => Promise<void> }) {
       <p className="sub">Sua senha atual precisa ser confirmada por segurança</p>
       {erro && <div className="error-box">{erro}</div>}
       {sucesso && (
-        <div className="card" style={{ background: "var(--green-pill-bg)", border: "none", padding: 10, marginBottom: 14 }}>
-          <p style={{ fontSize: 12.5, color: "var(--green-pill-text)" }}>Senha alterada com sucesso.</p>
+        <div className="card card-positivo">
+          <p className="texto-125 texto-positivo">Senha alterada com sucesso.</p>
         </div>
       )}
       <div className="form-grid">

@@ -62,7 +62,7 @@ export function LoginPage() {
               placeholder="••••••••"
             />
           </div>
-          <button className="btn btn-primary" style={{ width: "100%" }} disabled={enviando}>
+          <button className="btn btn-primary largura-total" disabled={enviando}>
             {enviando ? "Entrando…" : "Entrar"}
           </button>
           {import.meta.env.DEV && (

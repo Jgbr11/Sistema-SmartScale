@@ -18,8 +18,8 @@ const SERVICO: Coluna = { titulo: "Serviço", valor: (s) => s.servicoOrigemTipo 
 const DIA: Coluna = { titulo: "Dia", valor: (s) => formatarDataBR(s.servicoOrigemData) };
 const TIPO: Coluna = { titulo: "Tipo", valor: (s) => <TipoTrocaPill tipo={s.tipoTroca} /> };
 const SITUACAO: Coluna = { titulo: "Situação", valor: (s) => <SituacaoPill situacao={s.situacao} /> };
-const JUSTIFICATIVA: Coluna = { titulo: "Justificativa", valor: (s) => <span style={{ fontSize: 12 }}>{s.justificativa}</span> };
-const PARECER_DO_CABO: Coluna = { titulo: "Parecer do Cabo", valor: (s) => <span style={{ fontSize: 12 }}>{s.comentarioCabo || "—"}</span> };
+const JUSTIFICATIVA: Coluna = { titulo: "Justificativa", valor: (s) => <span className="texto-12">{s.justificativa}</span> };
+const PARECER_DO_CABO: Coluna = { titulo: "Parecer do Cabo", valor: (s) => <span className="texto-12">{s.comentarioCabo || "—"}</span> };
 const COM_QUEM: Coluna = {
   titulo: "Com quem",
   valor: (s) => (
@@ -138,7 +138,7 @@ export function TrocasPage() {
         subtitle="Pedido → substituto confirma → triagem do Cabo → autorização do Sargenteante"
       />
       <div className="body">
-        <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+        <div className="linha">
           <button className={aba === "minhas" ? "btn btn-primary" : "btn btn-outline"} onClick={() => setAba("minhas")}>
             Minhas solicitações
           </button>
@@ -165,7 +165,7 @@ export function TrocasPage() {
               </button>
             </div>
             {mostrarForm && <PedirTrocaForm onCriado={() => { setMostrarForm(false); carregar(); }} />}
-            <div className="card" style={{ padding: 0 }}>
+            <div className="card card-tabela">
               {carregando ? (
                 <Esqueleto />
               ) : (
@@ -184,14 +184,14 @@ export function TrocasPage() {
         )}
 
         {aba === "confirmar" && (
-          <div className="card" style={{ padding: 0 }}>
+          <div className="card card-tabela">
             <TabelaSolicitacoes
               itens={aguardandoConfirmacao}
               vazio="Ninguém te pediu pra assumir um serviço no momento."
               colunas={[QUEM_PEDIU, SERVICO, DIA, TIPO_PARA_QUEM_ASSUME, JUSTIFICATIVA]}
               acoes={(s) => (
                 <>
-                  <button className="btn btn-primary" style={{ marginRight: 6 }} onClick={() => decidirConfirmacao(s.id, true)}>Aceitar</button>
+                  <button className="btn btn-primary mr-6" onClick={() => decidirConfirmacao(s.id, true)}>Aceitar</button>
                   <button className="btn btn-outline" onClick={() => decidirConfirmacao(s.id, false)}>Recusar</button>
                 </>
               )}
@@ -200,14 +200,14 @@ export function TrocasPage() {
         )}
 
         {aba === "triagem" && podeTriagem && (
-          <div className="card" style={{ padding: 0 }}>
+          <div className="card card-tabela">
             <TabelaSolicitacoes
               itens={emTriagem}
               vazio="Nada esperando triagem."
               colunas={[QUEM_PEDIU, SERVICO, DIA, TIPO, ASSUME, JUSTIFICATIVA]}
               acoes={(s) => (
                 <>
-                  <button className="btn btn-primary" style={{ marginRight: 6 }} onClick={() => decidirTriagem(s.id, true)}>Aprovar</button>
+                  <button className="btn btn-primary mr-6" onClick={() => decidirTriagem(s.id, true)}>Aprovar</button>
                   <button className="btn btn-outline" onClick={() => decidirTriagem(s.id, false)}>Negar</button>
                 </>
               )}
@@ -216,14 +216,14 @@ export function TrocasPage() {
         )}
 
         {aba === "autorizacao" && podeAutorizar && (
-          <div className="card" style={{ padding: 0 }}>
+          <div className="card card-tabela">
             <TabelaSolicitacoes
               itens={aguardandoAutorizacao}
               vazio="Nada esperando autorização."
               colunas={[QUEM_PEDIU, SERVICO, DIA, TIPO, ASSUME, PARECER_DO_CABO]}
               acoes={(s) => (
                 <>
-                  <button className="btn btn-primary" style={{ marginRight: 6 }} onClick={() => decidirAutorizacao(s.id, true)}>Autorizar</button>
+                  <button className="btn btn-primary mr-6" onClick={() => decidirAutorizacao(s.id, true)}>Autorizar</button>
                   <button className="btn btn-outline" onClick={() => decidirAutorizacao(s.id, false)}>Negar</button>
                 </>
               )}
@@ -337,7 +337,7 @@ function PedirTrocaForm({ onCriado }: { onCriado: () => void }) {
           ))}
         </select>
         {meusServicos.length === 0 && (
-          <p style={{ fontSize: 11, color: "var(--grey)", marginTop: 4 }}>
+          <p className="nota-pequena mt-4">
             Você não tem serviços futuros disponíveis pra trocar (ou estão travados).
           </p>
         )}
@@ -346,7 +346,7 @@ function PedirTrocaForm({ onCriado }: { onCriado: () => void }) {
       {servicoId !== "" && (
         <div className="field">
           <label>Tipo de troca</label>
-          <div style={{ display: "flex", flexDirection: "column", gap: 8, marginTop: 4 }}>
+          <div className="pilha-compacta mt-4">
             {TIPOS_TROCA.map((t) => (
               <label
                 key={t.valor}
@@ -357,11 +357,11 @@ function PedirTrocaForm({ onCriado }: { onCriado: () => void }) {
                   background: tipoTroca === t.valor ? "var(--table-head-bg)" : "#fff",
                 }}
               >
-                <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <span className="linha">
                   <input type="radio" name="tipoTroca" checked={tipoTroca === t.valor} onChange={() => setTipoTroca(t.valor)} />
-                  <strong style={{ fontSize: 13 }}>{t.nome}</strong>
+                  <strong className="texto-13">{t.nome}</strong>
                 </span>
-                <span style={{ fontSize: 11.5, color: "var(--grey)", paddingLeft: 22 }}>{t.explicacao}</span>
+                <span className="trocas-detalhe">{t.explicacao}</span>
               </label>
             ))}
           </div>
@@ -377,13 +377,13 @@ function PedirTrocaForm({ onCriado }: { onCriado: () => void }) {
               <option key={m.id} value={m.id}>{m.nomeExibicao}</option>
             ))}
           </select>
-          <p style={{ fontSize: 11, color: "var(--grey)", marginTop: 4 }}>
+          <p className="nota-pequena mt-4">
             Só aparece quem respeita o intervalo mínimo de descanso da regra desse serviço. Se
             combinou com alguém que não está na lista (troca 1-pra-1 espontânea), fale com o Cabo
             pra registrar manualmente.
           </p>
           {elegiveis.length === 0 && (
-            <p style={{ fontSize: 11, color: "var(--grey)", marginTop: 4 }}>
+            <p className="nota-pequena mt-4">
               Ninguém mais elegível pra esse serviço no momento sem violar o intervalo de descanso.
             </p>
           )}
@@ -399,12 +399,12 @@ function PedirTrocaForm({ onCriado }: { onCriado: () => void }) {
               <option key={c.servicoId} value={c.servicoId}>{c.militar.nomeExibicao}</option>
             ))}
           </select>
-          <p style={{ fontSize: 11, color: "var(--grey)", marginTop: 4 }}>
+          <p className="nota-pequena mt-4">
             Só aparece quem tem serviço do mesmo tipo e continua com folga suficiente dos dois
             lados depois da troca (você assumindo o dia dele, e ele assumindo o seu).
           </p>
           {candidatosMutua.length === 0 && (
-            <p style={{ fontSize: 11, color: "var(--grey)", marginTop: 4 }}>
+            <p className="nota-pequena mt-4">
               Ninguém disponível pra trocar de dia com você sem violar o intervalo de descanso de algum dos dois lados.
             </p>
           )}

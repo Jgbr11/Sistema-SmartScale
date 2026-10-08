@@ -67,7 +67,7 @@ export function TiposServicoPage() {
           />
         )}
 
-        <div className="card" style={{ padding: 0 }}>
+        <div className="card card-tabela">
           {carregando ? (
             <Esqueleto />
           ) : (
@@ -95,13 +95,13 @@ export function TiposServicoPage() {
                           <div>
                             <input
                               type="number"
-                              style={{ width: 70 }}
+                              className="w-70"
                               min={1}
                               value={efetivoRascunho}
                               onChange={(e) => setEfetivoRascunho(Number(e.target.value))}
                             />
                             {ehPlantao && (
-                              <div style={{ fontSize: 11, color: "var(--grey)", marginTop: 2 }}>
+                              <div className="nota-pequena mt-2">
                                 Padrão da OM: entre 3 e 6
                               </div>
                             )}
@@ -125,7 +125,7 @@ export function TiposServicoPage() {
                         <td>
                           {editando ? (
                             <>
-                              <button className="btn btn-primary" style={{ marginRight: 6 }} onClick={() => salvarEfetivo(t)}>
+                              <button className="btn btn-primary mr-6" onClick={() => salvarEfetivo(t)}>
                                 Salvar
                               </button>
                               <button className="btn btn-outline" onClick={() => setEditandoId(null)}>
@@ -142,7 +142,7 @@ export function TiposServicoPage() {
                     </tr>
                     {abertoId === t.id && (
                       <tr>
-                        <td colSpan={podeEditar ? 6 : 5} style={{ padding: 0 }}>
+                        <td colSpan={podeEditar ? 6 : 5} className="card-tabela">
                           <RequisitosPainel tipo={t} podeEditar={podeEditar} onMudou={carregar} />
                         </td>
                       </tr>
@@ -156,8 +156,8 @@ export function TiposServicoPage() {
         </div>
 
         {!podeEditar && (
-          <div className="card" style={{ background: "var(--amber-bg)", border: "none" }}>
-            <p style={{ fontSize: 12, color: "var(--amber-text)" }}>
+          <div className="card card-atencao">
+            <p className="nota-alerta">
               Somente o Sargenteante mantém tipos de serviço. Você está vendo em modo de
               consulta.
             </p>

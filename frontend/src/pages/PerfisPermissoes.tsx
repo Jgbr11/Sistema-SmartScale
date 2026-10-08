@@ -85,11 +85,11 @@ Ela aparece só agora. Entregue pessoalmente — no primeiro acesso a pessoa vai
       <PageHeader title="Perfis e permissões" subtitle="Quem tem acesso ao quê no sistema" />
       <div className="body">
         {erro && <div className="error-box">{erro}</div>}
-        <div className="field" style={{ maxWidth: 320 }}>
+        <div className="field max-320">
           <input value={busca} onChange={(e) => setBusca(e.target.value)} placeholder="Buscar por nome ou CPF…" />
         </div>
 
-        <div className="card" style={{ padding: 0 }}>
+        <div className="card card-tabela">
           {carregando ? (
             <Esqueleto />
           ) : (
@@ -109,7 +109,7 @@ Ela aparece só agora. Entregue pessoalmente — no primeiro acesso a pessoa vai
                   return (
                     <tr key={u.id}>
                       <td>{u.militar.nomeExibicao}</td>
-                      <td style={{ color: "var(--grey)" }}>{formatarCpf(u.login)}</td>
+                      <td className="texto-suave">{formatarCpf(u.login)}</td>
                       <td>
                         <select
                           value={u.perfil.id}
@@ -126,10 +126,10 @@ Ela aparece só agora. Entregue pessoalmente — no primeiro acesso a pessoa vai
                           {u.ativo ? "Ativo" : "Inativo"}
                         </span>
                       </td>
-                      <td style={{ whiteSpace: "nowrap" }}>
+                      <td className="nowrap">
                         <button
-                          className="btn btn-outline"
-                          style={{ marginRight: 6 }}
+                          className="btn btn-outline mr-6"
+
                           disabled={processando === u.id}
                           onClick={() => resetarSenha(u.id, u.militar.nomeExibicao)}
                         >
@@ -150,7 +150,7 @@ Ela aparece só agora. Entregue pessoalmente — no primeiro acesso a pessoa vai
             </table>
           )}
         </div>
-        <p style={{ fontSize: 11, color: "var(--grey)" }}>
+        <p className="nota-pequena">
           Você não pode alterar o próprio perfil nem desativar o próprio acesso — peça pra outro Sargenteante, se houver.
         </p>
       </div>

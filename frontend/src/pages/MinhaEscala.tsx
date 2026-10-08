@@ -48,7 +48,7 @@ export function MinhaEscalaPage() {
       <PageHeader title="Minha escala" subtitle={capitalizar(nomeMes)} />
       <div className="body">
         <div className="card">
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+          <div className="linha-entre mb-12">
             <div>
               <h3>
                 {carregando
@@ -59,7 +59,7 @@ export function MinhaEscalaPage() {
               </h3>
               <p className="sub">Nos outros dias você cumpre o expediente normal.</p>
             </div>
-            <div style={{ display: "flex", gap: 8 }}>
+            <div className="linha">
               <button className="btn btn-outline" onClick={() => mudarMes(-1)}>
                 ← Mês anterior
               </button>

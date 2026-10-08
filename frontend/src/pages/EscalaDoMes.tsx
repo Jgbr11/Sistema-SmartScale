@@ -156,8 +156,8 @@ export function EscalaDoMesPage() {
             <p className="sub">Nenhuma escala gerada para esse mês.</p>
           ) : (
             doMes.escalas.map((e) => (
-              <div key={e.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "8px 0", borderBottom: "1px solid var(--border-2)" }}>
-                <p className="sub" style={{ margin: 0 }}>
+              <div key={e.id} className="linha-item">
+                <p className="sub m-0">
                   <strong>{e.descricao}</strong> · {formatarDataBR(e.dataInicio)} a {formatarDataBR(e.dataFim)} ·{" "}
                   <span className={"pill " + (e.situacao === "PUBLICADA" ? "pill-green" : "pill-amber")}>{e.situacao}</span>
                 </p>
@@ -169,7 +169,7 @@ export function EscalaDoMesPage() {
               </div>
             ))
           )}
-          <div style={{ display: "flex", gap: 24, marginTop: 14, flexWrap: "wrap" }}>
+          <div className="linha-resumo">
             <Metric label="Vagas previstas" value={previstos} />
             <Metric label="Vagas em aberto" value={abertos} />
             <Metric label="Dias com escala" value={servicosPorDia.size} />
@@ -177,9 +177,9 @@ export function EscalaDoMesPage() {
         </div>
 
         <div className="card">
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+          <div className="linha-entre mb-12">
             <h3>{nomeMesExibido}</h3>
-            <div style={{ display: "flex", gap: 8 }}>
+            <div className="linha">
               <button className="btn btn-outline" onClick={() => mudarMesExibido(-1)}>← Mês anterior</button>
               <button className="btn btn-outline" onClick={() => mudarMesExibido(1)}>Próximo mês →</button>
             </div>
@@ -215,9 +215,9 @@ export function EscalaDoMesPage() {
 
         {diaEscolhido && (
           <div className="card">
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+            <div className="linha-entre mb-12">
               <h3>Escala de {formatarDataBR(diaEscolhido)}</h3>
-              <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+              <div className="linha">
                 {diaJaComecou && (
                   <span className="pill pill-grey" title="O serviço deste dia já começou — ele está confirmado e não muda mais">
                     Dia concluído
@@ -239,8 +239,8 @@ export function EscalaDoMesPage() {
               </div>
             </div>
             {diaTravado && (
-              <div className="card" style={{ background: "var(--amber-bg)", border: "none", marginBottom: 12 }}>
-                <p style={{ fontSize: 12, color: "var(--amber-text)" }}>
+              <div className="card card-atencao mb-12">
+                <p className="nota-alerta">
                   Dia travado — nenhuma troca ou alteração manual é aceita aqui, nem pelo Sargenteante.
                 </p>
               </div>
@@ -265,13 +265,13 @@ export function EscalaDoMesPage() {
 function FuncaoRow({ servico, onClicarMilitar }: { servico: ServicoEscalado; onClicarMilitar: (id: number) => void }) {
   return (
     <tr>
-      <td style={{ fontWeight: 600, width: 220 }}>{servico.tipoServico.nome}</td>
-      <td style={{ color: "var(--grey)", width: 90 }}>{servico.militar?.posto.sigla ?? "—"}</td>
+      <td className="col-nome">{servico.tipoServico.nome}</td>
+      <td className="col-hora">{servico.militar?.posto.sigla ?? "—"}</td>
       <td>
         {servico.militar ? (
           <button
             onClick={() => onClicarMilitar(servico.militar!.id)}
-            style={{ background: "none", border: "none", padding: 0, color: "var(--sidebar-active)", fontWeight: 600, cursor: "pointer", textDecoration: "underline" }}
+            className="link-nome"
           >
             {servico.militar.nomeGuerra.toUpperCase()}
           </button>
@@ -279,7 +279,7 @@ function FuncaoRow({ servico, onClicarMilitar }: { servico: ServicoEscalado; onC
           <span className="pill pill-red">vaga em aberto</span>
         )}
       </td>
-      <td style={{ width: 90, fontSize: 11 }}>
+      <td className="w-90 texto-11">
         {servico.travado && <span className="pill pill-grey" title="Travado manualmente pelo Sargenteante">Travado</span>}
         {!servico.travado && servico.jaComecou && <span className="pill pill-grey" title="Já começou — não pode mais mudar">Concluído</span>}
       </td>
@@ -290,8 +290,8 @@ function FuncaoRow({ servico, onClicarMilitar }: { servico: ServicoEscalado; onC
 function Metric({ label, value }: { label: string; value: number }) {
   return (
     <div>
-      <div style={{ fontSize: 22, fontWeight: 700 }}>{value}</div>
-      <div style={{ fontSize: 11, color: "var(--grey)" }}>{label}</div>
+      <div className="numero-grande">{value}</div>
+      <div className="nota-pequena">{label}</div>
     </div>
   );
 }

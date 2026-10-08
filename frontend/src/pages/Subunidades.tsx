@@ -94,12 +94,12 @@ export function SubunidadesPage() {
 
         {erro && <div className="error-box">{erro}</div>}
         {aviso && (
-          <div className="card" style={{ background: "var(--amber-bg)", border: "none" }}>
-            <p style={{ fontSize: 13, color: "var(--amber-text)" }}>{aviso}</p>
+          <div className="card card-atencao">
+            <p className="nota-alerta texto-13">{aviso}</p>
           </div>
         )}
 
-        <div className="card" style={{ padding: 0 }}>
+        <div className="card card-tabela">
           {carregando ? (
             <Esqueleto />
           ) : (
@@ -119,19 +119,19 @@ export function SubunidadesPage() {
                     <tr key={s.id}>
                       <td>
                         {editando ? (
-                          <input style={{ width: 100 }} value={rascunho.sigla}
+                          <input className="w-100" value={rascunho.sigla}
                             onChange={(e) => setRascunho((r) => ({ ...r, sigla: e.target.value }))} />
                         ) : s.sigla}
                       </td>
                       <td>
                         {editando ? (
-                          <input style={{ width: "100%" }} value={rascunho.nome}
+                          <input className="largura-total" value={rascunho.nome}
                             onChange={(e) => setRascunho((r) => ({ ...r, nome: e.target.value }))} />
                         ) : s.nome}
                       </td>
                       <td>
                         {editando ? (
-                          <label style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12.5 }}>
+                          <label className="opcao-check">
                             <input type="checkbox" checked={rascunho.ativo}
                               onChange={(e) => setRascunho((r) => ({ ...r, ativo: e.target.checked }))} />
                             Ativa
@@ -141,15 +141,15 @@ export function SubunidadesPage() {
                         )}
                       </td>
                       {podeEditar && (
-                        <td style={{ whiteSpace: "nowrap" }}>
+                        <td className="nowrap">
                           {editando ? (
                             <>
-                              <button className="btn btn-primary" style={{ marginRight: 6 }} onClick={() => salvarEdicao(s.id)}>Salvar</button>
+                              <button className="btn btn-primary mr-6" onClick={() => salvarEdicao(s.id)}>Salvar</button>
                               <button className="btn btn-outline" onClick={() => setEditandoId(null)}>Cancelar</button>
                             </>
                           ) : (
                             <>
-                              <button className="btn btn-outline" style={{ marginRight: 6 }} onClick={() => iniciarEdicao(s)}>Editar</button>
+                              <button className="btn btn-outline mr-6" onClick={() => iniciarEdicao(s)}>Editar</button>
                               <button className="btn btn-outline" onClick={() => excluir(s)}>Excluir</button>
                             </>
                           )}

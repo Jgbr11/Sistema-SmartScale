@@ -69,7 +69,7 @@ export function QualificacoesPage() {
           <NovaQualificacaoForm onCriado={() => { setMostrarForm(false); carregar(); }} />
         )}
 
-        <div className="card" style={{ padding: 0 }}>
+        <div className="card card-tabela">
           {carregando ? (
             <Esqueleto />
           ) : (
@@ -89,7 +89,7 @@ export function QualificacoesPage() {
                       <td>
                         {editando ? (
                           <input
-                            style={{ width: 160 }}
+                            className="w-160"
                             value={rascunho.nome}
                             onChange={(e) => setRascunho((s) => ({ ...s, nome: e.target.value }))}
                           />
@@ -100,7 +100,7 @@ export function QualificacoesPage() {
                       <td>
                         {editando ? (
                           <input
-                            style={{ width: "100%" }}
+                            className="largura-total"
                             value={rascunho.descricao}
                             onChange={(e) => setRascunho((s) => ({ ...s, descricao: e.target.value }))}
                           />
@@ -112,7 +112,7 @@ export function QualificacoesPage() {
                         <td>
                           {editando ? (
                             <>
-                              <button className="btn btn-primary" style={{ marginRight: 6 }} onClick={() => salvarEdicao(q)}>
+                              <button className="btn btn-primary mr-6" onClick={() => salvarEdicao(q)}>
                                 Salvar
                               </button>
                               <button className="btn btn-outline" onClick={() => setEditandoId(null)}>
@@ -121,7 +121,7 @@ export function QualificacoesPage() {
                             </>
                           ) : (
                             <>
-                              <button className="btn btn-outline" style={{ marginRight: 6 }} onClick={() => iniciarEdicao(q)}>
+                              <button className="btn btn-outline mr-6" onClick={() => iniciarEdicao(q)}>
                                 Editar
                               </button>
                               <button className="btn btn-outline" onClick={() => excluir(q)}>
@@ -139,8 +139,8 @@ export function QualificacoesPage() {
           )}
         </div>
 
-        <div className="card" style={{ background: "var(--amber-bg)", border: "none" }}>
-          <p style={{ fontSize: 12, color: "var(--amber-text)" }}>
+        <div className="card card-atencao">
+          <p className="nota-alerta">
             Vincular ou remover um curso de uma pessoa é feito na tela de Militares, no cadastro
             dela. Aqui você só mantém o catálogo dos cursos que existem.
           </p>

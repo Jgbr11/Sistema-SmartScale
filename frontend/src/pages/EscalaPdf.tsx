@@ -20,52 +20,52 @@ export function EscalaPdfPage() {
   }, [data]);
 
   if (!data || servicos === null) {
-    return <div style={{ padding: 40, fontFamily: "sans-serif" }}>Carregando…</div>;
+    return <div className="pdf-pagina">Carregando…</div>;
   }
 
   return (
     <div className="pdf-escala-dia">
-      <div className="no-print" style={{ padding: "12px 20px", background: "#f4f1e8", borderBottom: "1px solid #ddd" }}>
-        <button onClick={() => window.print()} style={{ padding: "6px 14px", cursor: "pointer" }}>
+      <div className="no-print pdf-barra">
+        <button onClick={() => window.print()} className="pdf-botao">
           Imprimir / Salvar como PDF
         </button>
-        <span style={{ marginLeft: 10, fontSize: 12, color: "#666" }}>
+        <span className="pdf-dica">
           Essa barra não aparece na impressão.
         </span>
       </div>
 
       <div style={{ padding: "30px 40px", fontFamily: "'IBM Plex Sans Condensed', sans-serif" }}>
-        <h1 style={{ fontSize: 20, marginBottom: 2 }}>MilScale — Escala do dia</h1>
-        <p style={{ fontSize: 13, color: "#555", marginBottom: 20 }}>
+        <h1 className="pdf-titulo">MilScale — Escala do dia</h1>
+        <p className="pdf-sub">
           {organizacao ? `${organizacao.nome} — ` : ""}{formatarDataExtensa(data)}
         </p>
 
         {servicos.length === 0 ? (
           <p>Nenhuma escala publicada cobre esse dia.</p>
         ) : (
-          <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
+          <table className="pdf-tabela">
             <thead>
-              <tr style={{ borderBottom: "2px solid #333" }}>
-                <th style={{ textAlign: "left", padding: "6px 8px" }}>Função</th>
-                <th style={{ textAlign: "left", padding: "6px 8px" }}>Posto</th>
-                <th style={{ textAlign: "left", padding: "6px 8px" }}>Nome de guerra</th>
-                <th style={{ textAlign: "left", padding: "6px 8px" }}>Situação</th>
+              <tr className="pdf-linha-cabeca">
+                <th className="pdf-th">Função</th>
+                <th className="pdf-th">Posto</th>
+                <th className="pdf-th">Nome de guerra</th>
+                <th className="pdf-th">Situação</th>
               </tr>
             </thead>
             <tbody>
               {servicos.map((s) => (
-                <tr key={s.id} style={{ borderBottom: "1px solid #ccc" }}>
-                  <td style={{ padding: "6px 8px" }}>{s.tipoServico.nome}</td>
-                  <td style={{ padding: "6px 8px" }}>{s.militar?.posto.descricao ?? "—"}</td>
-                  <td style={{ padding: "6px 8px" }}>{s.militar?.nomeGuerra ?? "VAGA EM ABERTO"}</td>
-                  <td style={{ padding: "6px 8px" }}>{s.travado ? "Travado" : s.situacao}</td>
+                <tr key={s.id} className="pdf-linha">
+                  <td className="pdf-td">{s.tipoServico.nome}</td>
+                  <td className="pdf-td">{s.militar?.posto.descricao ?? "—"}</td>
+                  <td className="pdf-td">{s.militar?.nomeGuerra ?? "VAGA EM ABERTO"}</td>
+                  <td className="pdf-td">{s.travado ? "Travado" : s.situacao}</td>
                 </tr>
               ))}
             </tbody>
           </table>
         )}
 
-        <p style={{ marginTop: 30, fontSize: 10.5, color: "#888" }}>
+        <p className="pdf-rodape">
           Gerado pelo MilScale em {new Date().toLocaleString("pt-BR")}
         </p>
       </div>
