@@ -17,7 +17,7 @@ export function useCarregamento<T>(buscar: () => Promise<T>, chave: unknown = nu
         setErro(null);
       })
       .catch((e) => {
-        if (ativo) setErro(e instanceof ApiError ? e.message : "Não foi possível carregar os dados.");
+        if (ativo) setErro(e instanceof ApiError ? e.message : "Não foi possível carregar. Confira a conexão e tente de novo.");
       })
       .finally(() => {
         if (ativo) setCarregando(false);

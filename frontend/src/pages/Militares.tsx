@@ -160,7 +160,7 @@ function NovoMilitarForm({
   subunidades: Subunidade[];
   onCriado: () => void;
 }) {
-  const { confirmar } = useFeedback();
+  const { avisar, confirmar } = useFeedback();
   const [nomeCompleto, setNomeCompleto] = useState("");
   const [nomeGuerra, setNomeGuerra] = useState("");
   const [cpf, setCpf] = useState("");
@@ -211,6 +211,7 @@ function NovoMilitarForm({
         `Login: ${mascararCpf(cpf)}\nSenha temporária: ${r.senhaTemporaria}\n\n` +
         `Ela aparece só agora. No primeiro acesso a pessoa vai criar a própria senha.`
       );
+      avisar("Militar cadastrado.", "sucesso");
       onCriado();
     } catch (e) {
       setErro(e instanceof ApiError ? e.message : "Não foi possível cadastrar.");
@@ -297,7 +298,7 @@ function NovoMilitarForm({
         </div>
       </div>
       <button className="btn btn-primary" onClick={salvar} disabled={salvando}>
-        {salvando ? "Salvando…" : "Salvar cadastro"}
+        {salvando ? "Cadastrando…" : "Cadastrar militar"}
       </button>
     </div>
   );

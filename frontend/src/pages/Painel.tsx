@@ -164,7 +164,7 @@ export function PainelPage() {
                   <div className="quick-actions mt-10">
                     {podeTriagem && (
                       <button className="quick-action" onClick={() => navigate("/escala")}>
-                        Montar a escala do mês
+                        Gerar escala do mês
                       </button>
                     )}
                     <button className="quick-action" onClick={() => navigate("/trocas")}>
@@ -203,7 +203,7 @@ export function PainelPage() {
                       </div>
                     )}
                     {vagasAbertas === 0 && trocasPendentes === 0 && afastadosHoje === 0 && (
-                      <p className="sub">Nenhum ponto de atenção no momento.</p>
+                      <p className="sub">Nada pendente agora.</p>
                     )}
                   </div>
                 </div>

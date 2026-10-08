@@ -36,6 +36,15 @@ export function MilitarDetalheOverlay({ militarId, onFechar }: { militarId: numb
     });
   }, [militarId]);
 
+  useEffect(() => {
+    if (militarId === null) return;
+    const aoTeclar = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onFechar();
+    };
+    document.addEventListener("keydown", aoTeclar);
+    return () => document.removeEventListener("keydown", aoTeclar);
+  }, [militarId, onFechar]);
+
   if (militarId === null) return null;
 
   return (
@@ -45,11 +54,14 @@ export function MilitarDetalheOverlay({ militarId, onFechar }: { militarId: numb
     >
       <div
         className="popup-janela"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="popup-militar-titulo"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="popup-topo">
           <div>
-            <div className="popup-titulo">
+            <div className="popup-titulo" id="popup-militar-titulo">
               CARTEIRA DE IDENTIDADE MILITAR
             </div>
             <div className="popup-sub">{organizacao?.nome ?? ""}</div>
@@ -57,6 +69,8 @@ export function MilitarDetalheOverlay({ militarId, onFechar }: { militarId: numb
           <button
             onClick={onFechar}
             className="popup-fechar"
+            aria-label="Fechar"
+            autoFocus
           >
             ✕
           </button>

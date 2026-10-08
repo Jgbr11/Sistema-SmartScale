@@ -159,7 +159,7 @@ export function AvisosPage() {
 
 function AvisoDetalhe({ aviso, boletim, onVerBoletim }: { aviso: Aviso; boletim?: BoletimResumo; onVerBoletim: () => void }) {
   return (
-    <div className="card" style={{ background: aviso.tipo === "FERIADO" ? "var(--green-pill-bg)" : "var(--amber-bg)", border: "none", marginBottom: 10 }}>
+    <div className={"card mb-10 " + (aviso.tipo === "FERIADO" ? "card-positivo" : "card-atencao")}>
       <strong className="texto-13">{TIPO_LABEL[aviso.tipo] ?? aviso.tipo} — {aviso.descricao}</strong>
       <p className="texto-12 mt-4">
         Período: {formatarPeriodo(aviso.dataInicio, aviso.dataFim)}

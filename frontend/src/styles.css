@@ -34,32 +34,6 @@
   --espaco-3: 12px;
   --espaco-4: 16px;
   --espaco-6: 24px;
-
-  --bg: var(--papel);
-  --white: var(--folha);
-  --dark: var(--grafite);
-  --grey: var(--grafite-suave);
-  --grey-light: #66705c;
-  --border: var(--areia);
-  --border-2: var(--areia-clara);
-  --row-alt: var(--linha-hover);
-  --sidebar: var(--caserna);
-  --sidebar-active: var(--oliva);
-  --sidebar-text: var(--caserna-texto);
-  --sidebar-sub: var(--caserna-apagado);
-  --footer-bg: var(--caserna-fundo);
-  --footer-border: var(--oliva);
-  --accent: var(--latao);
-  --table-head-bg: var(--areia-clara);
-  --table-head-text: var(--oliva-escura);
-  --green-pill-bg: var(--positivo-fundo);
-  --green-pill-text: var(--positivo-texto);
-  --amber-bg: var(--atencao-fundo);
-  --amber-text: var(--atencao-texto);
-  --red-bg: var(--sinal-fundo);
-  --red-text: var(--sinal);
-  --font-display: var(--fonte-letreiro);
-  --font-body: var(--fonte-texto);
 }
 
 /* ---- Base ---- */
@@ -271,6 +245,11 @@ td.acoes { white-space: nowrap; }
 .sino-botao { position: relative; background: none; border: 1px solid var(--oliva); border-radius: var(--raio); width: 34px; height: 34px; color: #fff; font-size: 15px; cursor: pointer; }
 .sino-contador { position: absolute; top: -5px; right: -5px; background: var(--sinal); color: #fff; border-radius: 999px; font-family: var(--fonte-dados); font-size: 10px; font-weight: 700; min-width: 16px; height: 16px; display: flex; align-items: center; justify-content: center; padding: 0 3px; }
 .sino-cabecalho { padding: 10px 14px; border-bottom: 1px solid var(--areia-clara); display: flex; justify-content: space-between; align-items: center; }
+.sino-painel { position: fixed; width: 320px; max-width: calc(100vw - 16px); max-height: 400px; overflow-y: auto; background: var(--folha); border: 1px solid var(--areia); border-top: 3px solid var(--oliva); border-radius: var(--raio); box-shadow: 0 8px 24px rgba(25, 29, 22, 0.18); z-index: 500; }
+.sino-item { display: block; width: 100%; text-align: left; padding: 10px 14px; border: none; border-bottom: 1px solid var(--areia-clara); cursor: pointer; background: var(--folha); }
+.sino-item.nao-lida { background: var(--atencao-fundo); }
+.sino-mensagem { font-size: 12px; color: var(--grafite); }
+.sino-item.nao-lida .sino-mensagem { font-weight: 600; }
 .link-pequeno { background: none; border: none; color: var(--oliva); font-size: 11px; cursor: pointer; text-decoration: underline; }
 
 /* ---- Requisitos, boletim, trocas ---- */
@@ -281,6 +260,9 @@ td.acoes { white-space: nowrap; }
 .editor-area { min-height: 220px; border: 1px solid var(--areia); border-radius: var(--raio); padding: var(--espaco-3); font-size: 13.5px; line-height: 1.5; background: #fff; outline: none; }
 .editor-area:focus { border-color: var(--oliva); }
 .boletim-corpo { margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--areia-clara); font-size: 13.5px; line-height: 1.6; }
+.opcao-troca { display: flex; flex-direction: column; gap: 3px; padding: 10px 12px; border: 1px solid var(--areia); border-radius: var(--raio); cursor: pointer; background: #fff; }
+.opcao-troca.escolhida { border-color: var(--oliva); background: var(--areia-clara); }
+.nota-bloco { display: block; font-size: 11px; color: var(--grafite-suave); }
 .trocas-detalhe { font-size: 11.5px; color: var(--grafite-suave); padding-left: 22px; }
 
 /* ---- Escala em PDF ---- */
@@ -288,6 +270,7 @@ td.acoes { white-space: nowrap; }
 .pdf-barra { padding: 12px 20px; background: var(--papel); border-bottom: 1px solid var(--areia); }
 .pdf-botao { padding: 6px 14px; cursor: pointer; }
 .pdf-dica { margin-left: 10px; font-size: 12px; color: var(--grafite-suave); }
+.pdf-conteudo { padding: 30px 40px; }
 .pdf-titulo { font-size: 20px; margin-bottom: 2px; }
 .pdf-sub { font-size: 13px; color: #555; margin-bottom: 20px; }
 .pdf-tabela { width: 100%; border-collapse: collapse; font-size: 13px; }

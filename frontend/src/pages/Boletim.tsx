@@ -66,7 +66,7 @@ export function BoletimPage() {
 
   return (
     <>
-      <PageHeader title="Boletim Interno" subtitle="Comunicados do batalhão — texto e imagens" />
+      <PageHeader title="Boletim interno" subtitle="Comunicados do batalhão — texto e imagens" />
       <div className="body">
         {podeEditar && !mostrarForm && (
           <div className="linha-fim">
@@ -128,6 +128,7 @@ export function BoletimPage() {
 }
 
 function BoletimForm({ boletim, onSalvou, onCancelar }: { boletim: Boletim | null; onSalvou: () => void; onCancelar: () => void }) {
+  const { avisar } = useFeedback();
   const [numero, setNumero] = useState(boletim?.numero ?? "");
   const [titulo, setTitulo] = useState(boletim?.titulo ?? "");
   const [conteudoHtml, setConteudoHtml] = useState(boletim?.conteudoHtml ?? "");
@@ -162,8 +163,10 @@ function BoletimForm({ boletim, onSalvou, onCancelar }: { boletim: Boletim | nul
       const payload = { numero, titulo, conteudoHtml, avisoRelacionado: avisoChave || null, avisoRelacionadoDescricao: avisoChave ? avisoRelacionadoDescricao : null };
       if (boletim) {
         await api.put(`/api/boletins/${boletim.id}`, payload);
+        avisar("Boletim atualizado.", "sucesso");
       } else {
         await api.post("/api/boletins", payload);
+        avisar("Boletim publicado.", "sucesso");
       }
       onSalvou();
     } catch (e) {
@@ -208,7 +211,7 @@ function BoletimForm({ boletim, onSalvou, onCancelar }: { boletim: Boletim | nul
       </div>
       <div className="linha mt-10">
         <button className="btn btn-primary" onClick={salvar} disabled={salvando}>
-          {salvando ? "Salvando…" : "Publicar"}
+          {salvando ? "Salvando…" : boletim ? "Salvar alterações" : "Publicar boletim"}
         </button>
         <button className="btn btn-outline" onClick={onCancelar} disabled={salvando}>Cancelar</button>
       </div>

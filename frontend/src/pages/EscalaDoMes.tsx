@@ -11,6 +11,8 @@ import { useAoMudar } from "../hooks/useAoMudar";
 import { CalendarioMensal } from "../components/ui/CalendarioMensal";
 import { progressoDoDia } from "../utils/servico";
 import { Esqueleto } from "../components/ui/Esqueleto";
+import { useFeedback } from "../components/ui/Feedback";
+import { EstadoVazio } from "../components/ui/EstadoVazio";
 
 interface MesAno {
   ano: number;
@@ -19,6 +21,7 @@ interface MesAno {
 
 export function EscalaDoMesPage() {
   const { geraEscala: podeGerar, publicaEscala: podePublicar } = usePermissoes();
+  const { avisar } = useFeedback();
 
   const hoje = new Date();
   const [mesExibido, setMesExibido] = useState<MesAno>({ ano: hoje.getFullYear(), mes: hoje.getMonth() });
@@ -54,6 +57,7 @@ export function EscalaDoMesPage() {
       const nova = await api.post<Escala>("/api/escalas/gerar", { dataInicio, dataFim });
       const d = new Date(nova.dataInicio + "T00:00:00");
       setDiaEscolhido(null);
+      avisar("Escala gerada.", "sucesso");
       const alvo = { ano: d.getFullYear(), mes: d.getMonth() };
       if (alvo.ano === mesExibido.ano && alvo.mes === mesExibido.mes) carregar(alvo);
       else setMesExibido(alvo);
@@ -75,6 +79,7 @@ export function EscalaDoMesPage() {
     setErro(null);
     try {
       await api.post(`/api/escalas/${escalaId}/publicar`);
+      avisar("Escala publicada.", "sucesso");
       carregar();
     } catch (e) {
       setErro(e instanceof ApiError && e.status === 403
@@ -113,6 +118,7 @@ export function EscalaDoMesPage() {
     setErro(null);
     try {
       await api.post(`/api/escalas/dias/${diaEscolhido}/${acao}`);
+      avisar(acao === "travar" ? "Dia travado." : "Dia destravado.", "sucesso");
       carregar();
     } catch (e) {
       setErro(e instanceof ApiError ? e.message : `Não foi possível ${acao} o dia.`);
@@ -132,7 +138,7 @@ export function EscalaDoMesPage() {
 
         {podeGerar && (
           <div className="card">
-            <h3>Gerar nova escala</h3>
+            <h3>Gerar escala</h3>
             <p className="sub">Quem está há mais tempo sem tirar serviço entra primeiro</p>
             <div className="form-grid">
               <div className="field">
@@ -145,7 +151,7 @@ export function EscalaDoMesPage() {
               </div>
             </div>
             <button className="btn btn-primary" onClick={gerar} disabled={gerando}>
-              {gerando ? "Montando…" : "Montar a escala"}
+              {gerando ? "Gerando…" : "Gerar escala"}
             </button>
           </div>
         )}
@@ -153,7 +159,10 @@ export function EscalaDoMesPage() {
         <div className="card">
           <h3>Escalas de {nomeMesExibido}</h3>
           {doMes.escalas.length === 0 ? (
-            <p className="sub">Nenhuma escala gerada para esse mês.</p>
+            <EstadoVazio
+              titulo="Nenhuma escala neste mês"
+              descricao={podeGerar ? "Gere a escala para distribuir os serviços do período." : "A escala deste mês ainda não foi gerada."}
+            />
           ) : (
             doMes.escalas.map((e) => (
               <div key={e.id} className="linha-item">
@@ -163,7 +172,7 @@ export function EscalaDoMesPage() {
                 </p>
                 {podePublicar && e.situacao === "RASCUNHO" && (
                   <button className="btn btn-primary" onClick={() => publicar(e.id)} disabled={publicandoId === e.id}>
-                    {publicandoId === e.id ? "Publicando…" : "Publicar para o efetivo"}
+                    {publicandoId === e.id ? "Publicando…" : "Publicar escala"}
                   </button>
                 )}
               </div>
@@ -228,11 +237,11 @@ export function EscalaDoMesPage() {
                 {podePublicar && servicosDoDiaEscolhido.length > 0 && !diaJaComecou && (
                   diaTravado ? (
                     <button className="btn btn-outline" onClick={() => alternarTravamento("destravar")} disabled={travando}>
-                      {travando ? "…" : "Destravar este dia"}
+                      {travando ? "…" : "Destravar dia"}
                     </button>
                   ) : (
                     <button className="btn btn-primary" onClick={() => alternarTravamento("travar")} disabled={travando}>
-                      {travando ? "…" : "Travar este dia"}
+                      {travando ? "…" : "Travar dia"}
                     </button>
                   )
                 )}

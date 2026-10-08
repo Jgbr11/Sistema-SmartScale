@@ -9,10 +9,10 @@ export interface Coluna {
 export function TabelaSolicitacoes({ itens, colunas, vazio, acoes }: {
   itens: Solicitacao[];
   colunas: Coluna[];
-  vazio: string;
+  vazio: ReactNode;
   acoes?: (s: Solicitacao) => ReactNode;
 }) {
-  if (itens.length === 0) return <div className="vazio">{vazio}</div>;
+  if (itens.length === 0) return typeof vazio === "string" ? <div className="vazio">{vazio}</div> : vazio;
   return (
     <table>
       <thead>

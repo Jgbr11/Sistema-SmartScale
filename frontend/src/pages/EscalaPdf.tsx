@@ -34,7 +34,7 @@ export function EscalaPdfPage() {
         </span>
       </div>
 
-      <div style={{ padding: "30px 40px", fontFamily: "'IBM Plex Sans Condensed', sans-serif" }}>
+      <div className="pdf-conteudo">
         <h1 className="pdf-titulo">MilScale — Escala do dia</h1>
         <p className="pdf-sub">
           {organizacao ? `${organizacao.nome} — ` : ""}{formatarDataExtensa(data)}

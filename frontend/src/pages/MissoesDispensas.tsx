@@ -102,7 +102,7 @@ export function MissoesDispensasPage() {
       <div className="body">
         {ofertaRegenerar && (
           <div className="card card-atencao">
-            <p style={{ fontSize: 13, marginBottom: erroRegenerar ? 4 : 10 }}>
+            <p className={"texto-13 " + (erroRegenerar ? "mb-4" : "mb-10")}>
               Afastamento cancelado. A escala de {formatarDataBR(ofertaRegenerar.dataInicio)} a{" "}
               {formatarDataBR(ofertaRegenerar.dataFim)} ainda reflete a redistribuição feita na hora do
               cadastro. Quer regenerar esse período agora, pra redistribuir de forma justa?

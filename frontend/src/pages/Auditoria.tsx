@@ -78,7 +78,7 @@ export function AuditoriaPage() {
 
   return (
     <>
-      <PageHeader title="Log de auditoria" subtitle="Quem fez o quê no sistema — só o Sargenteante vê" />
+      <PageHeader title="Auditoria" subtitle="Quem fez o quê no sistema — só o Sargenteante vê" />
       <div className="body">
         <div className="field max-320">
           <input value={busca} onChange={(e) => setBusca(e.target.value)} placeholder="Buscar por pessoa, ação ou detalhe…" />

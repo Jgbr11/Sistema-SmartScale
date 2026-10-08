@@ -87,16 +87,16 @@ Três frentes:
 
 | Ordem | Task | Status | Commit | Resumo |
 |---|---|---|---|---|
-| 1 | 0 — Preparação e capturas "antes" | 🟡 Lote 6, aguardando commit | — | Branch `melhoria/visual` a partir de `melhoria/qualidade`; inline 307 no início. **Capturas não feitas** (sem navegador no ambiente) — o `git show 72cfbf4` guarda o visual anterior |
-| 2 | 1 — Tokens, fontes e base | 🟡 Lote 6, aguardando commit | — | `styles.css` reescrito com os tokens, as 4 fontes e apelidos para os nomes antigos; mesmas classes |
-| 3 | 2 — Menu com ícones e cabeçalho com seção | 🟡 Lote 6, aguardando commit | — | `Icone` (+ `postos` e `subunidades`), `secaoDaRota` com teste, `PageHeader` com sobrelinha e `acoes`; menu com ícones e "Sair". Botões de topo foram para `.linha-fim` (mover para `acoes` fica para a Task 7) |
-| 4 | 3 — Componentes de estado (vazio, carregando, etiqueta) | 🟡 Lote 6, aguardando commit | — | `EstadoVazio`, `Esqueleto`, `Etiqueta`; 19 "Carregando…" viraram `<Esqueleto />`. As `.pill-*` ganharam o mesmo visual de `Etiqueta` |
-| 5 | 4 — Assinatura: fita do serviço | 🟡 Lote 6, aguardando commit | — | `servicoEmCurso` (3 testes) + `FitaDoServico` no Painel, na Escala do dia e no Login |
-| 6 | 5 — Calendário "quadro de escala" | 🟡 Lote 6, aguardando commit | — | Numerais em estêncil, filete de progresso por dia (`progressoDoDia`), "hoje" em latão, legenda na Escala do mês |
-| 7 | 6 — Tela de login | 🟡 Lote 6, aguardando commit | — | Lado de identidade com sobrelinha da OM, letreiro e a fita; cartão com filete oliva |
-| 8 | 7 — Tabelas, formulários e fim dos estilos inline | ⬜ Pendente | — | — |
-| 9 | 8 — Acessibilidade e responsivo | ⬜ Pendente | — | — |
-| 10 | 9 — Textos de interface | ⬜ Pendente | — | — |
+| 1 | 0 — Preparação e capturas "antes" | ✅ Lote 6 | `13fc5c8` | Branch `melhoria/visual` a partir de `melhoria/qualidade`; inline 307 no início. **Capturas não feitas** (sem navegador no ambiente) — o `git show 72cfbf4` guarda o visual anterior |
+| 2 | 1 — Tokens, fontes e base | ✅ Lote 6 | `13fc5c8` | `styles.css` reescrito com os tokens, as 4 fontes e apelidos para os nomes antigos; mesmas classes |
+| 3 | 2 — Menu com ícones e cabeçalho com seção | ✅ Lote 6 | `13fc5c8` | `Icone` (+ `postos` e `subunidades`), `secaoDaRota` com teste, `PageHeader` com sobrelinha e `acoes`; menu com ícones e "Sair". Botões de topo foram para `.linha-fim` (mover para `acoes` fica para a Task 7) |
+| 4 | 3 — Componentes de estado (vazio, carregando, etiqueta) | ✅ Lote 6 | `13fc5c8` | `EstadoVazio`, `Esqueleto`, `Etiqueta`; 19 "Carregando…" viraram `<Esqueleto />`. As `.pill-*` ganharam o mesmo visual de `Etiqueta` |
+| 5 | 4 — Assinatura: fita do serviço | ✅ Lote 6 | `13fc5c8` | `servicoEmCurso` (3 testes) + `FitaDoServico` no Painel, na Escala do dia e no Login |
+| 6 | 5 — Calendário "quadro de escala" | ✅ Lote 6 | `13fc5c8` | Numerais em estêncil, filete de progresso por dia (`progressoDoDia`), "hoje" em latão, legenda na Escala do mês |
+| 7 | 6 — Tela de login | ✅ Lote 6 | `13fc5c8` | Lado de identidade com sobrelinha da OM, letreiro e a fita; cartão com filete oliva |
+| 8 | 7 — Tabelas, formulários e fim dos estilos inline | 🟡 Lote 7, aguardando commit | — | Estilos inline 307 → **5** (só largura/posição calculadas: fita, filete do dia, posição do sininho). Apelidos antigos removidos do `:root`; zero usos restantes |
+| 9 | 8 — Acessibilidade e responsivo | 🟡 Lote 7, aguardando commit | — | Popup do militar com `role="dialog"`, `aria-modal`, `aria-labelledby`, Esc e foco no fechar; sininho com `aria-expanded` e contador rotulado; menu com `aria-controls`. Contraste calculado (WCAG): 14,2 · 7,3 · 7,2 · 9,5 · 5,2 · 5,4 · 6,3 · 7,4 — todos ≥ 4,5:1. Conferência no celular e por teclado: pendente (sem navegador) |
+| 10 | 9 — Textos de interface | 🟡 Lote 7, aguardando commit | — | Tabela aplicada, com avisos de sucesso; estados vazios em Escala do mês e Trocas; títulos em frase curta. Erro genérico só no hook (nenhuma página usa `useCarregamento`, então o botão "Tentar de novo" ficou de fora). Capturas "depois": pendentes |
 
 ---
 

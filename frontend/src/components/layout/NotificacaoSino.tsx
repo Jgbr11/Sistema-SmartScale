@@ -80,12 +80,14 @@ export function NotificacaoSino() {
         ref={botaoRef}
         onClick={abrirPainel}
         aria-label="Notificações"
+        aria-expanded={aberto}
         className="sino-botao"
       >
         🔔
         {contagem > 0 && (
           <span
             className="sino-contador"
+            aria-label={`${contagem} notificações não lidas`}
           >
             {contagem > 9 ? "9+" : contagem}
           </span>
@@ -95,11 +97,8 @@ export function NotificacaoSino() {
       {aberto && (
         <div
           ref={painelRef}
-          style={{
-            position: "fixed", top: posicao.top, left: posicao.left, width: 320, maxHeight: 400, overflowY: "auto",
-            background: "#fff", border: "1px solid var(--border)", borderRadius: 8, boxShadow: "0 8px 24px rgba(0,0,0,0.18)",
-            zIndex: 500,
-          }}
+          className="sino-painel"
+          style={{ top: posicao.top, left: posicao.left }}
         >
           <div className="sino-cabecalho">
             <strong className="texto-125">Notificações</strong>
@@ -118,13 +117,9 @@ export function NotificacaoSino() {
               <button
                 key={n.id}
                 onClick={() => clicarNotificacao(n)}
-                style={{
-                  display: "block", width: "100%", textAlign: "left", padding: "10px 14px",
-                  border: "none", borderBottom: "1px solid var(--border-2)", cursor: "pointer",
-                  background: n.lida ? "#fff" : "var(--amber-bg)",
-                }}
+                className={"sino-item" + (n.lida ? "" : " nao-lida")}
               >
-                <div style={{ fontSize: 12, color: "var(--dark)", fontWeight: n.lida ? 400 : 600 }}>{n.mensagem}</div>
+                <div className="sino-mensagem">{n.mensagem}</div>
                 <div className="nota-mini mt-2">{formatarQuando(n.dataCriacao)}</div>
               </button>
             ))

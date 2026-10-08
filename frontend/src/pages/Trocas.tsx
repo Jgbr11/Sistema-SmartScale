@@ -10,8 +10,8 @@ import { useAoMudar } from "../hooks/useAoMudar";
 import { useFeedback } from "../components/ui/Feedback";
 import { TabelaSolicitacoes, type Coluna } from "../components/trocas/TabelaSolicitacoes";
 import { Esqueleto } from "../components/ui/Esqueleto";
+import { EstadoVazio } from "../components/ui/EstadoVazio";
 
-const NOTA = { display: "block", fontSize: 11, color: "var(--grey)" } as const;
 
 const QUEM_PEDIU: Coluna = { titulo: "Quem pediu", valor: (s) => s.solicitante.nomeExibicao };
 const SERVICO: Coluna = { titulo: "Serviço", valor: (s) => s.servicoOrigemTipo };
@@ -26,7 +26,7 @@ const COM_QUEM: Coluna = {
     <>
       {s.substituto.nomeExibicao}
       {s.tipoTroca === "TROCA_MUTUA" && s.servicoDestinoData && (
-        <span style={NOTA}>você assume o dia {formatarDataBR(s.servicoDestinoData)} dele</span>
+        <span className="nota-bloco">você assume o dia {formatarDataBR(s.servicoDestinoData)} dele</span>
       )}
     </>
   ),
@@ -37,7 +37,7 @@ const ASSUME: Coluna = {
     <>
       {s.substituto.nomeExibicao}
       {s.tipoTroca === "TROCA_MUTUA" && s.servicoDestinoData && (
-        <span style={NOTA}>e {s.solicitante.nomeExibicao} assume o dia {formatarDataBR(s.servicoDestinoData)} dele</span>
+        <span className="nota-bloco">e {s.solicitante.nomeExibicao} assume o dia {formatarDataBR(s.servicoDestinoData)} dele</span>
       )}
     </>
   ),
@@ -48,7 +48,7 @@ const TIPO_PARA_QUEM_ASSUME: Coluna = {
     <>
       <TipoTrocaPill tipo={s.tipoTroca} />
       {s.tipoTroca === "TROCA_MUTUA" && s.servicoDestinoData && (
-        <span style={{ ...NOTA, marginTop: 3 }}>
+        <span className="nota-bloco mt-2">
           você assumiria o dia {formatarDataBR(s.servicoOrigemData)}, e ele assumiria seu dia {formatarDataBR(s.servicoDestinoData)}
         </span>
       )}
@@ -99,6 +99,7 @@ export function TrocasPage() {
     const comentario = resposta;
     try {
       await api.post(`/api/solicitacoes/${id}/confirmar-substituto`, { aceito, comentario });
+      avisar(aceito ? "Você assumiu o pedido — agora vai para a triagem." : "Pedido recusado.", "sucesso");
       carregar();
     } catch (e) {
       avisar(e instanceof ApiError ? e.message : "Não foi possível concluir a ação.", "erro");
@@ -171,7 +172,13 @@ export function TrocasPage() {
               ) : (
                 <TabelaSolicitacoes
                   itens={minhas}
-                  vazio="Você ainda não pediu nenhuma troca."
+                  vazio={
+                    <EstadoVazio
+                      titulo="Nenhum pedido de troca"
+                      descricao="Precisa passar um serviço ou trocar de dia? Faça o pedido e acompanhe aqui."
+                      acao={!mostrarForm && <button className="btn btn-primary" onClick={() => setMostrarForm(true)}>Pedir troca</button>}
+                    />
+                  }
                   colunas={[SERVICO, DIA, TIPO, COM_QUEM, SITUACAO]}
                   acoes={(s) =>
                     (s.situacao === "AGUARDANDO_SUBSTITUTO" || s.situacao === "EM_TRIAGEM") && (
@@ -191,7 +198,7 @@ export function TrocasPage() {
               colunas={[QUEM_PEDIU, SERVICO, DIA, TIPO_PARA_QUEM_ASSUME, JUSTIFICATIVA]}
               acoes={(s) => (
                 <>
-                  <button className="btn btn-primary mr-6" onClick={() => decidirConfirmacao(s.id, true)}>Aceitar</button>
+                  <button className="btn btn-primary mr-6" onClick={() => decidirConfirmacao(s.id, true)}>Assumir o serviço</button>
                   <button className="btn btn-outline" onClick={() => decidirConfirmacao(s.id, false)}>Recusar</button>
                 </>
               )}
@@ -249,6 +256,7 @@ const TIPOS_TROCA = [
 ];
 
 function PedirTrocaForm({ onCriado }: { onCriado: () => void }) {
+  const { avisar } = useFeedback();
   const { usuario } = useAuth();
   const [meusServicos, setMeusServicos] = useState<ServicoEscalado[]>([]);
   const [servicoId, setServicoId] = useState<number | "">("");
@@ -313,6 +321,10 @@ function PedirTrocaForm({ onCriado }: { onCriado: () => void }) {
       } else {
         await api.post("/api/solicitacoes/troca-mutua", { servicoOrigemId: servicoId, servicoDestinoId, justificativa });
       }
+      const destinatario = tipoTroca === "SUBSTITUICAO"
+        ? elegiveis.find((m) => m.id === substitutoId)?.nomeExibicao
+        : candidatosMutua.find((c) => c.servicoId === servicoDestinoId)?.militar.nomeExibicao;
+      avisar(destinatario ? `Pedido enviado para ${destinatario}.` : "Pedido enviado.", "sucesso");
       onCriado();
     } catch (e) {
       setErro(e instanceof ApiError ? e.message : "Não foi possível pedir a troca.");
@@ -350,12 +362,7 @@ function PedirTrocaForm({ onCriado }: { onCriado: () => void }) {
             {TIPOS_TROCA.map((t) => (
               <label
                 key={t.valor}
-                style={{
-                  display: "flex", flexDirection: "column", gap: 3, padding: "10px 12px",
-                  border: `1px solid ${tipoTroca === t.valor ? "var(--sidebar-active)" : "var(--border)"}`,
-                  borderRadius: 6, cursor: "pointer",
-                  background: tipoTroca === t.valor ? "var(--table-head-bg)" : "#fff",
-                }}
+                className={"opcao-troca" + (tipoTroca === t.valor ? " escolhida" : "")}
               >
                 <span className="linha">
                   <input type="radio" name="tipoTroca" checked={tipoTroca === t.valor} onChange={() => setTipoTroca(t.valor)} />
@@ -416,7 +423,7 @@ function PedirTrocaForm({ onCriado }: { onCriado: () => void }) {
         <input value={justificativa} onChange={(e) => setJustificativa(e.target.value)} placeholder="Por que precisa trocar" />
       </div>
       <button className="btn btn-primary" onClick={salvar} disabled={salvando}>
-        {salvando ? "Enviando…" : "Enviar pedido"}
+        {salvando ? "Enviando…" : "Pedir troca"}
       </button>
     </div>
   );
