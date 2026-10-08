@@ -1,0 +1,86 @@
+import { useLayoutEffect, useRef, useState } from "react";
+import DOMPurify from "dompurify";
+
+export function RichEditor({ valorInicial, onChange }: { valorInicial: string; onChange: (html: string) => void }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const [htmlInicial] = useState(() => DOMPurify.sanitize(valorInicial || ""));
+
+  useLayoutEffect(() => {
+    if (ref.current) ref.current.innerHTML = htmlInicial;
+  }, [htmlInicial]);
+
+  function emitirMudanca() {
+    if (ref.current) onChange(ref.current.innerHTML);
+  }
+
+  function inserirImagem(file: File) {
+    const leitor = new FileReader();
+    leitor.onload = () => {
+      document.execCommand("insertHTML", false, `<img src="${leitor.result}" style="max-width:100%;display:block;margin:10px 0;border-radius:4px;" />`);
+      emitirMudanca();
+    };
+    leitor.readAsDataURL(file);
+  }
+
+  function aoColar(e: React.ClipboardEvent<HTMLDivElement>) {
+    const itens = e.clipboardData?.items;
+    if (!itens) return;
+    for (const item of itens) {
+      if (item.type.startsWith("image/")) {
+        e.preventDefault();
+        const arquivo = item.getAsFile();
+        if (arquivo) inserirImagem(arquivo);
+        return;
+      }
+    }
+    setTimeout(emitirMudanca, 0);
+  }
+
+  function comando(cmd: string) {
+    ref.current?.focus();
+    document.execCommand(cmd);
+    emitirMudanca();
+  }
+
+  return (
+    <div>
+      <div className="editor-barra">
+        <button type="button" className="btn btn-outline negrito" onMouseDown={(e) => e.preventDefault()} onClick={() => comando("bold")}>N</button>
+        <button type="button" className="btn btn-outline italico" onMouseDown={(e) => e.preventDefault()} onClick={() => comando("italic")}>I</button>
+        <button type="button" className="btn btn-outline" onMouseDown={(e) => e.preventDefault()} onClick={() => comando("insertUnorderedList")}>Lista</button>
+        <button
+          type="button"
+          className="btn btn-outline"
+          onMouseDown={(e) => e.preventDefault()}
+          onClick={() => { ref.current?.focus(); document.execCommand("formatBlock", false, "h3"); emitirMudanca(); }}
+        >
+          Título
+        </button>
+        <label className="btn btn-outline clicavel">
+          Inserir imagem
+          <input
+            type="file"
+            accept="image/*"
+            className="oculto"
+            onChange={(e) => {
+              const arquivo = e.target.files?.[0];
+              if (arquivo) inserirImagem(arquivo);
+              e.target.value = "";
+            }}
+          />
+        </label>
+      </div>
+      <p className="nota-pequena mb-8">
+        Pode colar uma imagem direto (Ctrl+V) no meio do texto, ou usar o botão "Inserir imagem".
+      </p>
+      <div
+        ref={ref}
+        contentEditable
+        onInput={emitirMudanca}
+        onPaste={aoColar}
+        onBlur={emitirMudanca}
+        className="editor-area"
+      />
+    </div>
+  );
+}

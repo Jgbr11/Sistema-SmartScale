@@ -9,7 +9,6 @@ import org.springframework.web.bind.annotation.*;
 import java.time.YearMonth;
 import java.util.List;
 
-/** RF13 - a pessoa escalada consulta a propria escala. */
 @RestController
 @RequestMapping("/api/minha-escala")
 public class MinhaEscalaController {

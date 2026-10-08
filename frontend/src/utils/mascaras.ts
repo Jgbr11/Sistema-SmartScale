@@ -1,9 +1,4 @@
-/**
- * Máscaras de campo — aplicadas no onChange, então o símbolo aparece
- * enquanto a pessoa digita, não só depois de salvar. Todas seguem o
- * mesmo padrão: tira tudo que não é dígito, limita ao tamanho máximo
- * do campo, e encaixa pontuação por posição.
- */
+
 
 export function mascararCpf(valor: string): string {
   const digitos = valor.replace(/\D/g, "").slice(0, 11);
@@ -14,7 +9,6 @@ export function mascararCpf(valor: string): string {
   return saida;
 }
 
-/** Aceita fixo (10 dígitos) e celular (11 dígitos) — o traço muda de posição sozinho. */
 export function mascararTelefone(valor: string): string {
   const digitos = valor.replace(/\D/g, "").slice(0, 11);
   const celular = digitos.length > 10;
@@ -41,7 +35,6 @@ export function mascararCep(valor: string): string {
   return digitos.length > 5 ? `${digitos.slice(0, 5)}-${digitos.slice(5)}` : digitos;
 }
 
-/** Tira a máscara antes de mandar pro backend — lá o CPF/telefone é guardado só com dígitos. */
 export function somenteDigitos(valor: string): string {
   return valor.replace(/\D/g, "");
 }

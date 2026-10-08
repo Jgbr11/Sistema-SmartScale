@@ -5,12 +5,6 @@ import lombok.*;
 
 import java.math.BigDecimal;
 
-/**
- * RF07 - regras da escala por tipo de servico. Corresponde a RN06
- * (intervalo minimo), RN20 (ciclo) e aos pesos de equidade usados numa
- * futura fase de "avaliador de justica".
- * Manutencao privativa do perfil Sargenteante (RN11).
- */
 @Entity
 @Table(name = "regra_escala")
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
@@ -24,7 +18,6 @@ public class RegraEscala {
     @JoinColumn(name = "id_tipo_servico", unique = true)
     private TipoServico tipoServico;
 
-    /** RN06 - dias minimos entre dois servicos do mesmo militar. */
     @Column(name = "intervalo_minimo", nullable = false)
     @Builder.Default
     private int intervaloMinimo = 7;

@@ -16,7 +16,7 @@
 - **Branch:** `melhoria/qualidade`, criado a partir da `main` atualizada. A criação depende do ok do usuário.
 - **JDK:** o `JAVA_HOME` da máquina é o JDK 11. Rodar o Maven com `export JAVA_HOME="/c/Program Files/Java/jdk-23"` só no comando.
 - **Comportamento:** nenhuma mudança visível de regra de negócio. As mensagens de erro continuam as mesmas, exceto as que o plano cita explicitamente.
-- **Núcleo protegido:** o pacote `br.com.milscale.core.domain` só pode ter comentários removidos. Nenhuma linha de código muda.
+- **Núcleo protegido:** o pacote `br.com.smartscale.core` só pode ter comentários removidos. Nenhuma linha de código muda.
 - **Migrations aplicadas não são tocadas**, nem para tirar comentário: o Flyway recusa subir se o checksum mudar.
 - **Regra de comentários** (vale para todo código novo daqui para frente, inclusive nos Planos 2, 4 e 5):
   - **Permitidos:**
@@ -36,18 +36,18 @@
 
 | Ordem | Task | Status | Commit | Testes | Resumo |
 |---|---|---|---|---|---|
-| 1 | 0 — Preparação | ⬜ Pendente | — | — | — |
-| 2 | 1 — Matriz de rastreabilidade RF/RN | ⬜ Pendente | — | — | — |
-| 3 | 2 — Limpeza de comentários (backend e configuração) | ⬜ Pendente | — | — | — |
-| 4 | 3 — Limpeza de comentários e de códigos RF/RN (frontend) | ⬜ Pendente | — | — | — |
-| 5 | 4 — Higiene do backend | ⬜ Pendente | — | — | — |
-| 6 | 5 — Testes de arquitetura (ArchUnit) | ⬜ Pendente | — | — | — |
-| 7 | 6 — Porta de e-mail e agendador como adaptadores | ⬜ Pendente | — | — | — |
-| 8 | 7 — Respostas leves (Boletim e Painel) | ⬜ Pendente | — | — | — |
-| 9 | 8 — Frontend: hooks, datas e organização de pastas | ⬜ Pendente | — | — | — |
-| 10 | 9 — Frontend: rotas protegidas por perfil | ⬜ Pendente | — | — | — |
-| 11 | 10 — Frontend: diálogos, avisos e tratamento de erro | ⬜ Pendente | — | — | — |
-| 12 | 11 — Frontend: calendário e tabela de trocas compartilhados | ⬜ Pendente | — | — | — |
+| 1 | 0 — Preparação | ✅ Lote 4 | `53c7fd3` | backend 160 | Branch `melhoria/qualidade` a partir de `melhoria/implementacoes` (Planos 2 e 5 inclusos); linha de base: 514 comentários no backend, 87 no front, 19 avisos de lint |
+| 2 | 1 — Matriz de rastreabilidade RF/RN | ✅ Lote 4 | `53c7fd3` | backend 160 | `docs/RASTREABILIDADE.md` (RF, RN e itens da disciplina) + link no README |
+| 3 | 2 — Limpeza de comentários (backend e configuração) | ✅ Lote 4 | `53c7fd3` | backend 160 | Script que respeita strings: 514 → 19 linhas (só delimitadores e marcações LPS); `INTERVALO_MINIMO_SEM_REGRA_CADASTRADA`; properties com delimitadores; migrations intocadas |
+| 4 | 3 — Limpeza de comentários e de códigos RF/RN (frontend) | ✅ Lote 5 | `72cfbf4` | front 18 | Comentários 87 → 0; 20 textos de tela sem RF/RN; `EmConstrucao.tsx` apagada |
+| 5 | 4 — Higiene do backend | ✅ Lote 4 | `53c7fd3` | backend 160 | Auditoria loga a falha; nomes completos viraram imports (12 arquivos); `CadastroApoio*` já tinha saído no Plano 5 |
+| 6 | 5 — Testes de arquitetura (ArchUnit) | ✅ Lote 4 | `53c7fd3` | backend 160 | ArchUnit 1.3.0, 4 regras, todas verdes (a de e-mail já nasce ativa por causa da Task 6 no mesmo lote) |
+| 7 | 6 — Porta de e-mail e agendador como adaptadores | ✅ Lote 4 | `53c7fd3` | backend 160 | `EnvioDeEmail` (porta) + `EnvioDeEmailSmtp` (mascara o e-mail no log) + `LembreteServicoAgendador`; `LembreteServicoService` testado |
+| 8 | 7 — Respostas leves (Boletim e Painel) | ✅ Lote 4 | `53c7fd3` | backend 160 | `BoletimResumo` na lista (conteúdo sob demanda); `GET /api/painel/resumo` com contagens no banco; Painel não baixa mais militares e afastamentos |
+| 9 | 8 — Frontend: hooks, datas e organização de pastas | ✅ Lote 5 | `72cfbf4` | front 18 | `utils/datas` (corrige o bug do `toISOString`), `usePermissoes`, `useCarregamento` e `useAoMudar` (com `useEffectEvent`); pastas `layout/ui/militar/boletim/servico/trocas`; zero `eslint-disable`; lint 19 → 8 |
+| 10 | 9 — Frontend: rotas protegidas por perfil | ✅ Lote 5 | `72cfbf4` | front 18 | `RotaProtegida perfis={...}`; página 404; rota `/bloqueio` removida |
+| 11 | 10 — Frontend: diálogos, avisos e tratamento de erro | ✅ Lote 5 | `72cfbf4` | front 18 | `FeedbackProvider`/`useFeedback` com teste (jsdom); 19 `confirm/alert/prompt` trocados; ações de Trocas, Boletim, Missões, Qualificações e Tipos com `try/catch` e aviso |
+| 12 | 11 — Frontend: calendário e tabela de trocas compartilhados | ✅ Lote 5 | `72cfbf4` | front 18 | `CalendarioMensal` (com destaque de hoje) em Escala do mês, Avisos e Minha escala; `TabelaSolicitacoes` nas 4 abas de Trocas |
 
 ---
 
@@ -109,7 +109,7 @@ Hoje a ligação "requisito → código" só existe nos comentários, e a Task 2
 
 Onde cada requisito funcional (RF) e regra de negócio (RN) do catálogo do SmartScale está implementado.
 Os códigos seguem os documentos "SMART SCALE - Ativos reutilizáveis, requisitos e arquitetura v2" e
-"Modelo de regras de negócio v1". Núcleo = `br.com.milscale.core.domain` (reutilizável pela linha de produto).
+"Modelo de regras de negócio v1". Núcleo = `br.com.smartscale.core` (reutilizável pela linha de produto).
 
 ## Requisitos funcionais
 
@@ -165,7 +165,7 @@ Os testes citados que ainda não existem são criados pelo Plano 2. Se o Plano 3
 1. Apagar todo javadoc (`/** ... */`) de classe, método e campo.
 2. Apagar os comentários de linha (`// ...`) e os comentários no fim de linha (`codigo; // RN05`).
 3. Quando uma classe tiver mais de ~100 linhas com grupos claros de métodos, separar os grupos com `// ---- Nome ----`.
-4. No topo de cada arquivo de `core/domain`, logo depois do `package`, deixar `// Núcleo reutilizável (LPS)`. No topo de `Militar`, `TipoServico` e `CriterioOrdenacaoMilitar`, deixar `// Especialização MilScale (LPS)`.
+4. No topo de cada arquivo do núcleo (`smartscale-core/src/main/java/br/com/smartscale/core`), logo depois do `package`, deixar `// Núcleo reutilizável (LPS)`. No topo de `Militar`, `TipoServico` e `CriterioOrdenacaoMilitar`, deixar `// Especialização MilScale (LPS)`.
 5. Se a remoção de um comentário deixar uma decisão incompreensível, **renomeie** o método ou a variável para o nome contar o porquê. Não mantenha o comentário.
 
 **Seções sugeridas nas classes grandes:**
@@ -222,7 +222,7 @@ cd /c/TRABALHOS/SMARTSCALE/Sistema-SmartScale
 grep -rnE '^\s*(//|/\*|\*)' backend/src/main/java backend/src/test/java | wc -l
 ```
 
-- [ ] **Step 2: Limpar `core/domain`** (5 arquivos), só comentários. Conferir com `git diff --stat backend/src/main/java/br/com/milscale/core` que só há linhas removidas, mais a marcação LPS.
+- [ ] **Step 2: Limpar o núcleo** (os 5 arquivos de `smartscale-core/src/main/java/br/com/smartscale/core`, mais o `CatalogoDeCriterios` do Plano 5), só comentários. Conferir com `git diff --stat smartscale-core/src` que só há linhas removidas, mais a marcação LPS.
 
 - [ ] **Step 3: Limpar `milscale/domain`** (entidades, enums, `PoliticaDeDescanso`, `CriterioOrdenacaoMilitar`).
 
@@ -299,6 +299,8 @@ Expected: as três saídas vazias. Os `eslint-disable` saem na Task 8, e aqui po
 ### Task 4: Higiene do backend
 
 **Files:**
+> **Se o Plano 5 já tiver sido executado:** a Task 6 dele substituiu o `CadastroApoioController` por `PostoGraduacaoController` e `SubunidadeController`, que já têm services próprios. Nesse caso, pular aqui tudo o que for do `CadastroApoioService` e fazer só o restante da task.
+
 - Create: `application/CadastroApoioService.java`
 - Modify: `adapters/web/CadastroApoioController.java`, `application/AuditoriaService.java`, e todo arquivo com nome totalmente qualificado inline
 - Test: `backend/src/test/java/br/com/milscale/milscale/application/AuditoriaServiceTest.java`
@@ -396,7 +398,7 @@ cd /c/TRABALHOS/SMARTSCALE/Sistema-SmartScale/backend
 grep -rnE '[^.a-zA-Z](br\.com\.milscale|java\.(util|time))\.[a-z.]*[A-Z][A-Za-z]+' src/main/java src/test/java | grep -v '^[^:]*:[0-9]*:import '
 ```
 Em cada ocorrência, adicionar o `import` e usar o nome simples. Casos conhecidos:
-- `br.com.milscale.core.domain.SituacaoPessoa` em `AfastamentoService`, `SolicitacaoService` e `MilitarRepository`;
+- `br.com.smartscale.core.SituacaoPessoa` em `AfastamentoService`, `SolicitacaoService` e `MilitarRepository`;
 - `java.util.UUID`, `java.util.ArrayList` e `java.util.Comparator` em `AfastamentoService`;
 - `java.time.temporal.ChronoUnit` em `Militar` e `GerarEscalaService`;
 - os tipos `TipoServico`, `ServicoEscalado`, `Afastamento`, `Solicitacao` e `Militar` qualificados em `MilitarController`/`SolicitacaoController`.
@@ -426,7 +428,7 @@ As regras da arquitetura hexagonal viram teste. Se alguém fizer o núcleo depen
     </dependency>
 ```
 
-- [ ] **Step 2: Regras**
+- [ ] **Step 2: Regras.** O isolamento do núcleo não precisa de regra aqui: desde o Plano 5, Task 1, ele é o módulo `smartscale-core`, cujo `pom.xml` não tem dependências. Se o núcleo tentar importar algo do produto, o build dele já quebra.
 ```java
 package br.com.milscale.milscale;
 
@@ -441,11 +443,6 @@ import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
 
 @AnalyzeClasses(packages = "br.com.milscale", importOptions = ImportOption.DoNotIncludeTests.class)
 class ArquiteturaTest {
-
-    @ArchTest
-    static final ArchRule nucleoNaoConheceOProduto = noClasses()
-            .that().resideInAPackage("br.com.milscale.core..")
-            .should().dependOnClassesThat().resideOutsideOfPackages("br.com.milscale.core..", "java..");
 
     @ArchTest
     static final ArchRule dominioNaoConheceAplicacaoNemAdaptadores = noClasses()
@@ -816,7 +813,7 @@ public record PainelResumo(long militaresAtivos, long vagasAbertasNoMes, long tr
 ```java
 package br.com.milscale.milscale.application;
 
-import br.com.milscale.core.domain.SituacaoPessoa;
+import br.com.smartscale.core.SituacaoPessoa;
 import br.com.milscale.milscale.adapters.persistence.*;
 import br.com.milscale.milscale.domain.SituacaoSolicitacao;
 import org.springframework.stereotype.Service;

@@ -1,6 +1,7 @@
 package br.com.milscale.milscale.adapters.web;
 
 import br.com.milscale.milscale.adapters.web.dto.CadastrarAfastamentoRequest;
+import br.com.milscale.milscale.adapters.web.dto.EditarAfastamentoRequest;
 import br.com.milscale.milscale.application.AfastamentoService;
 import br.com.milscale.milscale.application.AuditoriaService;
 import br.com.milscale.milscale.domain.Afastamento;
@@ -11,7 +12,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-/** RF26 - missoes, dispensas, ferias e licencas. Privativo de Cabo da Sargenteacao e Sargenteante. */
 @RestController
 @RequestMapping("/api/afastamentos")
 public class AfastamentoController {
@@ -30,8 +30,6 @@ public class AfastamentoController {
         return afastamentoService.listarVigentesEFuturos();
     }
 
-    /** RF26 - aceita um ou varios militares no mesmo cadastro (ex.: uma
-     *  missão com equipe inteira), agrupados internamente por lote. */
     @PreAuthorize("hasAnyRole('CABO_SARGENTEACAO', 'SARGENTEANTE')")
     @PostMapping
     public List<Afastamento> cadastrar(@Valid @RequestBody CadastrarAfastamentoRequest req, Authentication auth) {
@@ -40,6 +38,15 @@ public class AfastamentoController {
         auditoriaService.registrar(auth.getName(), "AFASTAMENTO_CADASTRADO",
                 req.tipo() + " (" + criados.size() + " militar(es)) - " + req.dataInicio() + " a " + req.dataFim() + " - " + req.descricao());
         return criados;
+    }
+
+    @PreAuthorize("hasAnyRole('CABO_SARGENTEACAO', 'SARGENTEANTE')")
+    @PutMapping("/{id}")
+    public List<Afastamento> atualizar(@PathVariable Long id, @Valid @RequestBody EditarAfastamentoRequest req, Authentication auth) {
+        List<Afastamento> alterados = afastamentoService.atualizar(id, req.tipo(), req.descricao(), req.dataInicio(), req.dataFim());
+        auditoriaService.registrar(auth.getName(), "AFASTAMENTO_EDITADO",
+                req.tipo() + " (" + alterados.size() + " militar(es)) - " + req.dataInicio() + " a " + req.dataFim() + " - " + req.descricao());
+        return alterados;
     }
 
     @PreAuthorize("hasAnyRole('CABO_SARGENTEACAO', 'SARGENTEANTE')")

@@ -1,16 +1,11 @@
 package br.com.milscale.milscale.domain;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDateTime;
 
-/**
- * Notificação dentro do sistema - o sininho. Diferente do log de
- * auditoria (que é histórico pro Sargenteante ver "quem fez o quê"),
- * isso é um aviso direcionado a UMA pessoa específica, sobre algo que
- * precisa da atenção dela (ex.: uma troca esperando decisão).
- */
 @Entity
 @Table(name = "notificacao")
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
@@ -22,6 +17,7 @@ public class Notificacao {
 
     @ManyToOne(optional = false)
     @JoinColumn(name = "id_usuario_destinatario")
+    @JsonIgnore
     private Usuario destinatario;
 
     @Column(nullable = false, length = 40)
@@ -30,7 +26,6 @@ public class Notificacao {
     @Column(nullable = false, length = 200)
     private String mensagem;
 
-    /** Rota do front pra onde o clique leva (ex.: "/trocas"). */
     @Column(length = 60)
     private String link;
 

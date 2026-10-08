@@ -5,12 +5,6 @@ import lombok.*;
 
 import java.time.LocalDateTime;
 
-/**
- * RF-adm - quem fez o que no sistema. Guardado como registro imutavel:
- * uma vez criado, nunca é editado, só consultado (e talvez um dia
- * arquivado, nunca corrigido - log de auditoria que pode ser alterado
- * não serve pra nada).
- */
 @Entity
 @Table(name = "log_auditoria")
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
@@ -24,9 +18,6 @@ public class LogAuditoria {
     @Builder.Default
     private LocalDateTime dataHora = LocalDateTime.now();
 
-    /** Login de quem fez a acao - guardado como texto solto (nao FK) de
-     *  proposito, pra o log continuar legivel mesmo se a conta for
-     *  desativada ou o usuario for removido no futuro. */
     @Column(name = "usuario_login", length = 20)
     private String usuarioLogin;
 

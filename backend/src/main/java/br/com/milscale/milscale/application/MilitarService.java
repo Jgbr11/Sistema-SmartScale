@@ -1,8 +1,11 @@
 package br.com.milscale.milscale.application;
 
-import br.com.milscale.core.domain.SituacaoPessoa;
+import br.com.smartscale.core.SituacaoPessoa;
 import br.com.milscale.milscale.adapters.persistence.AfastamentoRepository;
 import br.com.milscale.milscale.adapters.persistence.MilitarRepository;
+import br.com.milscale.milscale.adapters.persistence.PerfilAcessoRepository;
+import br.com.milscale.milscale.adapters.persistence.PostoGraduacaoRepository;
+import br.com.milscale.milscale.adapters.persistence.SubunidadeRepository;
 import br.com.milscale.milscale.adapters.persistence.RequisitoServicoRepository;
 import br.com.milscale.milscale.adapters.persistence.ServicoEscaladoRepository;
 import br.com.milscale.milscale.adapters.persistence.SolicitacaoRepository;
@@ -10,10 +13,14 @@ import br.com.milscale.milscale.adapters.persistence.TipoServicoRepository;
 import br.com.milscale.milscale.adapters.persistence.UsuarioRepository;
 import br.com.milscale.milscale.domain.Afastamento;
 import br.com.milscale.milscale.domain.Militar;
+import br.com.milscale.milscale.domain.PerfilAcesso;
 import br.com.milscale.milscale.domain.RequisitoServico;
 import br.com.milscale.milscale.domain.ServicoEscalado;
+import br.com.milscale.milscale.domain.SituacaoEscala;
 import br.com.milscale.milscale.domain.Solicitacao;
 import br.com.milscale.milscale.domain.TipoServico;
+import br.com.milscale.milscale.domain.Usuario;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -23,7 +30,6 @@ import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
 
-/** RF04 - cadastro das pessoas escaladas: incluir, consultar, alterar, inativar. */
 @Service
 public class MilitarService {
 
@@ -35,11 +41,19 @@ public class MilitarService {
     private final AfastamentoRepository afastamentoRepository;
     private final SolicitacaoRepository solicitacaoRepository;
     private final UsuarioRepository usuarioRepository;
+    private final PerfilAcessoRepository perfilAcessoRepository;
+    private final PasswordEncoder passwordEncoder;
+    private final GeradorDeSenha geradorDeSenha;
+    private final PostoGraduacaoRepository postoGraduacaoRepository;
+    private final SubunidadeRepository subunidadeRepository;
 
     public MilitarService(MilitarRepository militarRepository, TipoServicoRepository tipoServicoRepository,
                            RequisitoServicoRepository requisitoServicoRepository, ElegibilidadeService elegibilidadeService,
                            ServicoEscaladoRepository servicoEscaladoRepository, AfastamentoRepository afastamentoRepository,
-                           SolicitacaoRepository solicitacaoRepository, UsuarioRepository usuarioRepository) {
+                           SolicitacaoRepository solicitacaoRepository, UsuarioRepository usuarioRepository,
+                           PerfilAcessoRepository perfilAcessoRepository, PasswordEncoder passwordEncoder,
+                           GeradorDeSenha geradorDeSenha, PostoGraduacaoRepository postoGraduacaoRepository,
+                           SubunidadeRepository subunidadeRepository) {
         this.militarRepository = militarRepository;
         this.tipoServicoRepository = tipoServicoRepository;
         this.requisitoServicoRepository = requisitoServicoRepository;
@@ -48,6 +62,11 @@ public class MilitarService {
         this.afastamentoRepository = afastamentoRepository;
         this.solicitacaoRepository = solicitacaoRepository;
         this.usuarioRepository = usuarioRepository;
+        this.perfilAcessoRepository = perfilAcessoRepository;
+        this.passwordEncoder = passwordEncoder;
+        this.geradorDeSenha = geradorDeSenha;
+        this.postoGraduacaoRepository = postoGraduacaoRepository;
+        this.subunidadeRepository = subunidadeRepository;
     }
 
     public List<Militar> listar() {
@@ -59,7 +78,6 @@ public class MilitarService {
                 .orElseThrow(() -> new NoSuchElementException("Militar nao encontrado"));
     }
 
-    /** RF06 - pra que tipos de servico esse militar e elegivel hoje (posto/subunidade/cursos). */
     public List<TipoServico> funcoesElegiveis(Long militarId) {
         Militar m = buscar(militarId);
         List<TipoServico> todosOsTipos = tipoServicoRepository.findByAtivoTrue();
@@ -70,9 +88,10 @@ public class MilitarService {
                 .toList();
     }
 
-    /** RF04 - Ficha do Militar: historico completo de servicos, afastamentos e trocas da pessoa. */
-    public List<ServicoEscalado> historicoServicos(Long militarId) {
-        return servicoEscaladoRepository.findByMilitar_IdOrderByDataDesc(militarId);
+    public List<ServicoEscalado> historicoServicos(Long militarId, boolean incluirRascunho) {
+        return incluirRascunho
+                ? servicoEscaladoRepository.findByMilitar_IdOrderByDataDesc(militarId)
+                : servicoEscaladoRepository.findByMilitar_IdAndEscala_SituacaoOrderByDataDesc(militarId, SituacaoEscala.PUBLICADA);
     }
 
     public List<Afastamento> historicoAfastamentos(Long militarId) {
@@ -83,17 +102,12 @@ public class MilitarService {
         return solicitacaoRepository.findBySolicitante_IdOrSubstituto_IdOrderByDataSolicitacaoDesc(militarId, militarId);
     }
 
-    /** RF04/RF26 - se a pessoa está afastada hoje, pra mostrar uma tag curta (só o tipo,
-     *  nunca a descrição inteira) no popup e na Ficha do militar. */
     public Afastamento afastamentoAtual(Long militarId) {
         LocalDate hoje = LocalDate.now();
         return afastamentoRepository.findByMilitar_IdAndDataInicioLessThanEqualAndDataFimGreaterThanEqual(militarId, hoje, hoje)
                 .stream().findFirst().orElse(null);
     }
 
-    /** Usado no @PreAuthorize dos endpoints de histórico — libera a
-     *  própria pessoa a ver o próprio histórico, mesmo sem perfil
-     *  elevado, sem abrir pra ver o de qualquer outra pessoa. */
     public boolean ehOProprio(Long militarId, String loginUsuario) {
         return usuarioRepository.findByLogin(loginUsuario)
                 .map(u -> u.getMilitar().getId().equals(militarId))
@@ -101,43 +115,65 @@ public class MilitarService {
     }
 
     @Transactional
-    public Militar cadastrar(Militar militar) {
-        militar.setId(null);
-        militar.setSituacao(SituacaoPessoa.ATIVO);
+    public MilitarCadastrado cadastrar(DadosMilitar dados) {
+        Militar militar = Militar.builder().situacao(SituacaoPessoa.ATIVO).build();
+        aplicar(dados, militar);
+        validarCpfUnico(militar.getCpf(), null);
         validarNomeGuerraUnicoNoPosto(militar.getPosto().getId(), militar.getNomeGuerra(), null);
-        return militarRepository.save(militar);
+        Militar salvo = militarRepository.save(militar);
+        PerfilAcesso perfil = perfilAcessoRepository.findByNome("MILITAR_ESCALADO")
+                .orElseThrow(() -> new IllegalStateException("Perfil MILITAR_ESCALADO não cadastrado"));
+        String senha = geradorDeSenha.gerar();
+        usuarioRepository.save(Usuario.builder()
+                .militar(salvo).perfil(perfil).login(salvo.getCpf())
+                .senhaHash(passwordEncoder.encode(senha)).senhaTemporaria(true)
+                .build());
+        return new MilitarCadastrado(salvo, senha);
+    }
+
+    public record MilitarCadastrado(Militar militar, String senhaTemporaria) {}
+
+    private static String normalizarCpf(String cpf) {
+        String digitos = cpf == null ? "" : cpf.replaceAll("\\D", "");
+        if (digitos.length() != 11) {
+            throw new IllegalArgumentException("O CPF precisa ter 11 números");
+        }
+        return digitos;
     }
 
     @Transactional
-    public Militar atualizar(Long id, Militar dados) {
+    public Militar atualizar(Long id, DadosMilitar dados) {
         Militar existente = buscar(id);
-        validarNomeGuerraUnicoNoPosto(dados.getPosto().getId(), dados.getNomeGuerra(), id);
-        validarCpfUnico(dados.getCpf(), id);
-        boolean cpfMudou = !existente.getCpf().equals(dados.getCpf());
-        existente.setNomeCompleto(dados.getNomeCompleto());
-        existente.setNomeGuerra(dados.getNomeGuerra());
-        existente.setCpf(dados.getCpf());
-        existente.setPosto(dados.getPosto());
-        existente.setSubunidade(dados.getSubunidade());
-        existente.setEmail(dados.getEmail());
-        existente.setTelefone(dados.getTelefone());
-        existente.setNumeroRegistro(dados.getNumeroRegistro());
-        existente.setDataNascimento(dados.getDataNascimento());
-        existente.setFusex(dados.getFusex());
-        if (dados.getFotoBase64() != null) {
-            existente.setFotoBase64(dados.getFotoBase64());
-        }
+        String cpfAnterior = existente.getCpf();
+        String fotoAnterior = existente.getFotoBase64();
+        aplicar(dados, existente);
+        if (dados.fotoBase64() == null) existente.setFotoBase64(fotoAnterior);
+        validarCpfUnico(existente.getCpf(), id);
+        validarNomeGuerraUnicoNoPosto(existente.getPosto().getId(), existente.getNomeGuerra(), id);
         Militar salvo = militarRepository.save(existente);
-        // Login e o CPF (RF01) - se o CPF foi corrigido, o login da conta
-        // precisa acompanhar, senao a pessoa fica sem conseguir entrar com
-        // o CPF novo.
-        if (cpfMudou) {
+        if (!cpfAnterior.equals(salvo.getCpf())) {
             usuarioRepository.findByMilitar_Id(id).ifPresent(u -> {
-                u.setLogin(dados.getCpf());
+                u.setLogin(salvo.getCpf());
                 usuarioRepository.save(u);
             });
         }
         return salvo;
+    }
+
+    private void aplicar(DadosMilitar d, Militar m) {
+        m.setNomeCompleto(d.nomeCompleto().trim());
+        m.setNomeGuerra(d.nomeGuerra().trim());
+        m.setCpf(normalizarCpf(d.cpf()));
+        m.setNumeroRegistro(d.numeroRegistro());
+        m.setDataNascimento(d.dataNascimento());
+        m.setFusex(d.fusex());
+        m.setEmail(d.email());
+        m.setTelefone(d.telefone() == null ? null : d.telefone().replaceAll("\\D", ""));
+        m.setFotoBase64(d.fotoBase64());
+        m.setPosto(postoGraduacaoRepository.findById(d.postoId())
+                .orElseThrow(() -> new NoSuchElementException("Posto/graduação não encontrado")));
+        m.setSubunidade(subunidadeRepository.findById(d.subunidadeId())
+                .orElseThrow(() -> new NoSuchElementException("Subunidade não encontrada")));
     }
 
     private void validarCpfUnico(String cpf, Long idParaIgnorar) {
@@ -148,7 +184,6 @@ public class MilitarService {
         });
     }
 
-    /** RN - dentro do mesmo posto/graduação, nome de guerra não pode repetir (postos diferentes podem). */
     private void validarNomeGuerraUnicoNoPosto(Long postoId, String nomeGuerra, Long idParaIgnorar) {
         boolean conflito = militarRepository.findByPosto_IdAndNomeGuerraIgnoreCase(postoId, nomeGuerra).stream()
                 .anyMatch(m -> idParaIgnorar == null || !m.getId().equals(idParaIgnorar));
@@ -158,11 +193,14 @@ public class MilitarService {
         }
     }
 
-    /** RF04 - inativar (nunca excluir de verdade: preserva o historico). */
     @Transactional
     public Militar desligar(Long id) {
         Militar existente = buscar(id);
         existente.setSituacao(SituacaoPessoa.DESLIGADO);
+        usuarioRepository.findByMilitar_Id(id).ifPresent(usuario -> {
+            usuario.setAtivo(false);
+            usuarioRepository.save(usuario);
+        });
         return militarRepository.save(existente);
     }
 }

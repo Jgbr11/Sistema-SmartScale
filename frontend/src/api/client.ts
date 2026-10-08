@@ -1,6 +1,4 @@
-// Vazio = mesmo domínio (proxy do Vite em dev, proxy do nginx no Docker).
-// Defina VITE_API_URL só se o backend morar em outro endereço.
-const BASE_URL = import.meta.env.VITE_API_URL ?? "";
+export const BASE_URL = import.meta.env.VITE_API_URL ?? "";
 
 export class ApiError extends Error {
   status: number;
@@ -26,7 +24,6 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
       const corpo = await res.json();
       if (corpo?.erro) mensagem = corpo.erro;
     } catch {
-      // corpo nao era JSON com {erro: ...} - mantem a mensagem generica
     }
     throw new ApiError(res.status, mensagem);
   }
@@ -42,7 +39,6 @@ export const api = {
     request<T>(path, { method: "PUT", body: body ? JSON.stringify(body) : undefined }),
   delete: <T,>(path: string) => request<T>(path, { method: "DELETE" }),
 
-  // login usa application/x-www-form-urlencoded, como o Spring Security espera
   login: async (login: string, senha: string) => {
     const res = await fetch(`${BASE_URL}/api/auth/login`, {
       method: "POST",
@@ -50,7 +46,11 @@ export const api = {
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
       body: new URLSearchParams({ username: login, password: senha }),
     });
-    if (!res.ok) throw new ApiError(res.status, "Usuário ou senha inválidos");
+    if (!res.ok) {
+      const corpo = await res.json().catch(() => null);
+      const padrao = res.status === 401 ? "CPF ou senha inválidos." : "Servidor indisponível. Tente de novo em instantes.";
+      throw new ApiError(res.status, corpo?.erro ?? padrao);
+    }
   },
   logout: async () => {
     await fetch(`${BASE_URL}/api/auth/logout`, { method: "POST", credentials: "include" });

@@ -1,12 +1,12 @@
 package br.com.milscale.milscale.domain;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
-/** RF26 - impede a escalacao do militar no periodo informado (RN15). */
 @Entity
 @Table(name = "afastamento")
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
@@ -35,15 +35,13 @@ public class Afastamento {
 
     @ManyToOne(optional = false)
     @JoinColumn(name = "id_usuario_registro")
+    @JsonIgnore
     private Usuario usuarioRegistro;
 
     @Column(name = "data_registro", nullable = false)
     @Builder.Default
     private LocalDateTime dataRegistro = LocalDateTime.now();
 
-    /** Agrupa varios Afastamento (um por militar) que nasceram do mesmo
-     *  cadastro de missao com multiplas pessoas - null pra um afastamento
-     *  individual (dispensa/ferias/licenca de uma pessoa so). */
     @Column(name = "lote_missao", length = 40)
     private String loteMissao;
 

@@ -11,19 +11,20 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.NoSuchElementException;
 
-/** RF25 - gestão de perfis e permissões. Privativo do Sargenteante. */
 @Service
 public class UsuarioService {
 
     private final UsuarioRepository usuarioRepository;
     private final PerfilAcessoRepository perfilAcessoRepository;
     private final PasswordEncoder passwordEncoder;
+    private final GeradorDeSenha geradorDeSenha;
 
     public UsuarioService(UsuarioRepository usuarioRepository, PerfilAcessoRepository perfilAcessoRepository,
-                           PasswordEncoder passwordEncoder) {
+                           PasswordEncoder passwordEncoder, GeradorDeSenha geradorDeSenha) {
         this.usuarioRepository = usuarioRepository;
         this.perfilAcessoRepository = perfilAcessoRepository;
         this.passwordEncoder = passwordEncoder;
+        this.geradorDeSenha = geradorDeSenha;
     }
 
     public List<Usuario> listar() {
@@ -56,12 +57,14 @@ public class UsuarioService {
         return usuarioRepository.save(usuario);
     }
 
-    /** Reseta a senha de volta pro padrão (ex.: militar esqueceu a senha). */
     @Transactional
-    public void resetarSenha(Long usuarioId) {
+    public String resetarSenha(Long usuarioId) {
         Usuario usuario = buscar(usuarioId);
-        usuario.setSenhaHash(passwordEncoder.encode("milscale123"));
+        String senha = geradorDeSenha.gerar();
+        usuario.setSenhaHash(passwordEncoder.encode(senha));
+        usuario.setSenhaTemporaria(true);
         usuarioRepository.save(usuario);
+        return senha;
     }
 
     private Usuario buscar(Long id) {

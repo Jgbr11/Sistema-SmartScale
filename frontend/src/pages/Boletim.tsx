@@ -1,19 +1,24 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { api, ApiError } from "../api/client";
-import type { Aviso, Boletim } from "../api/types";
-import { PageHeader } from "../components/Shell";
-import { RichEditor } from "../components/RichEditor";
-import { useAuth } from "../context/AuthContext";
+import type { Aviso, Boletim, BoletimResumo } from "../api/types";
+import { PageHeader } from "../components/layout/PageHeader";
+import { RichEditor } from "../components/boletim/RichEditor";
 import { TIPO_AFASTAMENTO_LABEL } from "../utils/afastamentoTipos";
 import { formatarDataBR, formatarDataHora } from "../utils/formatadores";
+import DOMPurify from "dompurify";
+import { usePermissoes } from "../hooks/usePermissoes";
+import { useAoMudar } from "../hooks/useAoMudar";
+import { useFeedback } from "../components/ui/Feedback";
+import { Esqueleto } from "../components/ui/Esqueleto";
 
 export function BoletimPage() {
-  const { usuario } = useAuth();
-  const podeEditar = usuario?.perfil === "CABO_SARGENTEACAO" || usuario?.perfil === "SARGENTEANTE";
+  const { avisar, confirmar } = useFeedback();
+  const { gerenciaCadastros: podeEditar } = usePermissoes();
   const navigate = useNavigate();
 
-  const [boletins, setBoletins] = useState<Boletim[]>([]);
+  const [boletins, setBoletins] = useState<BoletimResumo[]>([]);
+  const [conteudos, setConteudos] = useState<Map<number, string>>(new Map());
   const [carregando, setCarregando] = useState(true);
   const [mostrarForm, setMostrarForm] = useState(false);
   const [editando, setEditando] = useState<Boletim | null>(null);
@@ -21,26 +26,50 @@ export function BoletimPage() {
 
   async function carregar() {
     setCarregando(true);
-    setBoletins(await api.get<Boletim[]>("/api/boletins"));
+    setBoletins(await api.get<BoletimResumo[]>("/api/boletins"));
+    setConteudos(new Map());
     setCarregando(false);
   }
 
-  useEffect(() => {
-    carregar();
-  }, []);
+  useAoMudar(carregar);
+
+  async function detalhe(id: number): Promise<Boletim> {
+    const b = await api.get<Boletim>(`/api/boletins/${id}`);
+    setConteudos((atual) => new Map(atual).set(id, b.conteudoHtml));
+    return b;
+  }
+
+  async function alternar(id: number) {
+    if (aberto === id) {
+      setAberto(null);
+      return;
+    }
+    if (!conteudos.has(id)) await detalhe(id);
+    setAberto(id);
+  }
+
+  async function editar(id: number) {
+    setEditando(await detalhe(id));
+    setMostrarForm(true);
+  }
 
   async function remover(id: number) {
-    if (!confirm("Remover este boletim?")) return;
-    await api.delete(`/api/boletins/${id}`);
-    carregar();
+    if (!(await confirmar("Remover este boletim?"))) return;
+    try {
+      await api.delete(`/api/boletins/${id}`);
+      carregar();
+      avisar("Boletim removido.", "sucesso");
+    } catch (e) {
+      avisar(e instanceof ApiError ? e.message : "Não foi possível concluir a ação.", "erro");
+    }
   }
 
   return (
     <>
-      <PageHeader title="Boletim Interno" subtitle="Comunicados do batalhão — texto e imagens" />
+      <PageHeader title="Boletim interno" subtitle="Comunicados do batalhão — texto e imagens" />
       <div className="body">
         {podeEditar && !mostrarForm && (
-          <div style={{ display: "flex", justifyContent: "flex-end" }}>
+          <div className="linha-fim">
             <button className="btn btn-primary" onClick={() => { setEditando(null); setMostrarForm(true); }}>Novo boletim</button>
           </div>
         )}
@@ -54,40 +83,40 @@ export function BoletimPage() {
         )}
 
         {carregando ? (
-          <div className="card">Carregando…</div>
+          <Esqueleto />
         ) : boletins.length === 0 ? (
-          <div className="card" style={{ color: "var(--grey)", fontSize: 13 }}>Nenhum boletim publicado ainda.</div>
+          <div className="card texto-suave">Nenhum boletim publicado ainda.</div>
         ) : (
           boletins.map((b) => (
             <div key={b.id} className="card">
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-                <div style={{ cursor: "pointer", flex: 1 }} onClick={() => setAberto((atual) => (atual === b.id ? null : b.id))}>
-                  <h3 style={{ marginBottom: 2 }}>{b.numero ? `BI nº ${b.numero} — ` : ""}{b.titulo}</h3>
+              <div className="linha-entre-topo">
+                <div className="clicavel flex-1" onClick={() => alternar(b.id)}>
+                  <h3 className="mb-2">{b.numero ? `BI nº ${b.numero} — ` : ""}{b.titulo}</h3>
                   <p className="sub">
-                    {b.autor.nomeExibicao} · {formatarDataHora(b.dataPublicacao)}
+                    {b.autor} · {formatarDataHora(b.dataPublicacao)}
                     {b.dataAtualizacao && ` · editado ${formatarDataHora(b.dataAtualizacao)}`}
                   </p>
                   {b.avisoRelacionadoDescricao && (
                     <button
                       onClick={(e) => { e.stopPropagation(); navigate("/avisos"); }}
-                      className="pill pill-amber"
-                      style={{ marginTop: 4, cursor: "pointer", border: "none" }}
+                      className="pill pill-amber etiqueta-botao mt-4"
+
                     >
                       Relacionado: {b.avisoRelacionadoDescricao}
                     </button>
                   )}
                 </div>
                 {podeEditar && (
-                  <div style={{ display: "flex", gap: 6, whiteSpace: "nowrap" }}>
-                    <button className="btn btn-outline" onClick={() => { setEditando(b); setMostrarForm(true); }}>Editar</button>
+                  <div className="linha-compacta">
+                    <button className="btn btn-outline" onClick={() => editar(b.id)}>Editar</button>
                     <button className="btn btn-outline" onClick={() => remover(b.id)}>Remover</button>
                   </div>
                 )}
               </div>
               {aberto === b.id && (
                 <div
-                  style={{ marginTop: 14, paddingTop: 14, borderTop: "1px solid var(--border-2)", fontSize: 13.5, lineHeight: 1.6 }}
-                  dangerouslySetInnerHTML={{ __html: b.conteudoHtml }}
+                  className="boletim-corpo"
+                  dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(conteudos.get(b.id) ?? "") }}
                 />
               )}
             </div>
@@ -99,6 +128,7 @@ export function BoletimPage() {
 }
 
 function BoletimForm({ boletim, onSalvou, onCancelar }: { boletim: Boletim | null; onSalvou: () => void; onCancelar: () => void }) {
+  const { avisar } = useFeedback();
   const [numero, setNumero] = useState(boletim?.numero ?? "");
   const [titulo, setTitulo] = useState(boletim?.titulo ?? "");
   const [conteudoHtml, setConteudoHtml] = useState(boletim?.conteudoHtml ?? "");
@@ -108,8 +138,6 @@ function BoletimForm({ boletim, onSalvou, onCancelar }: { boletim: Boletim | nul
   const [erro, setErro] = useState<string | null>(null);
 
   useEffect(() => {
-    // Traz os avisos do mês atual e do próximo — cobre o caso comum de
-    // "formatura/missão cadastrada pro mês que vem" sem precisar escolher mês.
     const hoje = new Date();
     const mesAtual = `${hoje.getFullYear()}-${String(hoje.getMonth() + 1).padStart(2, "0")}`;
     const proximo = new Date(hoje.getFullYear(), hoje.getMonth() + 1, 1);
@@ -135,8 +163,10 @@ function BoletimForm({ boletim, onSalvou, onCancelar }: { boletim: Boletim | nul
       const payload = { numero, titulo, conteudoHtml, avisoRelacionado: avisoChave || null, avisoRelacionadoDescricao: avisoChave ? avisoRelacionadoDescricao : null };
       if (boletim) {
         await api.put(`/api/boletins/${boletim.id}`, payload);
+        avisar("Boletim atualizado.", "sucesso");
       } else {
         await api.post("/api/boletins", payload);
+        avisar("Boletim publicado.", "sucesso");
       }
       onSalvou();
     } catch (e) {
@@ -171,7 +201,7 @@ function BoletimForm({ boletim, onSalvou, onCancelar }: { boletim: Boletim | nul
             </option>
           ))}
         </select>
-        <p style={{ fontSize: 11, color: "var(--grey)", marginTop: 4 }}>
+        <p className="nota-pequena mt-4">
           Conecta esse boletim ao evento na tela de Avisos, pra quem estiver lá ver o comunicado relacionado.
         </p>
       </div>
@@ -179,9 +209,9 @@ function BoletimForm({ boletim, onSalvou, onCancelar }: { boletim: Boletim | nul
         <label>Conteúdo</label>
         <RichEditor valorInicial={conteudoHtml} onChange={setConteudoHtml} />
       </div>
-      <div style={{ display: "flex", gap: 8, marginTop: 10 }}>
+      <div className="linha mt-10">
         <button className="btn btn-primary" onClick={salvar} disabled={salvando}>
-          {salvando ? "Salvando…" : "Publicar"}
+          {salvando ? "Salvando…" : boletim ? "Salvar alterações" : "Publicar boletim"}
         </button>
         <button className="btn btn-outline" onClick={onCancelar} disabled={salvando}>Cancelar</button>
       </div>

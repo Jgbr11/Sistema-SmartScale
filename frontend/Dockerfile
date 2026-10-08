@@ -1,8 +1,3 @@
-# Build em duas etapas: a primeira compila com Node (imagem grande,
-# fica pra trás), a segunda só carrega os arquivos estáticos já
-# prontos (dist/) num nginx enxuto - a imagem final não carrega o
-# Node nem o código-fonte, só HTML/CSS/JS já compilados.
-
 FROM node:20-alpine AS build
 WORKDIR /app
 COPY package*.json ./

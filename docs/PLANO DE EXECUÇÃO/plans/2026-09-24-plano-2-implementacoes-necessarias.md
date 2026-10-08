@@ -40,7 +40,7 @@
   - **Rascunho:** só a sargenteação (Cabo, Sd EP, Sargenteante) vê escala em RASCUNHO na Escala do mês/dia. "Minha escala", "Meu histórico" e a visão do Militar Escalado mostram só escala PUBLICADA.
   - **Regras:** implementar **máx. serviços/mês** no motor; **esconder** "dias de folga" e os pesos (fim de semana/feriado) da tela; os campos continuam no banco, reservados para um futuro avaliador de justiça.
   - **Flyway:** já adotado no Plano 1. Toda mudança de schema aqui é uma migration nova. Nunca editar uma migration já aplicada. Como as tarefas podem ser feitas fora da ordem numérica, **use o próximo número livre** no momento da execução (`ls backend/src/main/resources/db/migration`). Os nomes `V2`, `V3`… citados nas tarefas partem da ordem recomendada.
-- O pacote `br.com.milscale.core.domain` não pode ser alterado.
+- O pacote `br.com.smartscale.core` não pode ser alterado.
 - Erros continuam no formato `{"erro": "..."}` (`ErroResposta`). Mensagens em português.
 - Ao fim de cada tarefa: `cd backend && mvn test` verde; `cd frontend && npm test && npm run build` verdes.
 - **Senhas nunca aparecem em log de auditoria nem em log de aplicação.**
@@ -53,25 +53,25 @@ Atualizado ao fim de cada tarefa, como no Plano 1. Os detalhes de cada uma ficam
 
 | Ordem | Task | Status | Commit | Testes | Resumo |
 |---|---|---|---|---|---|
-| 1 | 0 — Preparação | ⬜ Pendente | — | — | — |
-| 2 | 10 — Rotas de autenticação e cookie de sessão | ⬜ Pendente | — | — | — |
-| 3 | 13 — Nenhuma conta embutida no JSON | ⬜ Pendente | — | — | — |
-| 4 | 2 — Privacidade + foto sob demanda | ⬜ Pendente | — | — | — |
-| 5 | 3 — Boletim sem XSS | ⬜ Pendente | — | — | — |
-| 6 | 4 — Senha temporária | ⬜ Pendente | — | — | — |
-| 7 | 5 — Conta criada no cadastro | ⬜ Pendente | — | — | — |
-| 8 | 11 — Seed de demonstração só quando habilitado | ⬜ Pendente | — | — | — |
-| 9 | 12 — Cadastros sem *mass assignment* | ⬜ Pendente | — | — | — |
-| 10 | 14 — Limite de tentativas de login | ⬜ Pendente | — | — | — |
-| 11 | 15 — Fuso horário fixo | ⬜ Pendente | — | — | — |
-| 12 | 1 — Rascunho só para a sargenteação | ⬜ Pendente | — | — | — |
-| 13 | 16 — Trocas: sem duplicidade, revalidação, travamento otimista | ⬜ Pendente | — | — | — |
-| 14 | 17 — Regerar período com histórico de trocas | ⬜ Pendente | — | — | — |
-| 15 | 18 — Escala do mês por mês + listagem leve | ⬜ Pendente | — | — | — |
-| 16 | 9 — Sem travar/destravar em dia que já começou | ⬜ Pendente | — | — | — |
-| 17 | 6 — Máx. serviços/mês | ⬜ Pendente | — | — | — |
-| 18 | 7 — Requisitos de elegibilidade (backend) | ⬜ Pendente | — | — | — |
-| 19 | 8 — Tela de elegibilidade (frontend) | ⬜ Pendente | — | — | — |
+| 1 | 0 — Preparação | ✅ Lote 1 | `61b4e32` | verde (backend 124) | Branch `melhoria/implementacoes` criado a partir de `entrega/componentes-reuso` (que já tem o Plano 5); linha de base 91 testes |
+| 2 | 10 — Rotas de autenticação e cookie de sessão | ✅ Lote 1 | `61b4e32` | verde (backend 124) | Só `/api/auth/login` e `/api/organizacao` públicos; logout 204; cookie HttpOnly + SameSite=Strict + `MILSCALE_COOKIE_SEGURO` |
+| 3 | 13 — Nenhuma conta embutida no JSON | ✅ Lote 1 | `61b4e32` | verde (backend 124) | `@JsonIgnore` em `usuarioRegistro`, `usuarioGeracao` e `destinatario` |
+| 4 | 2 — Privacidade + foto sob demanda | ✅ Lote 1 | `61b4e32` | verde (backend 124) | Campos pessoais WRITE_ONLY; `MilitarDetalheResponse` completo/público; `GET /api/militares/{id}/foto`; popup busca a foto |
+| 5 | 3 — Boletim sem XSS | ✅ Lote 1 | `61b4e32` | verde (backend 124) | `SanitizadorHtml` (jsoup 1.18.1) ao gravar; DOMPurify ao exibir e ao editar |
+| 6 | 4 — Senha temporária | ✅ Lote 1 | `61b4e32` | verde (backend 124) | V2 `senha_temporaria`; `GeradorDeSenha`; `SenhaTemporariaFilter` (403 fora de `/api/auth`); front força Minha conta; aviso de contas demo só em dev |
+| 7 | 5 — Conta criada no cadastro | ✅ Lote 1 | `61b4e32` | verde (backend 124) | Cadastro cria conta MILITAR_ESCALADO com senha temporária; CPF normalizado e único; desligar desativa a conta |
+| 8 | 11 — Seed de demonstração só quando habilitado | ✅ Lote 1 | `61b4e32` | verde (backend 124) | `DataSeeder` dividido em `DadosDeReferenciaSeeder`, `DemoSeeder` (`milscale.seed.demo`) e `AdministradorInicialSeeder` (`MILSCALE_ADMIN_CPF/SENHA`) |
+| 9 | 12 — Cadastros sem *mass assignment* | ✅ Lote 2 | `55b53e9` | verde (backend 132) | `DadosMilitar`, `DadosTipoServico`, `DadosQualificacao` (feriado já feito no Plano 5); front envia `postoId`/`subunidadeId`; curso com nome repetido recusado |
+| 10 | 14 — Limite de tentativas de login | ✅ Lote 2 | `55b53e9` | verde (backend 132) | `ProtecaoContraForcaBruta` (5 falhas → 423 por 15 min) + bean `Clock`; login responde `{"erro"}`; front mostra "Servidor indisponível" sem resposta |
+| 11 | 15 — Fuso horário fixo | ✅ Lote 2 | `55b53e9` | verde (backend 132) | `TimeZone` fixo em America/Sao_Paulo no `MilScaleApplication`; `TZ` no Dockerfile; testes rodam com JVM em UTC |
+| 12 | 1 — Rascunho só para a sargenteação | ✅ Lote 1 | `61b4e32` | verde (backend 124) | `PerfisSargenteacao`; escala do dia, minha escala e histórico só PUBLICADA para quem não é da sargenteação; troca exige escala publicada |
+| 13 | 16 — Trocas: sem duplicidade, revalidação, travamento otimista | ✅ Lote 3 | `5b67608` | verde (backend 151, front 13) | Um pedido em andamento por serviço; `autorizar` revalida dono, início, afastamento e 1x1; V3 `versao` (`@Version`) + 409 |
+| 14 | 17 — Regerar período com histórico de trocas | ✅ Lote 3 | `5b67608` | verde (backend 151, front 13) | V4 com fotografia (`servicoOrigemData/Tipo`, `servicoDestinoData`) e FK opcional; só pedido em andamento bloqueia regerar |
+| 15 | 18 — Escala do mês por mês + listagem leve | ✅ Lote 3 | `5b67608` | verde (backend 151, front 13) | `GET /api/escalas/mes`, `EscalaResumo`/`EscalaDoMes`; listagem sem serviços; travar/destravar por data; tela e Painel carregam o mês inteiro |
+| 16 | 9 — Sem travar/destravar em dia que já começou | ✅ Lote 3 | `5b67608` | verde (backend 151, front 13) | Backend recusa (400); tela mostra "Dia concluído" sem o botão |
+| 17 | 6 — Máx. serviços/mês | ✅ Lote 3 | `5b67608` | verde (backend 151, front 13) | Motor respeita `maxServicosMes` por militar/tipo/mês (relaxado só no aperto); regra valida valores; "dias de folga" fora da tela; auditoria |
+| 18 | 7 — Requisitos de elegibilidade (backend) | ✅ Lote 3 | `5b67608` | verde (backend 151, front 13) | `RequisitoServicoService` + endpoints; tipo novo nasce com regra 3x1; `quantidadeRequisitos` no JSON; auditoria de tipos e cursos |
+| 19 | 8 — Tela de elegibilidade (frontend) | ✅ Lote 3 | `5b67608` | verde (backend 151, front 13) | `RequisitosPainel` em Tipos de serviço, com aviso "Ninguém — definir"; `descreverRequisito` com 4 testes |
 
 **Dependências que a ordem acima respeita:**
 - **2 depende de 1 e 13:** a Task 2 usa `PerfisSargenteacao`, criado na Task 1, e parte do JSON já sem `Usuario` (Task 13). Se a Task 2 vier antes da 1, **crie o `PerfisSargenteacao` como primeiro passo da Task 2**, com o código do Step 4 da Task 1.
@@ -532,7 +532,7 @@ Em `Militar.java`, adicionar `import com.fasterxml.jackson.annotation.JsonProper
 ```java
 package br.com.milscale.milscale.adapters.web.dto;
 
-import br.com.milscale.core.domain.SituacaoPessoa;
+import br.com.smartscale.core.SituacaoPessoa;
 import br.com.milscale.milscale.domain.Militar;
 import br.com.milscale.milscale.domain.PostoGraduacao;
 import br.com.milscale.milscale.domain.Qualificacao;
@@ -2755,6 +2755,8 @@ MILSCALE_ADMIN_SENHA=
 **Correção:** um record de entrada por cadastro, só com os campos editáveis e validados. O service monta a entidade a partir dele.
 
 **Files:**
+> **Já feito pelo Plano 5, Task 5 (2026-10-02):** `DadosFeriado`, `TipoFeriado`, `Feriado.tipo` como enum e `FeriadoService`/`FeriadoController` recebendo o record. Aqui falta só o restante: militar, tipo de serviço e qualificação.
+
 - Create: `application/DadosMilitar.java`, `application/DadosTipoServico.java`, `application/DadosQualificacao.java`, `application/DadosFeriado.java`, `domain/TipoFeriado.java`
 - Modify: `domain/Feriado.java`; services `MilitarService`, `TipoServicoService`, `QualificacaoService`, `FeriadoService`; controllers `MilitarController`, `TipoServicoController`, `QualificacaoController`, `FeriadoController`; testes que chamam `cadastrar(Militar)` / `cadastrar(TipoServico)`
 - Modify (front): `pages/Militares.tsx`, `pages/FichaMilitar.tsx` (enviar `postoId`/`subunidadeId`)

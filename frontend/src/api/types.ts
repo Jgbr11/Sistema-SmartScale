@@ -4,6 +4,7 @@ export interface Usuario {
   perfil: "MILITAR_ESCALADO" | "SD_EP_SARGENTEACAO" | "CABO_SARGENTEACAO" | "SARGENTEANTE";
   militarId: number;
   nomeExibicao: string;
+  trocarSenha: boolean;
 }
 
 export interface PostoGraduacao {
@@ -30,11 +31,11 @@ export interface Militar {
   id: number;
   nomeCompleto: string;
   nomeGuerra: string;
-  cpf: string;
+  cpf?: string;
   numeroRegistro?: string;
   dataNascimento?: string;
   fusex?: string;
-  fotoBase64?: string;
+  temFoto: boolean;
   posto: PostoGraduacao;
   subunidade: Subunidade;
   email?: string;
@@ -53,6 +54,7 @@ export interface TipoServico {
   horaInicio: string;
   duracaoHoras: number;
   ativo: boolean;
+  quantidadeRequisitos: number;
 }
 
 export interface RegraEscala {
@@ -79,8 +81,11 @@ export interface ServicoEscalado {
 
 export interface Solicitacao {
   id: number;
-  servicoOrigem: ServicoEscalado;
-  servicoDestino?: ServicoEscalado;
+  servicoOrigem?: ServicoEscalado | null;
+  servicoOrigemData: string;
+  servicoOrigemTipo: string;
+  servicoDestino?: ServicoEscalado | null;
+  servicoDestinoData?: string | null;
   solicitante: Militar;
   substituto: Militar;
   justificativa: string;
@@ -180,4 +185,48 @@ export interface Escala {
   dataGeracao: string;
   dataPublicacao?: string;
   servicos: ServicoEscalado[];
+}
+
+export interface EscalaResumo {
+  id: number;
+  descricao: string;
+  dataInicio: string;
+  dataFim: string;
+  situacao: "RASCUNHO" | "PUBLICADA" | "ENCERRADA";
+  dataPublicacao?: string;
+  totalServicos: number;
+  vagasAbertas: number;
+}
+
+export interface EscalaDoMes {
+  escalas: EscalaResumo[];
+  servicos: ServicoEscalado[];
+}
+
+export interface RequisitoServico {
+  id: number;
+  posto: PostoGraduacao;
+  subunidade?: Subunidade | null;
+  qualificacao?: Qualificacao | null;
+  qualificacoesExcluidas: Qualificacao[];
+  subunidadeExcluida?: Subunidade | null;
+}
+
+export interface BoletimResumo {
+  id: number;
+  numero?: string;
+  titulo: string;
+  autor: string;
+  dataPublicacao: string;
+  dataAtualizacao?: string;
+  avisoRelacionado?: string;
+  avisoRelacionadoDescricao?: string;
+}
+
+export interface PainelResumo {
+  militaresAtivos: number;
+  vagasAbertasNoMes: number;
+  trocasEmTriagem: number;
+  trocasAguardandoAutorizacao: number;
+  afastadosHoje: number;
 }

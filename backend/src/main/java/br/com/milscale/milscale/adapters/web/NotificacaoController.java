@@ -8,7 +8,6 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.Map;
 
-/** O sininho - cada usuário só vê e mexe nas próprias notificações. */
 @RestController
 @RequestMapping("/api/notificacoes")
 public class NotificacaoController {

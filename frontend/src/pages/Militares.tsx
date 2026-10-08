@@ -1,16 +1,16 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import { api, ApiError } from "../api/client";
 import type { Militar, PostoGraduacao, Qualificacao, Subunidade } from "../api/types";
-import { PageHeader } from "../components/Shell";
-import { useAuth } from "../context/AuthContext";
+import { PageHeader } from "../components/layout/PageHeader";
 import { mascararCpf, mascararFusex, mascararTelefone, somenteDigitos } from "../utils/mascaras";
+import { usePermissoes } from "../hooks/usePermissoes";
+import { useAoMudar } from "../hooks/useAoMudar";
+import { useFeedback } from "../components/ui/Feedback";
+import { Esqueleto } from "../components/ui/Esqueleto";
 
 export function MilitaresPage() {
-  const { usuario } = useAuth();
-  // RF04 / RN11: manter o cadastro é privativo de Cabo da Sargenteação e Sargenteante.
-  // Sd EP tem "Militares" no menu, mas só em modo de consulta.
-  const podeEditar = usuario?.perfil === "CABO_SARGENTEACAO" || usuario?.perfil === "SARGENTEANTE";
+  const { gerenciaCadastros: podeEditar } = usePermissoes();
 
   const [militares, setMilitares] = useState<Militar[]>([]);
   const [postos, setPostos] = useState<PostoGraduacao[]>([]);
@@ -35,13 +35,9 @@ export function MilitaresPage() {
     setCarregando(false);
   }
 
-  useEffect(() => {
-    carregar();
-  }, []);
+  useAoMudar(carregar);
 
   const ativos = militares.filter((m) => m.situacao === "ATIVO").length;
-  // Ordena por hierarquia de posto primeiro (Tenente no topo, Sd EV embaixo),
-  // e só dentro do mesmo posto por ordem alfabética do nome de guerra.
   const militaresOrdenados = militares.slice().sort((a, b) => {
     const comparaPosto = b.posto.nivelHierarquico - a.posto.nivelHierarquico;
     if (comparaPosto !== 0) return comparaPosto;
@@ -53,7 +49,7 @@ export function MilitaresPage() {
       <PageHeader title="Militares" subtitle={`${ativos} militares ativos`} />
       <div className="body">
         {podeEditar && (
-          <div style={{ display: "flex", justifyContent: "flex-end" }}>
+          <div className="linha-fim">
             <button className="btn btn-primary" onClick={() => setMostrarForm((v) => !v)}>
               {mostrarForm ? "Cancelar" : "Novo militar"}
             </button>
@@ -71,9 +67,9 @@ export function MilitaresPage() {
           />
         )}
 
-        <div className="card" style={{ padding: 0 }}>
+        <div className="card card-tabela">
           {carregando ? (
-            <div style={{ padding: 20 }}>Carregando…</div>
+            <Esqueleto />
           ) : (
             <table>
               <thead>
@@ -91,7 +87,7 @@ export function MilitaresPage() {
                 {militaresOrdenados.map((m) => (
                   <tr key={m.id}>
                     <td>
-                      <Link to={`/militares/${m.id}`} style={{ color: "var(--sidebar-active)", fontWeight: 600, textDecoration: "underline" }}>
+                      <Link to={`/militares/${m.id}`} className="link-texto">
                         {m.nomeExibicao}
                       </Link>
                     </td>
@@ -99,10 +95,10 @@ export function MilitaresPage() {
                     <td>{m.subunidade.sigla}</td>
                     <td>
                       {m.qualificacoes.length === 0 ? (
-                        <span style={{ color: "var(--grey)", fontSize: 11 }}>—</span>
+                        <span className="nota-pequena">—</span>
                       ) : (
                         m.qualificacoes.map((q) => (
-                          <span key={q.id} className="pill pill-grey" style={{ marginRight: 4 }}>
+                          <span key={q.id} className="pill pill-grey mr-4">
                             {q.nome}
                           </span>
                         ))
@@ -143,9 +139,9 @@ export function MilitaresPage() {
         )}
 
         {!podeEditar && (
-          <div className="card" style={{ background: "var(--amber-bg)", border: "none" }}>
-            <p style={{ fontSize: 12, color: "var(--amber-text)" }}>
-              Seu perfil só consulta o efetivo (RF04 / RN11). Cadastro é privativo do Cabo da
+          <div className="card card-atencao">
+            <p className="nota-alerta">
+              Seu perfil só consulta o efetivo. Cadastro é privativo do Cabo da
               Sargenteação e do Sargenteante.
             </p>
           </div>
@@ -164,6 +160,7 @@ function NovoMilitarForm({
   subunidades: Subunidade[];
   onCriado: () => void;
 }) {
+  const { avisar, confirmar } = useFeedback();
   const [nomeCompleto, setNomeCompleto] = useState("");
   const [nomeGuerra, setNomeGuerra] = useState("");
   const [cpf, setCpf] = useState("");
@@ -197,7 +194,7 @@ function NovoMilitarForm({
     setSalvando(true);
     setErro(null);
     try {
-      await api.post("/api/militares", {
+      const r = await api.post<{ militar: { nomeExibicao: string }; senhaTemporaria: string }>("/api/militares", {
         nomeCompleto,
         nomeGuerra,
         cpf: somenteDigitos(cpf),
@@ -206,9 +203,15 @@ function NovoMilitarForm({
         fusex: fusex || null,
         telefone: telefone ? somenteDigitos(telefone) : null,
         fotoBase64,
-        posto: { id: postoId },
-        subunidade: { id: subunidadeId },
+        postoId,
+        subunidadeId,
       });
+      await confirmar(
+        `Conta criada para ${r.militar.nomeExibicao}.\n\n` +
+        `Login: ${mascararCpf(cpf)}\nSenha temporária: ${r.senhaTemporaria}\n\n` +
+        `Ela aparece só agora. No primeiro acesso a pessoa vai criar a própria senha.`
+      );
+      avisar("Militar cadastrado.", "sucesso");
       onCriado();
     } catch (e) {
       setErro(e instanceof ApiError ? e.message : "Não foi possível cadastrar.");
@@ -220,30 +223,26 @@ function NovoMilitarForm({
   return (
     <div className="card">
       <h3>Novo militar</h3>
-      <p className="sub">Dados da carteira de identidade militar — RF04</p>
+      <p className="sub">Dados da carteira de identidade militar</p>
       {erro && <div className="error-box">{erro}</div>}
-      <div className="cadastro-foto-layout" style={{ display: "flex", gap: 20 }}>
-        <div style={{ flexShrink: 0 }}>
-          <div className="field" style={{ marginBottom: 6 }}>
+      <div className="cadastro-foto-layout linha-larga">
+        <div className="fixo">
+          <div className="field mb-6">
             <label>Foto 3x4</label>
           </div>
           <div
-            style={{
-              width: 108, height: 130, borderRadius: 4, background: "var(--table-head-bg)",
-              border: "1px solid var(--border)", overflow: "hidden", marginBottom: 8,
-              display: "flex", alignItems: "center", justifyContent: "center",
-            }}
+            className="foto-3x4 mb-8"
           >
             {fotoBase64 ? (
-              <img src={fotoBase64} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+              <img src={fotoBase64} alt="" className="foto-cheia" />
             ) : (
-              <span style={{ fontSize: 11, color: "var(--grey)", textAlign: "center", padding: 8 }}>Sem foto</span>
+              <span className="foto-vazia">Sem foto</span>
             )}
           </div>
-          <input type="file" accept="image/*" onChange={selecionarFoto} style={{ fontSize: 11, width: 108 }} />
+          <input type="file" accept="image/*" onChange={selecionarFoto} className="texto-11 w-108" />
         </div>
 
-        <div style={{ flex: 1, minWidth: 0 }}>
+        <div className="flex-1">
           <div className="form-grid">
             <div className="field">
               <label>Nome completo</label>
@@ -288,7 +287,7 @@ function NovoMilitarForm({
               <label>Subunidade</label>
               <select value={subunidadeId} onChange={(e) => setSubunidadeId(Number(e.target.value))}>
                 <option value="">Selecione</option>
-                {subunidades.map((s) => (
+                {subunidades.filter((s) => s.ativo).map((s) => (
                   <option key={s.id} value={s.id}>
                     {s.nome}
                   </option>
@@ -299,7 +298,7 @@ function NovoMilitarForm({
         </div>
       </div>
       <button className="btn btn-primary" onClick={salvar} disabled={salvando}>
-        {salvando ? "Salvando…" : "Salvar cadastro"}
+        {salvando ? "Cadastrando…" : "Cadastrar militar"}
       </button>
     </div>
   );
@@ -340,12 +339,12 @@ function GerenciarCursos({
 
   return (
     <div className="card">
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+      <div className="linha-entre mb-8">
         <h3>Cursos de {militar.nomeExibicao}</h3>
         <button className="btn btn-outline" onClick={onFechar}>Fechar</button>
       </div>
       <p className="sub">Clique num curso pra marcar ou desmarcar</p>
-      <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+      <div className="linha">
         {todasQuals.map((q) => {
           const marcado = temQual(q.id);
           return (

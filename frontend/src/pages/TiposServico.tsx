@@ -1,16 +1,21 @@
-import { useEffect, useState } from "react";
+import { Fragment, useState } from "react";
 import { api, ApiError } from "../api/client";
 import type { TipoServico } from "../api/types";
-import { PageHeader } from "../components/Shell";
-import { useAuth } from "../context/AuthContext";
+import { PageHeader } from "../components/layout/PageHeader";
+import { RequisitosPainel } from "../components/servico/RequisitosPainel";
+import { usePermissoes } from "../hooks/usePermissoes";
+import { useAoMudar } from "../hooks/useAoMudar";
+import { useFeedback } from "../components/ui/Feedback";
+import { Esqueleto } from "../components/ui/Esqueleto";
 
 export function TiposServicoPage() {
-  const { usuario } = useAuth();
-  const podeEditar = usuario?.perfil === "SARGENTEANTE";
+  const { avisar } = useFeedback();
+  const { mantemConfiguracoes: podeEditar } = usePermissoes();
 
   const [tipos, setTipos] = useState<TipoServico[]>([]);
   const [carregando, setCarregando] = useState(true);
   const [mostrarForm, setMostrarForm] = useState(false);
+  const [abertoId, setAbertoId] = useState<number | null>(null);
   const [editandoId, setEditandoId] = useState<number | null>(null);
   const [efetivoRascunho, setEfetivoRascunho] = useState(1);
 
@@ -20,9 +25,7 @@ export function TiposServicoPage() {
     setCarregando(false);
   }
 
-  useEffect(() => {
-    carregar();
-  }, []);
+  useAoMudar(carregar);
 
   function iniciarEdicao(t: TipoServico) {
     setEditandoId(t.id);
@@ -30,9 +33,13 @@ export function TiposServicoPage() {
   }
 
   async function salvarEfetivo(t: TipoServico) {
-    await api.put(`/api/tipos-servico/${t.id}`, { ...t, efetivoNecessario: efetivoRascunho });
-    setEditandoId(null);
-    carregar();
+    try {
+      await api.put(`/api/tipos-servico/${t.id}`, { ...t, efetivoNecessario: efetivoRascunho });
+      setEditandoId(null);
+      carregar();
+    } catch (e) {
+      avisar(e instanceof ApiError ? e.message : "Não foi possível concluir a ação.", "erro");
+    }
   }
 
   return (
@@ -43,7 +50,7 @@ export function TiposServicoPage() {
       />
       <div className="body">
         {podeEditar && (
-          <div style={{ display: "flex", justifyContent: "flex-end" }}>
+          <div className="linha-fim">
             <button className="btn btn-primary" onClick={() => setMostrarForm((v) => !v)}>
               {mostrarForm ? "Cancelar" : "Novo tipo de serviço"}
             </button>
@@ -52,16 +59,17 @@ export function TiposServicoPage() {
 
         {mostrarForm && podeEditar && (
           <NovoTipoForm
-            onCriado={() => {
+            onCriado={(novo) => {
               setMostrarForm(false);
               carregar();
+              setAbertoId(novo.id);
             }}
           />
         )}
 
-        <div className="card" style={{ padding: 0 }}>
+        <div className="card card-tabela">
           {carregando ? (
-            <div style={{ padding: 20 }}>Carregando…</div>
+            <Esqueleto />
           ) : (
             <table>
               <thead>
@@ -70,6 +78,7 @@ export function TiposServicoPage() {
                   <th>Efetivo necessário</th>
                   <th>Duração</th>
                   <th>Situação</th>
+                  <th>Quem pode tirar</th>
                   {podeEditar && <th></th>}
                 </tr>
               </thead>
@@ -78,20 +87,21 @@ export function TiposServicoPage() {
                   const editando = editandoId === t.id;
                   const ehPlantao = t.nome === "Plantão ao Alojamento";
                   return (
-                    <tr key={t.id}>
+                    <Fragment key={t.id}>
+                    <tr>
                       <td>{t.nome}</td>
                       <td>
                         {editando ? (
                           <div>
                             <input
                               type="number"
-                              style={{ width: 70 }}
+                              className="w-70"
                               min={1}
                               value={efetivoRascunho}
                               onChange={(e) => setEfetivoRascunho(Number(e.target.value))}
                             />
                             {ehPlantao && (
-                              <div style={{ fontSize: 11, color: "var(--grey)", marginTop: 2 }}>
+                              <div className="nota-pequena mt-2">
                                 Padrão da OM: entre 3 e 6
                               </div>
                             )}
@@ -106,11 +116,16 @@ export function TiposServicoPage() {
                           {t.ativo ? "Em uso" : "Inativo"}
                         </span>
                       </td>
+                      <td>
+                        <button className="btn btn-outline" onClick={() => setAbertoId((a) => (a === t.id ? null : t.id))}>
+                          {t.quantidadeRequisitos === 0 ? "⚠ Ninguém — definir" : `${t.quantidadeRequisitos} combinação(ões)`}
+                        </button>
+                      </td>
                       {podeEditar && (
                         <td>
                           {editando ? (
                             <>
-                              <button className="btn btn-primary" style={{ marginRight: 6 }} onClick={() => salvarEfetivo(t)}>
+                              <button className="btn btn-primary mr-6" onClick={() => salvarEfetivo(t)}>
                                 Salvar
                               </button>
                               <button className="btn btn-outline" onClick={() => setEditandoId(null)}>
@@ -125,6 +140,14 @@ export function TiposServicoPage() {
                         </td>
                       )}
                     </tr>
+                    {abertoId === t.id && (
+                      <tr>
+                        <td colSpan={podeEditar ? 6 : 5} className="card-tabela">
+                          <RequisitosPainel tipo={t} podeEditar={podeEditar} onMudou={carregar} />
+                        </td>
+                      </tr>
+                    )}
+                    </Fragment>
                   );
                 })}
               </tbody>
@@ -133,9 +156,9 @@ export function TiposServicoPage() {
         </div>
 
         {!podeEditar && (
-          <div className="card" style={{ background: "var(--amber-bg)", border: "none" }}>
-            <p style={{ fontSize: 12, color: "var(--amber-text)" }}>
-              Somente o Sargenteante mantém tipos de serviço (RN11). Você está vendo em modo de
+          <div className="card card-atencao">
+            <p className="nota-alerta">
+              Somente o Sargenteante mantém tipos de serviço. Você está vendo em modo de
               consulta.
             </p>
           </div>
@@ -145,7 +168,7 @@ export function TiposServicoPage() {
   );
 }
 
-function NovoTipoForm({ onCriado }: { onCriado: () => void }) {
+function NovoTipoForm({ onCriado }: { onCriado: (novo: TipoServico) => void }) {
   const [nome, setNome] = useState("");
   const [efetivo, setEfetivo] = useState(1);
   const [salvando, setSalvando] = useState(false);
@@ -159,8 +182,8 @@ function NovoTipoForm({ onCriado }: { onCriado: () => void }) {
     setSalvando(true);
     setErro(null);
     try {
-      await api.post("/api/tipos-servico", { nome, efetivoNecessario: efetivo, duracaoHoras: 24 });
-      onCriado();
+      const novo = await api.post<TipoServico>("/api/tipos-servico", { nome, efetivoNecessario: efetivo, duracaoHoras: 24 });
+      onCriado(novo);
     } catch (e) {
       setErro(e instanceof ApiError ? e.message : "Não foi possível salvar.");
     } finally {
@@ -171,7 +194,6 @@ function NovoTipoForm({ onCriado }: { onCriado: () => void }) {
   return (
     <div className="card">
       <h3>Novo tipo de serviço</h3>
-      <p className="sub">RF06</p>
       {erro && <div className="error-box">{erro}</div>}
       <div className="form-grid">
         <div className="field">

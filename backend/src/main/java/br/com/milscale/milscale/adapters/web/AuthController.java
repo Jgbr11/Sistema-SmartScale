@@ -23,21 +23,19 @@ public class AuthController {
         this.auditoriaService = auditoriaService;
     }
 
-    /** RF13/RF25 - devolve o usuario logado e o perfil, para o front montar o menu certo. */
     @GetMapping("/me")
     public ResponseEntity<?> me(Authentication auth) {
-        if (auth == null) return ResponseEntity.status(401).build();
         Usuario usuario = contaService.registrarAcesso(auth.getName());
         return ResponseEntity.ok(Map.of(
                 "id", usuario.getId(),
                 "login", usuario.getLogin(),
                 "perfil", usuario.getPerfil().getNome(),
                 "militarId", usuario.getMilitar().getId(),
-                "nomeExibicao", usuario.getMilitar().getNomeExibicao()
+                "nomeExibicao", usuario.getMilitar().getNomeExibicao(),
+                "trocarSenha", usuario.isSenhaTemporaria()
         ));
     }
 
-    /** "Minha conta" - qualquer usuario troca a propria senha, precisa confirmar a atual. */
     @PostMapping("/senha")
     public Map<String, String> trocarSenha(@Valid @RequestBody TrocarSenhaRequest req, Authentication auth) {
         contaService.trocarSenha(auth.getName(), req.senhaAtual(), req.senhaNova());

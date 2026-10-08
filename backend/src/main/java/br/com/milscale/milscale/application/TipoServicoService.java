@@ -1,21 +1,27 @@
 package br.com.milscale.milscale.application;
 
+import br.com.milscale.milscale.domain.RegraEscala;
+import br.com.milscale.milscale.adapters.persistence.RegraEscalaRepository;
 import br.com.milscale.milscale.adapters.persistence.TipoServicoRepository;
 import br.com.milscale.milscale.domain.TipoServico;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalTime;
 import java.util.List;
 import java.util.NoSuchElementException;
 
-/** RF06 - tipos de turno (tipos de servico) com efetivo e requisitos. */
 @Service
 public class TipoServicoService {
 
-    private final TipoServicoRepository tipoServicoRepository;
+    private static final int INTERVALO_MINIMO_NOVO_TIPO = 3;
 
-    public TipoServicoService(TipoServicoRepository tipoServicoRepository) {
+    private final TipoServicoRepository tipoServicoRepository;
+    private final RegraEscalaRepository regraEscalaRepository;
+
+    public TipoServicoService(TipoServicoRepository tipoServicoRepository, RegraEscalaRepository regraEscalaRepository) {
         this.tipoServicoRepository = tipoServicoRepository;
+        this.regraEscalaRepository = regraEscalaRepository;
     }
 
     public List<TipoServico> listar() {
@@ -23,22 +29,29 @@ public class TipoServicoService {
     }
 
     @Transactional
-    public TipoServico cadastrar(TipoServico tipo) {
-        tipo.setId(null);
-        tipo.setAtivo(true);
-        return tipoServicoRepository.save(tipo);
+    public TipoServico cadastrar(DadosTipoServico dados) {
+        TipoServico tipo = TipoServico.builder().ativo(true).build();
+        aplicar(dados, tipo);
+        TipoServico salvo = tipoServicoRepository.save(tipo);
+        regraEscalaRepository.save(RegraEscala.builder()
+                .tipoServico(salvo).intervaloMinimo(INTERVALO_MINIMO_NOVO_TIPO).build());
+        return salvo;
     }
 
     @Transactional
-    public TipoServico atualizar(Long id, TipoServico dados) {
+    public TipoServico atualizar(Long id, DadosTipoServico dados) {
         TipoServico existente = tipoServicoRepository.findById(id)
                 .orElseThrow(() -> new NoSuchElementException("Tipo de servico nao encontrado"));
-        existente.setNome(dados.getNome());
-        existente.setDescricao(dados.getDescricao());
-        existente.setEfetivoNecessario(dados.getEfetivoNecessario());
-        existente.setHoraInicio(dados.getHoraInicio());
-        existente.setDuracaoHoras(dados.getDuracaoHoras());
+        aplicar(dados, existente);
         return tipoServicoRepository.save(existente);
+    }
+
+    private void aplicar(DadosTipoServico d, TipoServico t) {
+        t.setNome(d.nome().trim());
+        t.setDescricao(d.descricao());
+        t.setEfetivoNecessario(d.efetivoNecessario());
+        t.setHoraInicio(d.horaInicio() != null ? d.horaInicio() : LocalTime.of(8, 0));
+        t.setDuracaoHoras(d.duracaoHoras() != null ? d.duracaoHoras() : 24);
     }
 
     @Transactional

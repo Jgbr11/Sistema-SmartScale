@@ -1,12 +1,16 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { api, ApiError } from "../api/client";
 import type { PerfilAcesso, UsuarioAdmin } from "../api/types";
-import { PageHeader } from "../components/Shell";
+import { PageHeader } from "../components/layout/PageHeader";
 import { useAuth } from "../context/AuthContext";
 import { PERFIL_LABEL } from "../utils/perfis";
 import { formatarCpf } from "../utils/formatadores";
+import { useAoMudar } from "../hooks/useAoMudar";
+import { useFeedback } from "../components/ui/Feedback";
+import { Esqueleto } from "../components/ui/Esqueleto";
 
 export function PerfisPermissoesPage() {
+  const { confirmar } = useFeedback();
   const { usuario: euMesmo } = useAuth();
   const [usuarios, setUsuarios] = useState<UsuarioAdmin[]>([]);
   const [perfis, setPerfis] = useState<PerfilAcesso[]>([]);
@@ -27,9 +31,7 @@ export function PerfisPermissoesPage() {
     setCarregando(false);
   }
 
-  useEffect(() => {
-    carregar();
-  }, []);
+  useAoMudar(carregar);
 
   async function alterarPerfil(usuarioId: number, perfilId: number) {
     setErro(null);
@@ -45,7 +47,7 @@ export function PerfisPermissoesPage() {
   }
 
   async function alternarAtivo(usuarioId: number, ativo: boolean) {
-    if (!confirm(ativo ? "Reativar o acesso dessa pessoa?" : "Desativar o acesso dessa pessoa? Ela não vai mais conseguir logar.")) return;
+    if (!(await confirmar(ativo ? "Reativar o acesso dessa pessoa?" : "Desativar o acesso dessa pessoa? Ela não vai mais conseguir logar."))) return;
     setErro(null);
     setProcessando(usuarioId);
     try {
@@ -59,12 +61,14 @@ export function PerfisPermissoesPage() {
   }
 
   async function resetarSenha(usuarioId: number, nome: string) {
-    if (!confirm(`Resetar a senha de ${nome} pro padrão (milscale123)?`)) return;
+    if (!(await confirmar(`Gerar uma senha temporária para ${nome}? A senha atual deixa de funcionar.`))) return;
     setErro(null);
     setProcessando(usuarioId);
     try {
-      await api.post(`/api/usuarios/${usuarioId}/resetar-senha`, {});
-      alert("Senha resetada para milscale123 — avise a pessoa pra trocar assim que entrar.");
+      const r = await api.post<{ senhaTemporaria: string }>(`/api/usuarios/${usuarioId}/resetar-senha`, {});
+      await confirmar(`Senha temporária de ${nome}: ${r.senhaTemporaria}
+
+Ela aparece só agora. Entregue pessoalmente — no primeiro acesso a pessoa vai ser obrigada a criar uma senha nova.`);
     } catch (e) {
       setErro(e instanceof ApiError ? e.message : "Não foi possível resetar a senha.");
     } finally {
@@ -78,16 +82,16 @@ export function PerfisPermissoesPage() {
 
   return (
     <>
-      <PageHeader title="Perfis e permissões" subtitle="Quem tem acesso ao quê no sistema — RF25" />
+      <PageHeader title="Perfis e permissões" subtitle="Quem tem acesso ao quê no sistema" />
       <div className="body">
         {erro && <div className="error-box">{erro}</div>}
-        <div className="field" style={{ maxWidth: 320 }}>
+        <div className="field max-320">
           <input value={busca} onChange={(e) => setBusca(e.target.value)} placeholder="Buscar por nome ou CPF…" />
         </div>
 
-        <div className="card" style={{ padding: 0 }}>
+        <div className="card card-tabela">
           {carregando ? (
-            <div style={{ padding: 20 }}>Carregando…</div>
+            <Esqueleto />
           ) : (
             <table>
               <thead>
@@ -105,7 +109,7 @@ export function PerfisPermissoesPage() {
                   return (
                     <tr key={u.id}>
                       <td>{u.militar.nomeExibicao}</td>
-                      <td style={{ color: "var(--grey)" }}>{formatarCpf(u.login)}</td>
+                      <td className="texto-suave">{formatarCpf(u.login)}</td>
                       <td>
                         <select
                           value={u.perfil.id}
@@ -122,10 +126,10 @@ export function PerfisPermissoesPage() {
                           {u.ativo ? "Ativo" : "Inativo"}
                         </span>
                       </td>
-                      <td style={{ whiteSpace: "nowrap" }}>
+                      <td className="nowrap">
                         <button
-                          className="btn btn-outline"
-                          style={{ marginRight: 6 }}
+                          className="btn btn-outline mr-6"
+
                           disabled={processando === u.id}
                           onClick={() => resetarSenha(u.id, u.militar.nomeExibicao)}
                         >
@@ -146,7 +150,7 @@ export function PerfisPermissoesPage() {
             </table>
           )}
         </div>
-        <p style={{ fontSize: 11, color: "var(--grey)" }}>
+        <p className="nota-pequena">
           Você não pode alterar o próprio perfil nem desativar o próprio acesso — peça pra outro Sargenteante, se houver.
         </p>
       </div>

@@ -1,18 +1,18 @@
-# Backend
-backend/target/
+# ---- Maven ----
+**/target/
 backend/data/
 *.log
 
-# Frontend
+# ---- Frontend ----
 frontend/node_modules/
 frontend/dist/
 frontend/.env
 frontend/.env.local
 
-# Docker / segredos
+# ---- Docker / segredos ----
 .env
 
-# IDEs / SO
+# ---- IDEs / SO ----
 .idea/
 .vscode/
 *.iml

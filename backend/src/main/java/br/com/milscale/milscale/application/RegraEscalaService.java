@@ -8,7 +8,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.NoSuchElementException;
 
-/** RF07 - regras da escala. Manutencao privativa do Sargenteante (RN11). */
 @Service
 public class RegraEscalaService {
 
@@ -26,11 +25,14 @@ public class RegraEscalaService {
     public RegraEscala atualizar(Long id, RegraEscala dados) {
         RegraEscala existente = regraEscalaRepository.findById(id)
                 .orElseThrow(() -> new NoSuchElementException("Regra nao encontrada"));
+        if (dados.getIntervaloMinimo() < 0 || dados.getIntervaloMinimo() > 30) {
+            throw new IllegalArgumentException("O intervalo mínimo precisa estar entre 0 e 30 dias");
+        }
+        if (dados.getMaxServicosMes() != null && dados.getMaxServicosMes() < 1) {
+            throw new IllegalArgumentException("O máximo de serviços por mês precisa ser pelo menos 1 (ou vazio pra sem limite)");
+        }
         existente.setIntervaloMinimo(dados.getIntervaloMinimo());
-        existente.setDiasFolga(dados.getDiasFolga());
         existente.setMaxServicosMes(dados.getMaxServicosMes());
-        existente.setPesoFimSemana(dados.getPesoFimSemana());
-        existente.setPesoFeriado(dados.getPesoFeriado());
         return regraEscalaRepository.save(existente);
     }
 }

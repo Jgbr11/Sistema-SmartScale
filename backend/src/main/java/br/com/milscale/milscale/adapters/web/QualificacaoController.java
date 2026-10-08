@@ -1,9 +1,13 @@
 package br.com.milscale.milscale.adapters.web;
 
+import br.com.milscale.milscale.application.AuditoriaService;
+import br.com.milscale.milscale.application.DadosQualificacao;
 import br.com.milscale.milscale.application.QualificacaoService;
 import br.com.milscale.milscale.domain.Militar;
 import br.com.milscale.milscale.domain.Qualificacao;
+import jakarta.validation.Valid;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -13,9 +17,11 @@ import java.util.List;
 public class QualificacaoController {
 
     private final QualificacaoService qualificacaoService;
+    private final AuditoriaService auditoriaService;
 
-    public QualificacaoController(QualificacaoService qualificacaoService) {
+    public QualificacaoController(QualificacaoService qualificacaoService, AuditoriaService auditoriaService) {
         this.qualificacaoService = qualificacaoService;
+        this.auditoriaService = auditoriaService;
     }
 
     @GetMapping("/qualificacoes")
@@ -23,29 +29,42 @@ public class QualificacaoController {
         return qualificacaoService.listar();
     }
 
-    /** RN11 - catalogo (criar um novo tipo de curso) e privativo do Sargenteante. */
     @PreAuthorize("hasRole('SARGENTEANTE')")
     @PostMapping("/qualificacoes")
-    public Qualificacao cadastrar(@RequestBody Qualificacao q) {
-        return qualificacaoService.cadastrar(q);
+    public Qualificacao cadastrar(@Valid @RequestBody DadosQualificacao dados, Authentication auth) {
+        Qualificacao salva = qualificacaoService.cadastrar(dados);
+        auditoriaService.registrar(auth.getName(), "QUALIFICACAO_CADASTRADA", salva.getNome());
+        return salva;
     }
 
     @PreAuthorize("hasRole('SARGENTEANTE')")
     @PutMapping("/qualificacoes/{id}")
-    public Qualificacao atualizar(@PathVariable Long id, @RequestBody Qualificacao q) {
-        return qualificacaoService.atualizar(id, q);
+    public Qualificacao atualizar(@PathVariable Long id, @Valid @RequestBody DadosQualificacao dados, Authentication auth) {
+        Qualificacao salva = qualificacaoService.atualizar(id, dados);
+        auditoriaService.registrar(auth.getName(), "QUALIFICACAO_EDITADA", salva.getNome());
+        return salva;
     }
 
-    /** Vincular um curso a uma pessoa e cadastro (RF04) - Cabo ou Sargenteante. */
+    @PreAuthorize("hasRole('SARGENTEANTE')")
+    @DeleteMapping("/qualificacoes/{id}")
+    public void excluir(@PathVariable Long id, Authentication auth) {
+        Qualificacao excluida = qualificacaoService.excluir(id);
+        auditoriaService.registrar(auth.getName(), "QUALIFICACAO_EXCLUIDA", excluida.getNome() + " (id " + id + ")");
+    }
+
     @PreAuthorize("hasAnyRole('CABO_SARGENTEACAO', 'SARGENTEANTE')")
     @PostMapping("/militares/{militarId}/qualificacoes/{qualificacaoId}")
-    public Militar vincular(@PathVariable Long militarId, @PathVariable Long qualificacaoId) {
-        return qualificacaoService.vincular(militarId, qualificacaoId);
+    public Militar vincular(@PathVariable Long militarId, @PathVariable Long qualificacaoId, Authentication auth) {
+        Militar militar = qualificacaoService.vincular(militarId, qualificacaoId);
+        auditoriaService.registrar(auth.getName(), "CURSO_VINCULADO", "militar " + militarId + ", curso " + qualificacaoId);
+        return militar;
     }
 
     @PreAuthorize("hasAnyRole('CABO_SARGENTEACAO', 'SARGENTEANTE')")
     @DeleteMapping("/militares/{militarId}/qualificacoes/{qualificacaoId}")
-    public Militar desvincular(@PathVariable Long militarId, @PathVariable Long qualificacaoId) {
-        return qualificacaoService.desvincular(militarId, qualificacaoId);
+    public Militar desvincular(@PathVariable Long militarId, @PathVariable Long qualificacaoId, Authentication auth) {
+        Militar militar = qualificacaoService.desvincular(militarId, qualificacaoId);
+        auditoriaService.registrar(auth.getName(), "CURSO_DESVINCULADO", "militar " + militarId + ", curso " + qualificacaoId);
+        return militar;
     }
 }

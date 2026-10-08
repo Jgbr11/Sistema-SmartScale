@@ -12,14 +12,6 @@ import java.time.YearMonth;
 import java.util.*;
 import java.util.stream.Collectors;
 
-/**
- * RF26/Feriados - visão unificada pra tela de Avisos: feriados e
- * afastamentos (missão, dispensa, férias...) que caem num mês, prontos
- * pra colorir um calendário e listar embaixo. Aberto a qualquer
- * autenticado - inclusive Militar Escalado, que não tem acesso às
- * telas de gestão (Feriados / Missões e dispensas) mas precisa saber
- * o que vem por aí.
- */
 @Service
 public class AvisoService {
 
@@ -44,9 +36,7 @@ public class AvisoService {
         }
 
         List<Afastamento> afastamentos = afastamentoRepository.findByDataInicioLessThanEqualAndDataFimGreaterThanEqual(fim, inicio);
-        // Agrupa por lote (uma missao com varios militares vira 1 aviso so,
-        // nao um por pessoa) - quem nao tem lote (afastamento antigo/individual
-        // sem essa marcação) agrupa por id mesmo, cada um vira o seu proprio aviso.
+
         Map<String, List<Afastamento>> porLote = afastamentos.stream()
                 .collect(Collectors.groupingBy(a -> a.getLoteMissao() != null ? a.getLoteMissao() : "solo-" + a.getId()));
 

@@ -2,6 +2,7 @@ package br.com.milscale.milscale.adapters.web;
 
 import br.com.milscale.milscale.adapters.web.dto.BoletimRequest;
 import br.com.milscale.milscale.application.AuditoriaService;
+import br.com.milscale.milscale.application.BoletimResumo;
 import br.com.milscale.milscale.application.BoletimService;
 import br.com.milscale.milscale.domain.Boletim;
 import jakarta.validation.Valid;
@@ -11,7 +12,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-/** Boletim Interno - leitura aberta a todo mundo, manutencao privativa de Cabo/Sargenteante. */
 @RestController
 @RequestMapping("/api/boletins")
 public class BoletimController {
@@ -25,7 +25,7 @@ public class BoletimController {
     }
 
     @GetMapping
-    public List<Boletim> listar() {
+    public List<BoletimResumo> listar() {
         return boletimService.listar();
     }
 

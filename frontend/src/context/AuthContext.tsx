@@ -1,12 +1,14 @@
-import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
+import { createContext, useContext, useState, type ReactNode } from "react";
 import { api, ApiError } from "../api/client";
 import type { Usuario } from "../api/types";
+import { useAoMudar } from "../hooks/useAoMudar";
 
 interface AuthContextValue {
   usuario: Usuario | null;
   carregando: boolean;
   entrar: (login: string, senha: string) => Promise<void>;
   sair: () => Promise<void>;
+  recarregar: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
@@ -26,9 +28,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }
 
-  useEffect(() => {
-    carregarSessao();
-  }, []);
+  useAoMudar(carregarSessao);
 
   async function entrar(login: string, senha: string) {
     await api.login(login, senha);
@@ -41,7 +41,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   return (
-    <AuthContext.Provider value={{ usuario, carregando, entrar, sair }}>
+    <AuthContext.Provider value={{ usuario, carregando, entrar, sair, recarregar: carregarSessao }}>
       {children}
     </AuthContext.Provider>
   );

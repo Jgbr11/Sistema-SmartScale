@@ -1,12 +1,15 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { api, ApiError } from "../api/client";
 import type { Qualificacao } from "../api/types";
-import { PageHeader } from "../components/Shell";
-import { useAuth } from "../context/AuthContext";
+import { PageHeader } from "../components/layout/PageHeader";
+import { usePermissoes } from "../hooks/usePermissoes";
+import { useAoMudar } from "../hooks/useAoMudar";
+import { useFeedback } from "../components/ui/Feedback";
+import { Esqueleto } from "../components/ui/Esqueleto";
 
 export function QualificacoesPage() {
-  const { usuario } = useAuth();
-  const podeEditar = usuario?.perfil === "SARGENTEANTE";
+  const { avisar, confirmar } = useFeedback();
+  const { mantemConfiguracoes: podeEditar } = usePermissoes();
 
   const [quals, setQuals] = useState<Qualificacao[]>([]);
   const [carregando, setCarregando] = useState(true);
@@ -20,30 +23,42 @@ export function QualificacoesPage() {
     setCarregando(false);
   }
 
-  useEffect(() => {
-    carregar();
-  }, []);
+  useAoMudar(carregar);
 
   function iniciarEdicao(q: Qualificacao) {
     setEditandoId(q.id);
     setRascunho({ nome: q.nome, descricao: q.descricao ?? "" });
   }
 
+  async function excluir(q: Qualificacao) {
+    if (!(await confirmar(`Excluir o curso "${q.nome}"?`))) return;
+    try {
+      await api.delete(`/api/qualificacoes/${q.id}`);
+      carregar();
+    } catch (e) {
+      avisar(e instanceof ApiError ? e.message : "Não foi possível excluir.", "erro");
+    }
+  }
+
   async function salvarEdicao(q: Qualificacao) {
-    await api.put(`/api/qualificacoes/${q.id}`, { ...q, ...rascunho });
-    setEditandoId(null);
-    carregar();
+    try {
+      await api.put(`/api/qualificacoes/${q.id}`, { ...q, ...rascunho });
+      setEditandoId(null);
+      carregar();
+    } catch (e) {
+      avisar(e instanceof ApiError ? e.message : "Não foi possível concluir a ação.", "erro");
+    }
   }
 
   return (
     <>
       <PageHeader
         title="Qualificações"
-        subtitle="Cursos e habilitações que podem ser exigidos por um tipo de serviço (RF05)"
+        subtitle="Cursos e habilitações que podem ser exigidos por um tipo de serviço"
       />
       <div className="body">
         {podeEditar && (
-          <div style={{ display: "flex", justifyContent: "flex-end" }}>
+          <div className="linha-fim">
             <button className="btn btn-primary" onClick={() => setMostrarForm((v) => !v)}>
               {mostrarForm ? "Cancelar" : "Nova qualificação"}
             </button>
@@ -54,9 +69,9 @@ export function QualificacoesPage() {
           <NovaQualificacaoForm onCriado={() => { setMostrarForm(false); carregar(); }} />
         )}
 
-        <div className="card" style={{ padding: 0 }}>
+        <div className="card card-tabela">
           {carregando ? (
-            <div style={{ padding: 20 }}>Carregando…</div>
+            <Esqueleto />
           ) : (
             <table>
               <thead>
@@ -74,7 +89,7 @@ export function QualificacoesPage() {
                       <td>
                         {editando ? (
                           <input
-                            style={{ width: 160 }}
+                            className="w-160"
                             value={rascunho.nome}
                             onChange={(e) => setRascunho((s) => ({ ...s, nome: e.target.value }))}
                           />
@@ -85,7 +100,7 @@ export function QualificacoesPage() {
                       <td>
                         {editando ? (
                           <input
-                            style={{ width: "100%" }}
+                            className="largura-total"
                             value={rascunho.descricao}
                             onChange={(e) => setRascunho((s) => ({ ...s, descricao: e.target.value }))}
                           />
@@ -97,7 +112,7 @@ export function QualificacoesPage() {
                         <td>
                           {editando ? (
                             <>
-                              <button className="btn btn-primary" style={{ marginRight: 6 }} onClick={() => salvarEdicao(q)}>
+                              <button className="btn btn-primary mr-6" onClick={() => salvarEdicao(q)}>
                                 Salvar
                               </button>
                               <button className="btn btn-outline" onClick={() => setEditandoId(null)}>
@@ -105,9 +120,14 @@ export function QualificacoesPage() {
                               </button>
                             </>
                           ) : (
-                            <button className="btn btn-outline" onClick={() => iniciarEdicao(q)}>
-                              Editar
-                            </button>
+                            <>
+                              <button className="btn btn-outline mr-6" onClick={() => iniciarEdicao(q)}>
+                                Editar
+                              </button>
+                              <button className="btn btn-outline" onClick={() => excluir(q)}>
+                                Excluir
+                              </button>
+                            </>
                           )}
                         </td>
                       )}
@@ -119,8 +139,8 @@ export function QualificacoesPage() {
           )}
         </div>
 
-        <div className="card" style={{ background: "var(--amber-bg)", border: "none" }}>
-          <p style={{ fontSize: 12, color: "var(--amber-text)" }}>
+        <div className="card card-atencao">
+          <p className="nota-alerta">
             Vincular ou remover um curso de uma pessoa é feito na tela de Militares, no cadastro
             dela. Aqui você só mantém o catálogo dos cursos que existem.
           </p>
@@ -156,7 +176,6 @@ function NovaQualificacaoForm({ onCriado }: { onCriado: () => void }) {
   return (
     <div className="card">
       <h3>Nova qualificação</h3>
-      <p className="sub">RF05</p>
       {erro && <div className="error-box">{erro}</div>}
       <div className="form-grid">
         <div className="field">

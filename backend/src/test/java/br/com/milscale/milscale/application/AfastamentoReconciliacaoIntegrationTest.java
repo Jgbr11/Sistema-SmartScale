@@ -13,13 +13,6 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-/**
- * Rede de seguranca pra refatoracao da regra de descanso: afastamento
- * cadastrado DEPOIS da escala pronta realoca so a vaga da pessoa
- * afastada (dentro do periodo), pra alguem elegivel, sem violar o
- * intervalo minimo. Cenario montado a mao (como no
- * TrocaIntervaloIntegrationTest) pra ser deterministico.
- */
 @SpringBootTest
 @ActiveProfiles("test")
 @Transactional
@@ -42,7 +35,7 @@ class AfastamentoReconciliacaoIntegrationTest {
                 .filter(m -> !"Aprov".equals(m.getSubunidade().getSigla()))
                 .toList();
         Militar afastado = cabos.get(0);
-        Militar vizinho = cabos.get(1); // tem servico a 2 dias do alvo: NAO pode ser o escolhido (RN06)
+        Militar vizinho = cabos.get(1);
 
         LocalDate dia = LocalDate.now().plusMonths(2).withDayOfMonth(10);
         Escala escala = escalaRepository.save(Escala.builder().descricao("teste")

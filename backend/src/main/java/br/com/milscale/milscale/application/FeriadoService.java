@@ -8,7 +8,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.NoSuchElementException;
 
-/** Feriados - usados pelo peso_feriado das regras da escala (RegraEscala). */
 @Service
 public class FeriadoService {
 
@@ -23,12 +22,27 @@ public class FeriadoService {
     }
 
     @Transactional
-    public Feriado cadastrar(Feriado f) {
-        if (f.getDataFim().isBefore(f.getDataInicio())) {
+    public Feriado cadastrar(DadosFeriado dados) {
+        Feriado novo = new Feriado();
+        aplicar(novo, dados);
+        return feriadoRepository.save(novo);
+    }
+
+    @Transactional
+    public Feriado atualizar(Long id, DadosFeriado dados) {
+        Feriado existente = feriadoRepository.findById(id).orElseThrow(() -> new NoSuchElementException("Feriado não encontrado"));
+        aplicar(existente, dados);
+        return feriadoRepository.save(existente);
+    }
+
+    private void aplicar(Feriado feriado, DadosFeriado dados) {
+        if (dados.dataFim().isBefore(dados.dataInicio())) {
             throw new IllegalArgumentException("A data final não pode ser antes da data inicial");
         }
-        f.setId(null);
-        return feriadoRepository.save(f);
+        feriado.setDataInicio(dados.dataInicio());
+        feriado.setDataFim(dados.dataFim());
+        feriado.setDescricao(dados.descricao().trim());
+        feriado.setTipo(dados.tipo());
     }
 
     @Transactional

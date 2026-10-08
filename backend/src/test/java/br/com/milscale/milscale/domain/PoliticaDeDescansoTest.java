@@ -17,7 +17,6 @@ class PoliticaDeDescansoTest {
 
     @Test
     void intervalo3_exigeVaoDe4DiasDeCalendario() {
-        // 3x1 = folga, folga, folga, servico
         assertThat(PoliticaDeDescanso.respeitaIntervalo(D.minusDays(3), D, 3)).isFalse();
         assertThat(PoliticaDeDescanso.respeitaIntervalo(D.minusDays(4), D, 3)).isTrue();
     }
@@ -31,8 +30,8 @@ class PoliticaDeDescansoTest {
     @Test
     void troca_1x1ProibidoE2x1Permitido() {
         assertThat(PoliticaDeDescanso.ficariaEm1x1(D.plusDays(1), D)).isTrue();
-        assertThat(PoliticaDeDescanso.ficariaEm1x1(D.plusDays(2), D)).isTrue();  // 1 dia de folga
-        assertThat(PoliticaDeDescanso.ficariaEm1x1(D.plusDays(3), D)).isFalse(); // 2 dias de folga
+        assertThat(PoliticaDeDescanso.ficariaEm1x1(D.plusDays(2), D)).isTrue();
+        assertThat(PoliticaDeDescanso.ficariaEm1x1(D.plusDays(3), D)).isFalse();
         assertThat(PoliticaDeDescanso.ficariaEm1x1(D.minusDays(2), D)).isTrue();
     }
 

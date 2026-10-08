@@ -8,7 +8,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 
-/** "Minha conta" - dados da sessao e troca da propria senha. */
 @Service
 public class ContaService {
 
@@ -43,6 +42,7 @@ public class ContaService {
             throw new IllegalArgumentException("A nova senha precisa ter pelo menos 6 caracteres");
         }
         usuario.setSenhaHash(passwordEncoder.encode(senhaNova));
+        usuario.setSenhaTemporaria(false);
         usuarioRepository.save(usuario);
     }
 }

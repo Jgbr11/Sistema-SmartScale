@@ -2,17 +2,20 @@ import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { api, ApiError } from "../api/client";
 import type { Afastamento, Militar, PostoGraduacao, ServicoEscalado, Solicitacao, Subunidade, TipoServico } from "../api/types";
-import { PageHeader } from "../components/Shell";
-import { useAuth } from "../context/AuthContext";
+import { PageHeader } from "../components/layout/PageHeader";
+import { BotaoBaixarCsv } from "../components/ui/BotaoBaixarCsv";
 import { mascararCpf, mascararFusex, mascararTelefone, somenteDigitos } from "../utils/mascaras";
 import { TIPO_AFASTAMENTO_LABEL } from "../utils/afastamentoTipos";
 import { formatarCpf, formatarDataBR } from "../utils/formatadores";
+import { usePermissoes } from "../hooks/usePermissoes";
+import { hojeISO } from "../utils/datas";
+import { useAoMudar } from "../hooks/useAoMudar";
+import { useFeedback } from "../components/ui/Feedback";
 
 export function FichaMilitarPage() {
+  const { gerenciaCadastros: podeEditar } = usePermissoes();
   const { id } = useParams<{ id: string }>();
   const militarId = Number(id);
-  const { usuario } = useAuth();
-  const podeEditar = usuario?.perfil === "CABO_SARGENTEACAO" || usuario?.perfil === "SARGENTEANTE";
 
   const [militar, setMilitar] = useState<Militar | null>(null);
   const [funcoes, setFuncoes] = useState<TipoServico[]>([]);
@@ -39,10 +42,7 @@ export function FichaMilitarPage() {
     setCarregando(false);
   }
 
-  useEffect(() => {
-    carregar();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [militarId]);
+  useAoMudar(carregar, militarId);
 
   if (carregando || !militar) {
     return (
@@ -53,26 +53,26 @@ export function FichaMilitarPage() {
     );
   }
 
-  const hoje = new Date().toISOString().slice(0, 10);
+  const hoje = hojeISO();
   const afastamentoAtual = afastamentos.find((a) => hoje >= a.dataInicio && hoje <= a.dataFim);
 
   return (
     <>
       <PageHeader title={militar.nomeExibicao} subtitle={militar.nomeCompleto} />
       <div className="body">
-        <Link to="/militares" style={{ fontSize: 12, color: "var(--sidebar-active)" }}>← Voltar pra lista de militares</Link>
+        <Link to="/militares" className="texto-12 texto-oliva">← Voltar pra lista de militares</Link>
 
         {afastamentoAtual && (
-          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <div className="linha">
             <span className="pill pill-amber">{TIPO_AFASTAMENTO_LABEL[afastamentoAtual.tipo]}</span>
-            <span style={{ fontSize: 12, color: "var(--grey)" }}>
+            <span className="nota">
               até {formatarDataBR(afastamentoAtual.dataFim)} — ver detalhe em Missões e Dispensas
             </span>
           </div>
         )}
 
         <div className="card">
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+          <div className="linha-entre-topo">
             <h3>Dados pessoais</h3>
             {podeEditar && !editando && (
               <button className="btn btn-outline" onClick={() => setEditando(true)}>Editar</button>
@@ -88,30 +88,33 @@ export function FichaMilitarPage() {
         <div className="card">
           <h3>Cursos</h3>
           <p className="sub">Pra vincular ou remover um curso, use o botão "Cursos" na tela de Militares</p>
-          <div style={{ marginTop: 8 }}>
+          <div className="mt-8">
             {militar.qualificacoes.length === 0 ? (
-              <span style={{ fontSize: 12, color: "var(--grey)" }}>Nenhum curso registrado</span>
+              <span className="nota">Nenhum curso registrado</span>
             ) : (
-              militar.qualificacoes.map((q) => <span key={q.id} className="pill pill-grey" style={{ marginRight: 6 }}>{q.nome}</span>)
+              militar.qualificacoes.map((q) => <span key={q.id} className="pill pill-grey mr-6">{q.nome}</span>)
             )}
           </div>
         </div>
 
         <div className="card">
           <h3>Pode servir em</h3>
-          <div style={{ marginTop: 8 }}>
+          <div className="mt-8">
             {funcoes.length === 0 ? (
-              <span style={{ fontSize: 12, color: "var(--grey)" }}>Nenhuma função elegível no momento</span>
+              <span className="nota">Nenhuma função elegível no momento</span>
             ) : (
-              funcoes.map((f) => <span key={f.id} className="pill pill-green" style={{ marginRight: 6, marginBottom: 6, display: "inline-block" }}>{f.nome}</span>)
+              funcoes.map((f) => <span key={f.id} className="pill pill-green etiqueta-lista">{f.nome}</span>)
             )}
           </div>
         </div>
 
-        <div className="card" style={{ padding: 0 }}>
-          <h3 style={{ padding: "16px 16px 0" }}>Histórico de serviços ({servicos.length})</h3>
+        <div className="card card-tabela">
+          <div className="linha-entre cabeca-tabela">
+            <h3>Histórico de serviços ({servicos.length})</h3>
+            <BotaoBaixarCsv caminho={`militares/${militar.id}/servicos.csv`} />
+          </div>
           {servicos.length === 0 ? (
-            <div style={{ padding: 16, color: "var(--grey)", fontSize: 13 }}>Nenhum serviço registrado ainda.</div>
+            <div className="vazio">Nenhum serviço registrado ainda.</div>
           ) : (
             <table>
               <thead><tr><th>Data</th><th>Serviço</th><th>Situação</th></tr></thead>
@@ -126,13 +129,13 @@ export function FichaMilitarPage() {
               </tbody>
             </table>
           )}
-          {servicos.length > 50 && <p className="sub" style={{ padding: 12 }}>Mostrando os 50 mais recentes de {servicos.length}.</p>}
+          {servicos.length > 50 && <p className="sub p-12">Mostrando os 50 mais recentes de {servicos.length}.</p>}
         </div>
 
-        <div className="card" style={{ padding: 0 }}>
-          <h3 style={{ padding: "16px 16px 0" }}>Histórico de missões e dispensas ({afastamentos.length})</h3>
+        <div className="card card-tabela">
+          <h3 className="cabeca-tabela">Histórico de missões e dispensas ({afastamentos.length})</h3>
           {afastamentos.length === 0 ? (
-            <div style={{ padding: 16, color: "var(--grey)", fontSize: 13 }}>Nenhum afastamento registrado ainda.</div>
+            <div className="vazio">Nenhum afastamento registrado ainda.</div>
           ) : (
             <table>
               <thead><tr><th>Período</th><th>Tipo</th><th>Descrição</th></tr></thead>
@@ -149,10 +152,10 @@ export function FichaMilitarPage() {
           )}
         </div>
 
-        <div className="card" style={{ padding: 0 }}>
-          <h3 style={{ padding: "16px 16px 0" }}>Histórico de trocas ({trocas.length})</h3>
+        <div className="card card-tabela">
+          <h3 className="cabeca-tabela">Histórico de trocas ({trocas.length})</h3>
           {trocas.length === 0 ? (
-            <div style={{ padding: 16, color: "var(--grey)", fontSize: 13 }}>Nenhuma troca pedida ou recebida ainda.</div>
+            <div className="vazio">Nenhuma troca pedida ou recebida ainda.</div>
           ) : (
             <table>
               <thead><tr><th>Data</th><th>Papel</th><th>Serviço</th><th>Situação</th></tr></thead>
@@ -161,7 +164,7 @@ export function FichaMilitarPage() {
                   <tr key={t.id}>
                     <td>{formatarDataBR(t.dataSolicitacao.slice(0, 10))}</td>
                     <td>{t.solicitante.id === militarId ? "Pediu" : "Recebeu o pedido"}</td>
-                    <td>{t.servicoOrigem.tipoServico.nome} — {formatarDataBR(t.servicoOrigem.data)}</td>
+                    <td>{t.servicoOrigemTipo} — {formatarDataBR(t.servicoOrigemData)}</td>
                     <td><span className="pill pill-grey">{t.situacao}</span></td>
                   </tr>
                 ))}
@@ -176,10 +179,10 @@ export function FichaMilitarPage() {
 
 function VisaoDados({ militar }: { militar: Militar }) {
   return (
-    <div className="form-grid" style={{ marginTop: 10 }}>
+    <div className="form-grid mt-10">
       <CampoLeitura label="Nome completo" valor={militar.nomeCompleto} />
       <CampoLeitura label="Nome de guerra" valor={militar.nomeGuerra} />
-      <CampoLeitura label="CPF" valor={formatarCpf(militar.cpf)} />
+      <CampoLeitura label="CPF" valor={militar.cpf ? formatarCpf(militar.cpf) : "—"} />
       <CampoLeitura label="Posto/graduação" valor={militar.posto.descricao} />
       <CampoLeitura label="Subunidade" valor={militar.subunidade.nome} />
       <CampoLeitura label="Situação" valor={militar.situacao} />
@@ -196,16 +199,17 @@ function CampoLeitura({ label, valor }: { label: string; valor: string }) {
   return (
     <div className="field">
       <label>{label}</label>
-      <div style={{ padding: "7px 0", fontSize: 13, fontWeight: 600 }}>{valor}</div>
+      <div className="item-forte">{valor}</div>
     </div>
   );
 }
 
 function EditarForm({ militar, onSalvou, onCancelar }: { militar: Militar; onSalvou: () => void; onCancelar: () => void }) {
+  const { confirmar } = useFeedback();
   const [dados, setDados] = useState({
     nomeCompleto: militar.nomeCompleto,
     nomeGuerra: militar.nomeGuerra,
-    cpf: mascararCpf(militar.cpf),
+    cpf: mascararCpf(militar.cpf ?? ""),
     postoId: militar.posto.id,
     subunidadeId: militar.subunidade.id,
     numeroRegistro: militar.numeroRegistro || "",
@@ -241,7 +245,7 @@ function EditarForm({ militar, onSalvou, onCancelar }: { militar: Militar; onSal
       dados.nomeGuerra !== militar.nomeGuerra ||
       somenteDigitos(dados.cpf) !== militar.cpf;
     if (mudouIdentidade) {
-      const ok = confirm(
+      const ok = await confirmar(
         "Você está mudando nome completo, nome de guerra ou CPF — isso deveria ser raro, só pra corrigir um erro de cadastro. Confirma a alteração?"
       );
       if (!ok) return;
@@ -252,8 +256,8 @@ function EditarForm({ militar, onSalvou, onCancelar }: { militar: Militar; onSal
         nomeCompleto: dados.nomeCompleto,
         nomeGuerra: dados.nomeGuerra,
         cpf: somenteDigitos(dados.cpf),
-        posto: { id: dados.postoId },
-        subunidade: { id: dados.subunidadeId },
+        postoId: dados.postoId,
+        subunidadeId: dados.subunidadeId,
         numeroRegistro: dados.numeroRegistro || null,
         dataNascimento: dados.dataNascimento || null,
         fusex: dados.fusex || null,
@@ -269,9 +273,9 @@ function EditarForm({ militar, onSalvou, onCancelar }: { militar: Militar; onSal
   }
 
   return (
-    <div style={{ marginTop: 10 }}>
+    <div className="mt-10">
       {erro && <div className="error-box">{erro}</div>}
-      <p className="sub" style={{ marginBottom: 10 }}>
+      <p className="sub mb-10">
         Nome completo, nome de guerra e CPF pedem confirmação extra ao salvar — só devem mudar pra corrigir um erro de cadastro.
       </p>
       <div className="form-grid">
@@ -296,7 +300,7 @@ function EditarForm({ militar, onSalvou, onCancelar }: { militar: Militar; onSal
         <div className="field">
           <label>Subunidade</label>
           <select value={dados.subunidadeId} onChange={(e) => campo("subunidadeId", Number(e.target.value))}>
-            {subunidades.map((s) => <option key={s.id} value={s.id}>{s.nome}</option>)}
+            {subunidades.filter((s) => s.ativo || s.id === dados.subunidadeId).map((s) => <option key={s.id} value={s.id}>{s.nome}</option>)}
           </select>
         </div>
         <div className="field">
@@ -320,7 +324,7 @@ function EditarForm({ militar, onSalvou, onCancelar }: { militar: Militar; onSal
           <input value={dados.email} onChange={(e) => campo("email", e.target.value)} />
         </div>
       </div>
-      <div style={{ display: "flex", gap: 8 }}>
+      <div className="linha">
         <button className="btn btn-primary" onClick={salvar} disabled={salvando}>
           {salvando ? "Salvando…" : "Salvar alterações"}
         </button>

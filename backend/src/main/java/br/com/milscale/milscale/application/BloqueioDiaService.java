@@ -8,10 +8,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
 import java.util.List;
 
-/**
- * RF12 - travar um dia da escala impede troca ou alteracao manual nesse
- * dia, mesmo pelo Sargenteante (RN04). Privativo do Sargenteante (RN11).
- */
 @Service
 public class BloqueioDiaService {
 
@@ -22,17 +18,20 @@ public class BloqueioDiaService {
     }
 
     @Transactional
-    public List<ServicoEscalado> travar(Long escalaId, LocalDate data) {
-        return alternarTravamento(escalaId, data, true);
+    public List<ServicoEscalado> travar(LocalDate data) {
+        return alternarTravamento(data, true);
     }
 
     @Transactional
-    public List<ServicoEscalado> destravar(Long escalaId, LocalDate data) {
-        return alternarTravamento(escalaId, data, false);
+    public List<ServicoEscalado> destravar(LocalDate data) {
+        return alternarTravamento(data, false);
     }
 
-    private List<ServicoEscalado> alternarTravamento(Long escalaId, LocalDate data, boolean travado) {
-        List<ServicoEscalado> doDia = servicoEscaladoRepository.findByDataAndEscala_Id(data, escalaId);
+    private List<ServicoEscalado> alternarTravamento(LocalDate data, boolean travado) {
+        List<ServicoEscalado> doDia = servicoEscaladoRepository.findByData(data);
+        if (doDia.stream().anyMatch(ServicoEscalado::isJaComecou)) {
+            throw new IllegalArgumentException("Esse dia já começou — ele já está confirmado e não pode mais ser travado ou destravado");
+        }
         for (ServicoEscalado s : doDia) {
             s.setTravado(travado);
         }

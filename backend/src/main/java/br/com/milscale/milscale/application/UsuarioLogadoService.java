@@ -7,7 +7,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.NoSuchElementException;
 
-/** Resolve o login da sessao (Authentication.getName(), o CPF) para o Usuario/Militar - um lugar so. */
 @Service
 public class UsuarioLogadoService {
 

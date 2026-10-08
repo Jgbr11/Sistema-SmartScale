@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
 import { api } from "../api/client";
 import type { LogAuditoria } from "../api/types";
-import { PageHeader } from "../components/Shell";
+import { PageHeader } from "../components/layout/PageHeader";
 import { formatarDataHora } from "../utils/formatadores";
+import { Esqueleto } from "../components/ui/Esqueleto";
 
 const ACAO_LABEL: Record<string, string> = {
   MILITAR_CADASTRADO: "Militar cadastrado",
@@ -10,6 +11,26 @@ const ACAO_LABEL: Record<string, string> = {
   MILITAR_DESLIGADO: "Militar desligado",
   ESCALA_GERADA: "Escala gerada",
   ESCALA_PUBLICADA: "Escala publicada",
+  REGRA_ESCALA_ALTERADA: "Regra da escala alterada",
+  REQUISITO_ADICIONADO: "Requisito de serviço adicionado",
+  REQUISITO_REMOVIDO: "Requisito de serviço removido",
+  TIPO_SERVICO_CADASTRADO: "Tipo de serviço cadastrado",
+  TIPO_SERVICO_EDITADO: "Tipo de serviço editado",
+  TIPO_SERVICO_DESATIVADO: "Tipo de serviço desativado",
+  QUALIFICACAO_CADASTRADA: "Curso cadastrado",
+  QUALIFICACAO_EDITADA: "Curso editado",
+  QUALIFICACAO_EXCLUIDA: "Curso excluído",
+  CURSO_VINCULADO: "Curso vinculado a militar",
+  CURSO_DESVINCULADO: "Curso desvinculado de militar",
+  POSTO_CADASTRADO: "Posto cadastrado",
+  POSTO_EDITADO: "Posto editado",
+  POSTO_EXCLUIDO: "Posto excluído",
+  SUBUNIDADE_CADASTRADA: "Subunidade cadastrada",
+  SUBUNIDADE_EDITADA: "Subunidade editada",
+  SUBUNIDADE_EXCLUIDA: "Subunidade excluída",
+  SUBUNIDADE_DESATIVADA: "Subunidade desativada",
+  FERIADO_EDITADO: "Feriado editado",
+  AFASTAMENTO_EDITADO: "Afastamento editado",
   DIA_TRAVADO: "Dia travado",
   DIA_DESTRAVADO: "Dia destravado",
   AFASTAMENTO_CADASTRADO: "Afastamento cadastrado",
@@ -57,16 +78,16 @@ export function AuditoriaPage() {
 
   return (
     <>
-      <PageHeader title="Log de auditoria" subtitle="Quem fez o quê no sistema — só o Sargenteante vê" />
+      <PageHeader title="Auditoria" subtitle="Quem fez o quê no sistema — só o Sargenteante vê" />
       <div className="body">
-        <div className="field" style={{ maxWidth: 320 }}>
+        <div className="field max-320">
           <input value={busca} onChange={(e) => setBusca(e.target.value)} placeholder="Buscar por pessoa, ação ou detalhe…" />
         </div>
-        <div className="card" style={{ padding: 0 }}>
+        <div className="card card-tabela">
           {carregando ? (
-            <div style={{ padding: 20 }}>Carregando…</div>
+            <Esqueleto />
           ) : filtrados.length === 0 ? (
-            <div style={{ padding: 20, color: "var(--grey)", fontSize: 13 }}>Nenhum registro ainda.</div>
+            <div className="vazio">Nenhum registro ainda.</div>
           ) : (
             <table>
               <thead>
@@ -80,10 +101,10 @@ export function AuditoriaPage() {
               <tbody>
                 {filtrados.map((l) => (
                   <tr key={l.id}>
-                    <td style={{ whiteSpace: "nowrap", fontSize: 12 }}>{formatarDataHora(l.dataHora)}</td>
+                    <td className="nowrap texto-12">{formatarDataHora(l.dataHora)}</td>
                     <td>{l.usuarioNomeExibicao ?? "sistema"}</td>
                     <td><span className="pill pill-grey">{ACAO_LABEL[l.acao] ?? l.acao}</span></td>
-                    <td style={{ fontSize: 12 }}>{l.descricao ?? "—"}</td>
+                    <td className="texto-12">{l.descricao ?? "—"}</td>
                   </tr>
                 ))}
               </tbody>

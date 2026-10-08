@@ -3,7 +3,6 @@ package br.com.milscale.milscale.domain;
 import jakarta.persistence.*;
 import lombok.*;
 
-/** RF25 - perfis de acesso do MilScale (Militar Escalado, Sd EP, Cabo, Sargenteante). */
 @Entity
 @Table(name = "perfil_acesso")
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder

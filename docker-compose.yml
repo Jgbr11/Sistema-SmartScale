@@ -12,10 +12,6 @@ services:
     volumes:
       - milscale_mysql_data:/var/lib/mysql
     healthcheck:
-      # O backend só sobe depois que o MySQL responde de verdade, não
-      # só quando o container "existe" - sem isso, o Spring tentaria
-      # conectar cedo demais e cairia de cara.
-      # $$ = variavel lida DENTRO do container (as mesmas do bloco environment).
       test: ["CMD-SHELL", "mysqladmin ping -h localhost -u $$MYSQL_USER -p$$MYSQL_PASSWORD"]
       interval: 5s
       timeout: 5s
@@ -23,7 +19,8 @@ services:
 
   backend:
     build:
-      context: ./backend
+      context: .
+      dockerfile: backend/Dockerfile
     restart: unless-stopped
     environment:
       DB_HOST: mysql
@@ -31,6 +28,11 @@ services:
       DB_NAME: ${MYSQL_DATABASE:-milscale}
       DB_USER: ${MYSQL_USER:-milscale}
       DB_PASSWORD: ${MYSQL_PASSWORD:?defina MYSQL_PASSWORD no .env}
+      MILSCALE_CRITERIO_ORDENACAO: ${MILSCALE_CRITERIO_ORDENACAO:-maior-folga}
+      MILSCALE_SEED_DEMO: ${MILSCALE_SEED_DEMO:-true}
+      MILSCALE_ADMIN_CPF: ${MILSCALE_ADMIN_CPF:-}
+      MILSCALE_ADMIN_SENHA: ${MILSCALE_ADMIN_SENHA:-}
+      MILSCALE_COOKIE_SEGURO: ${MILSCALE_COOKIE_SEGURO:-false}
     ports:
       - "8080:8080"
     depends_on:

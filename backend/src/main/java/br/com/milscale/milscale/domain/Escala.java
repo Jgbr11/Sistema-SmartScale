@@ -1,5 +1,6 @@
 package br.com.milscale.milscale.domain;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -8,7 +9,6 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-/** RF08/RF11 - o periodo de escala gerado (rascunho) e publicado. */
 @Entity
 @Table(name = "escala")
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
@@ -23,7 +23,7 @@ public class Escala {
 
     @ManyToOne
     @JoinColumn(name = "id_subunidade")
-    private Subunidade subunidade; // null = escala da OM inteira
+    private Subunidade subunidade;
 
     @Column(name = "data_inicio", nullable = false)
     private LocalDate dataInicio;
@@ -45,6 +45,7 @@ public class Escala {
 
     @ManyToOne(optional = false)
     @JoinColumn(name = "id_usuario_geracao")
+    @JsonIgnore
     private Usuario usuarioGeracao;
 
     @OneToMany(mappedBy = "escala", cascade = CascadeType.ALL, orphanRemoval = true)

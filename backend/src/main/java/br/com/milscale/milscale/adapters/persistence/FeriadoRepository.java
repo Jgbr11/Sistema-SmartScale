@@ -4,10 +4,10 @@ import br.com.milscale.milscale.domain.Feriado;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
+import java.time.LocalDate;
 
 public interface FeriadoRepository extends JpaRepository<Feriado, Long> {
     List<Feriado> findAllByOrderByDataInicioAsc();
 
-    /** Feriados cujo período tem alguma sobreposição com [inicio, fim]. */
-    List<Feriado> findByDataInicioLessThanEqualAndDataFimGreaterThanEqual(java.time.LocalDate fim, java.time.LocalDate inicio);
+    List<Feriado> findByDataInicioLessThanEqualAndDataFimGreaterThanEqual(LocalDate fim, LocalDate inicio);
 }

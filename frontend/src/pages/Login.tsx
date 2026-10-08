@@ -1,10 +1,14 @@
 import { useState, type FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
+import { ApiError } from "../api/client";
 import { useAuth } from "../context/AuthContext";
+import { useOrganizacao } from "../hooks/useOrganizacao";
 import { mascararCpf, somenteDigitos } from "../utils/mascaras";
+import { FitaDoServico } from "../components/ui/FitaDoServico";
 
 export function LoginPage() {
   const { entrar } = useAuth();
+  const organizacao = useOrganizacao();
   const navigate = useNavigate();
   const [login, setLogin] = useState("");
   const [senha, setSenha] = useState("");
@@ -16,11 +20,10 @@ export function LoginPage() {
     setErro(null);
     setEnviando(true);
     try {
-      // Aceita com ou sem formatação — só os números importam pro login.
       await entrar(somenteDigitos(login), senha);
       navigate("/");
-    } catch {
-      setErro("CPF ou senha inválidos.");
+    } catch (e) {
+      setErro(e instanceof ApiError ? e.message : "Servidor indisponível. Tente de novo em instantes.");
     } finally {
       setEnviando(false);
     }
@@ -29,15 +32,10 @@ export function LoginPage() {
   return (
     <div className="login-wrap">
       <div className="login-ident">
+        <span className="sobrelinha sobrelinha-clara">{organizacao ? organizacao.nome : "Escala de serviço"}</span>
         <h1>MilScale</h1>
-        <p style={{ fontSize: 20, fontWeight: 500, color: "#c7d2ba" }}>
-          Escala de serviço do batalhão
-        </p>
-        <div className="rule" />
-        <p>
-          A escala de 24 horas do batalhão, montada automaticamente pela ordem
-          de quem está há mais tempo sem tirar serviço.
-        </p>
+        <p>Escala de serviço de 24 horas, montada pela ordem de quem está há mais tempo sem tirar serviço.</p>
+        <FitaDoServico />
       </div>
       <div className="login-form-wrap">
         <form className="login-card" onSubmit={handleSubmit}>
@@ -64,14 +62,16 @@ export function LoginPage() {
               placeholder="••••••••"
             />
           </div>
-          <button className="btn btn-primary" style={{ width: "100%" }} disabled={enviando}>
+          <button className="btn btn-primary largura-total" disabled={enviando}>
             {enviando ? "Entrando…" : "Entrar"}
           </button>
-          <p style={{ fontSize: 11, color: "#8a9188", marginTop: 14 }}>
-            Contas de demonstração (senha <code>milscale123</code>): 000.000.000-01
-            (sargenteante), 000.000.000-02 (cabo), 000.000.000-03 (soldado),
-            000.000.000-04 (nogueira).
-          </p>
+          {import.meta.env.DEV && (
+            <p className="login-demo">
+              Contas de demonstração (senha <code>milscale123</code>): 000.000.000-01
+              (sargenteante), 000.000.000-02 (cabo), 000.000.000-03 (soldado),
+              000.000.000-04 (nogueira).
+            </p>
+          )}
         </form>
       </div>
     </div>

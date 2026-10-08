@@ -1,10 +1,15 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { api, ApiError } from "../api/client";
 import type { Afastamento, Militar } from "../api/types";
-import { PageHeader } from "../components/Shell";
-import { useAuth } from "../context/AuthContext";
+import { PageHeader } from "../components/layout/PageHeader";
+import { BotaoBaixarCsv } from "../components/ui/BotaoBaixarCsv";
 import { TIPOS_AFASTAMENTO as TIPOS } from "../utils/afastamentoTipos";
 import { formatarDataBR } from "../utils/formatadores";
+import { usePermissoes } from "../hooks/usePermissoes";
+import { hojeISO } from "../utils/datas";
+import { useAoMudar } from "../hooks/useAoMudar";
+import { useFeedback } from "../components/ui/Feedback";
+import { Esqueleto } from "../components/ui/Esqueleto";
 
 interface GrupoAfastamento {
   loteOuId: string;
@@ -17,13 +22,14 @@ interface GrupoAfastamento {
 }
 
 export function MissoesDispensasPage() {
-  const { usuario } = useAuth();
-  const podeEditar = usuario?.perfil === "CABO_SARGENTEACAO" || usuario?.perfil === "SARGENTEANTE";
+  const { avisar, confirmar } = useFeedback();
+  const { gerenciaCadastros: podeEditar } = usePermissoes();
 
   const [afastamentos, setAfastamentos] = useState<Afastamento[]>([]);
   const [militares, setMilitares] = useState<Militar[]>([]);
   const [carregando, setCarregando] = useState(true);
   const [mostrarForm, setMostrarForm] = useState(false);
+  const [editando, setEditando] = useState<GrupoAfastamento | null>(null);
   const [ofertaRegenerar, setOfertaRegenerar] = useState<{ dataInicio: string; dataFim: string } | null>(null);
   const [regenerando, setRegenerando] = useState(false);
   const [erroRegenerar, setErroRegenerar] = useState<string | null>(null);
@@ -40,11 +46,8 @@ export function MissoesDispensasPage() {
     setCarregando(false);
   }
 
-  useEffect(() => {
-    carregar();
-  }, []);
+  useAoMudar(carregar);
 
-  // Agrupa por lote de missão - uma missão com 5 pessoas vira 1 linha, não 5.
   const grupos: GrupoAfastamento[] = useMemo(() => {
     const mapa = new Map<string, GrupoAfastamento>();
     for (const a of afastamentos) {
@@ -63,10 +66,15 @@ export function MissoesDispensasPage() {
   }, [afastamentos]);
 
   async function cancelarGrupo(ids: number[], dataInicio: string, dataFim: string) {
-    if (!confirm(ids.length > 1 ? "Cancelar esse afastamento pra todo mundo dessa missão?" : "Cancelar este afastamento?")) return;
-    await Promise.all(ids.map((id) => api.delete(`/api/afastamentos/${id}`)));
-    setOfertaRegenerar({ dataInicio, dataFim });
-    carregar();
+    if (!(await confirmar(ids.length > 1 ? "Cancelar esse afastamento pra todo mundo dessa missão?" : "Cancelar este afastamento?"))) return;
+    try {
+      await Promise.all(ids.map((id) => api.delete(`/api/afastamentos/${id}`)));
+      setOfertaRegenerar({ dataInicio, dataFim });
+      carregar();
+      avisar("Afastamento cancelado.", "sucesso");
+    } catch (e) {
+      avisar(e instanceof ApiError ? e.message : "Não foi possível concluir a ação.", "erro");
+    }
   }
 
   async function regenerarPeriodo() {
@@ -83,24 +91,24 @@ export function MissoesDispensasPage() {
     }
   }
 
-  const hoje = new Date().toISOString().slice(0, 10);
+  const hoje = hojeISO();
 
   return (
     <>
       <PageHeader
         title="Missões e dispensas"
-        subtitle="Quem está afastado não é escalado nesse período (RF26 / RN15)"
+        subtitle="Quem está afastado não é escalado nesse período"
       />
       <div className="body">
         {ofertaRegenerar && (
-          <div className="card" style={{ background: "var(--amber-bg)", border: "none" }}>
-            <p style={{ fontSize: 13, marginBottom: erroRegenerar ? 4 : 10 }}>
+          <div className="card card-atencao">
+            <p className={"texto-13 " + (erroRegenerar ? "mb-4" : "mb-10")}>
               Afastamento cancelado. A escala de {formatarDataBR(ofertaRegenerar.dataInicio)} a{" "}
               {formatarDataBR(ofertaRegenerar.dataFim)} ainda reflete a redistribuição feita na hora do
               cadastro. Quer regenerar esse período agora, pra redistribuir de forma justa?
             </p>
-            {erroRegenerar && <div className="error-box" style={{ marginBottom: 10 }}>{erroRegenerar}</div>}
-            <div style={{ display: "flex", gap: 8 }}>
+            {erroRegenerar && <div className="error-box mb-10">{erroRegenerar}</div>}
+            <div className="linha">
               <button className="btn btn-primary" onClick={regenerarPeriodo} disabled={regenerando}>
                 {regenerando ? "Regenerando…" : "Regenerar este período"}
               </button>
@@ -109,23 +117,33 @@ export function MissoesDispensasPage() {
           </div>
         )}
 
-        {podeEditar && (
-          <div style={{ display: "flex", justifyContent: "flex-end" }}>
-            <button className="btn btn-primary" onClick={() => setMostrarForm((v) => !v)}>
+        <div className="linha-fim">
+          <BotaoBaixarCsv caminho={`afastamentos.csv?mes=${hoje.slice(0, 7)}`} rotulo="Baixar CSV do mês" />
+          {podeEditar && (
+            <button className="btn btn-primary" onClick={() => { setEditando(null); setMostrarForm((v) => !v); }}>
               {mostrarForm ? "Cancelar" : "Novo afastamento"}
             </button>
-          </div>
-        )}
+          )}
+        </div>
 
         {mostrarForm && podeEditar && (
           <NovoAfastamentoForm militares={militares} onCriado={() => { setMostrarForm(false); carregar(); }} />
         )}
 
-        <div className="card" style={{ padding: 0 }}>
+        {editando && podeEditar && (
+          <EditarAfastamentoForm
+            key={editando.loteOuId}
+            grupo={editando}
+            onSalvo={() => { setEditando(null); carregar(); }}
+            onCancelar={() => setEditando(null)}
+          />
+        )}
+
+        <div className="card card-tabela">
           {carregando ? (
-            <div style={{ padding: 20 }}>Carregando…</div>
+            <Esqueleto />
           ) : grupos.length === 0 ? (
-            <div style={{ padding: 20, color: "var(--grey)", fontSize: 13 }}>Nenhum afastamento registrado.</div>
+            <div className="vazio">Nenhum afastamento registrado.</div>
           ) : (
             <table>
               <thead>
@@ -154,7 +172,8 @@ export function MissoesDispensasPage() {
                         </span>
                       </td>
                       {podeEditar && (
-                        <td>
+                        <td className="nowrap">
+                          <button className="btn btn-outline mr-6" onClick={() => { setMostrarForm(false); setEditando(g); }}>Editar</button>
                           <button className="btn btn-outline" onClick={() => cancelarGrupo(g.ids, g.dataInicio, g.dataFim)}>Cancelar</button>
                         </td>
                       )}
@@ -222,15 +241,15 @@ function NovoAfastamentoForm({ militares, onCriado }: { militares: Militar[]; on
   return (
     <div className="card">
       <h3>Novo afastamento</h3>
-      <p className="sub">RF26 — pode selecionar mais de uma pessoa (ex.: equipe inteira numa missão)</p>
+      <p className="sub">Pode selecionar mais de uma pessoa (ex.: equipe inteira numa missão)</p>
       {erro && <div className="error-box">{erro}</div>}
 
       <div className="field">
         <label>Militares ({militarIds.size} selecionado{militarIds.size === 1 ? "" : "s"})</label>
-        <input value={busca} onChange={(e) => setBusca(e.target.value)} placeholder="Buscar por nome…" style={{ marginBottom: 8 }} />
-        <div style={{ maxHeight: 180, overflowY: "auto", border: "1px solid var(--border)", borderRadius: 5, padding: 8 }}>
+        <input value={busca} onChange={(e) => setBusca(e.target.value)} placeholder="Buscar por nome…" className="mb-8" />
+        <div className="lista-rolagem">
           {militaresFiltrados.slice(0, 60).map((m) => (
-            <label key={m.id} style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12.5, padding: "3px 0", cursor: "pointer" }}>
+            <label key={m.id} className="opcao-check">
               <input type="checkbox" checked={militarIds.has(m.id)} onChange={() => alternar(m.id)} />
               {m.nomeExibicao}
             </label>
@@ -262,6 +281,72 @@ function NovoAfastamentoForm({ militares, onCriado }: { militares: Militar[]; on
       <button className="btn btn-primary" onClick={salvar} disabled={salvando}>
         {salvando ? "Salvando…" : "Registrar afastamento"}
       </button>
+    </div>
+  );
+}
+
+function EditarAfastamentoForm({ grupo, onSalvo, onCancelar }: { grupo: GrupoAfastamento; onSalvo: () => void; onCancelar: () => void }) {
+  const [tipo, setTipo] = useState<Afastamento["tipo"]>(grupo.tipo);
+  const [descricao, setDescricao] = useState(grupo.descricao);
+  const [dataInicio, setDataInicio] = useState(grupo.dataInicio);
+  const [dataFim, setDataFim] = useState(grupo.dataFim);
+  const [salvando, setSalvando] = useState(false);
+  const [erro, setErro] = useState<string | null>(null);
+
+  async function salvar() {
+    if (!descricao || !dataInicio || !dataFim) {
+      setErro("Preencha todos os campos.");
+      return;
+    }
+    if (dataFim < dataInicio) {
+      setErro("A data final não pode ser antes da data inicial.");
+      return;
+    }
+    setSalvando(true);
+    setErro(null);
+    try {
+      await api.put(`/api/afastamentos/${grupo.ids[0]}`, { tipo, descricao, dataInicio, dataFim });
+      onSalvo();
+    } catch (e) {
+      setErro(e instanceof ApiError ? e.message : "Não foi possível salvar.");
+    } finally {
+      setSalvando(false);
+    }
+  }
+
+  return (
+    <div className="card">
+      <h3>Editar afastamento</h3>
+      <p className="sub">
+        Vale para {grupo.militares.length === 1 ? "o militar" : `os ${grupo.militares.length} militares`}: {grupo.militares.map((m) => m.nomeExibicao).join(", ")}
+      </p>
+      {erro && <div className="error-box">{erro}</div>}
+      <div className="form-grid">
+        <div className="field">
+          <label>Tipo</label>
+          <select value={tipo} onChange={(e) => setTipo(e.target.value as Afastamento["tipo"])}>
+            {TIPOS.map((t) => <option key={t.valor} value={t.valor}>{t.label}</option>)}
+          </select>
+        </div>
+        <div className="field">
+          <label>De</label>
+          <input type="date" value={dataInicio} onChange={(e) => setDataInicio(e.target.value)} />
+        </div>
+        <div className="field">
+          <label>Até</label>
+          <input type="date" value={dataFim} onChange={(e) => setDataFim(e.target.value)} />
+        </div>
+      </div>
+      <div className="field">
+        <label>Descrição</label>
+        <input value={descricao} onChange={(e) => setDescricao(e.target.value)} />
+      </div>
+      <div className="linha">
+        <button className="btn btn-primary" onClick={salvar} disabled={salvando}>
+          {salvando ? "Salvando…" : "Salvar alterações"}
+        </button>
+        <button className="btn btn-outline" onClick={onCancelar}>Cancelar</button>
+      </div>
     </div>
   );
 }

@@ -1,14 +1,64 @@
 import { useEffect, useState } from "react";
 import { api, ApiError } from "../api/client";
 import type { CandidatoTrocaMutua, Militar, ServicoEscalado, Solicitacao } from "../api/types";
-import { PageHeader } from "../components/Shell";
+import { PageHeader } from "../components/layout/PageHeader";
 import { useAuth } from "../context/AuthContext";
 import { formatarDataBR } from "../utils/formatadores";
+import { usePermissoes } from "../hooks/usePermissoes";
+import { hojeISO } from "../utils/datas";
+import { useAoMudar } from "../hooks/useAoMudar";
+import { useFeedback } from "../components/ui/Feedback";
+import { TabelaSolicitacoes, type Coluna } from "../components/trocas/TabelaSolicitacoes";
+import { Esqueleto } from "../components/ui/Esqueleto";
+import { EstadoVazio } from "../components/ui/EstadoVazio";
+
+
+const QUEM_PEDIU: Coluna = { titulo: "Quem pediu", valor: (s) => s.solicitante.nomeExibicao };
+const SERVICO: Coluna = { titulo: "Serviço", valor: (s) => s.servicoOrigemTipo };
+const DIA: Coluna = { titulo: "Dia", valor: (s) => formatarDataBR(s.servicoOrigemData) };
+const TIPO: Coluna = { titulo: "Tipo", valor: (s) => <TipoTrocaPill tipo={s.tipoTroca} /> };
+const SITUACAO: Coluna = { titulo: "Situação", valor: (s) => <SituacaoPill situacao={s.situacao} /> };
+const JUSTIFICATIVA: Coluna = { titulo: "Justificativa", valor: (s) => <span className="texto-12">{s.justificativa}</span> };
+const PARECER_DO_CABO: Coluna = { titulo: "Parecer do Cabo", valor: (s) => <span className="texto-12">{s.comentarioCabo || "—"}</span> };
+const COM_QUEM: Coluna = {
+  titulo: "Com quem",
+  valor: (s) => (
+    <>
+      {s.substituto.nomeExibicao}
+      {s.tipoTroca === "TROCA_MUTUA" && s.servicoDestinoData && (
+        <span className="nota-bloco">você assume o dia {formatarDataBR(s.servicoDestinoData)} dele</span>
+      )}
+    </>
+  ),
+};
+const ASSUME: Coluna = {
+  titulo: "Assume",
+  valor: (s) => (
+    <>
+      {s.substituto.nomeExibicao}
+      {s.tipoTroca === "TROCA_MUTUA" && s.servicoDestinoData && (
+        <span className="nota-bloco">e {s.solicitante.nomeExibicao} assume o dia {formatarDataBR(s.servicoDestinoData)} dele</span>
+      )}
+    </>
+  ),
+};
+const TIPO_PARA_QUEM_ASSUME: Coluna = {
+  titulo: "Tipo",
+  valor: (s) => (
+    <>
+      <TipoTrocaPill tipo={s.tipoTroca} />
+      {s.tipoTroca === "TROCA_MUTUA" && s.servicoDestinoData && (
+        <span className="nota-bloco mt-2">
+          você assumiria o dia {formatarDataBR(s.servicoOrigemData)}, e ele assumiria seu dia {formatarDataBR(s.servicoDestinoData)}
+        </span>
+      )}
+    </>
+  ),
+};
 
 export function TrocasPage() {
-  const { usuario } = useAuth();
-  const podeTriagem = usuario?.perfil === "CABO_SARGENTEACAO" || usuario?.perfil === "SARGENTEANTE";
-  const podeAutorizar = usuario?.perfil === "SARGENTEANTE";
+  const { avisar, confirmar, perguntar } = useFeedback();
+  const { fazTriagem: podeTriagem, autorizaTrocas: podeAutorizar } = usePermissoes();
 
   const [aba, setAba] = useState<"minhas" | "confirmar" | "triagem" | "autorizacao">("minhas");
   const [minhas, setMinhas] = useState<Solicitacao[]>([]);
@@ -30,38 +80,55 @@ export function TrocasPage() {
     setCarregando(false);
   }
 
-  useEffect(() => {
-    carregar();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  useAoMudar(carregar);
 
   async function cancelar(id: number) {
-    if (!confirm("Cancelar este pedido de troca?")) return;
-    await api.post(`/api/solicitacoes/${id}/cancelar`);
-    carregar();
+    if (!(await confirmar("Cancelar este pedido de troca?"))) return;
+    try {
+      await api.post(`/api/solicitacoes/${id}/cancelar`);
+      carregar();
+      avisar("Pedido cancelado.", "sucesso");
+    } catch (e) {
+      avisar(e instanceof ApiError ? e.message : "Não foi possível concluir a ação.", "erro");
+    }
   }
 
   async function decidirConfirmacao(id: number, aceito: boolean) {
-    const comentario = aceito ? "" : (prompt("Motivo da recusa (opcional):") ?? "");
-    await api.post(`/api/solicitacoes/${id}/confirmar-substituto`, { aceito, comentario });
-    carregar();
+    const resposta = aceito ? "" : await perguntar("Motivo da recusa (opcional):");
+    if (resposta === null) return;
+    const comentario = resposta;
+    try {
+      await api.post(`/api/solicitacoes/${id}/confirmar-substituto`, { aceito, comentario });
+      avisar(aceito ? "Você assumiu o pedido — agora vai para a triagem." : "Pedido recusado.", "sucesso");
+      carregar();
+    } catch (e) {
+      avisar(e instanceof ApiError ? e.message : "Não foi possível concluir a ação.", "erro");
+    }
   }
 
   async function decidirTriagem(id: number, aprovado: boolean) {
-    const comentario = prompt(aprovado ? "Comentário (opcional):" : "Motivo da recusa:") ?? "";
+    const resposta = await perguntar(aprovado ? "Comentário (opcional):" : "Motivo da recusa:", { obrigatorio: !aprovado });
+    if (resposta === null) return;
+    const comentario = resposta;
     if (!aprovado && !comentario) return;
-    await api.post(`/api/solicitacoes/${id}/triagem`, { aprovado, comentario });
-    carregar();
+    try {
+      await api.post(`/api/solicitacoes/${id}/triagem`, { aprovado, comentario });
+      carregar();
+    } catch (e) {
+      avisar(e instanceof ApiError ? e.message : "Não foi possível concluir a ação.", "erro");
+    }
   }
 
   async function decidirAutorizacao(id: number, aprovado: boolean) {
-    const comentario = prompt(aprovado ? "Comentário (opcional):" : "Motivo da recusa:") ?? "";
+    const resposta = await perguntar(aprovado ? "Comentário (opcional):" : "Motivo da recusa:", { obrigatorio: !aprovado });
+    if (resposta === null) return;
+    const comentario = resposta;
     if (!aprovado && !comentario) return;
     try {
       await api.post(`/api/solicitacoes/${id}/autorizacao`, { aprovado, comentario });
       carregar();
     } catch (e) {
-      alert(e instanceof ApiError ? e.message : "Não foi possível decidir.");
+      avisar(e instanceof ApiError ? e.message : "Não foi possível decidir.", "erro");
     }
   }
 
@@ -72,7 +139,7 @@ export function TrocasPage() {
         subtitle="Pedido → substituto confirma → triagem do Cabo → autorização do Sargenteante"
       />
       <div className="body">
-        <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+        <div className="linha">
           <button className={aba === "minhas" ? "btn btn-primary" : "btn btn-outline"} onClick={() => setAba("minhas")}>
             Minhas solicitações
           </button>
@@ -93,194 +160,81 @@ export function TrocasPage() {
 
         {aba === "minhas" && (
           <>
-            <div style={{ display: "flex", justifyContent: "flex-end" }}>
+            <div className="linha-fim">
               <button className="btn btn-primary" onClick={() => setMostrarForm((v) => !v)}>
                 {mostrarForm ? "Cancelar" : "Pedir troca"}
               </button>
             </div>
             {mostrarForm && <PedirTrocaForm onCriado={() => { setMostrarForm(false); carregar(); }} />}
-            <div className="card" style={{ padding: 0 }}>
+            <div className="card card-tabela">
               {carregando ? (
-                <div style={{ padding: 20 }}>Carregando…</div>
-              ) : minhas.length === 0 ? (
-                <div style={{ padding: 20, color: "var(--grey)", fontSize: 13 }}>Você ainda não pediu nenhuma troca.</div>
+                <Esqueleto />
               ) : (
-                <table>
-                  <thead>
-                    <tr>
-                      <th>Serviço</th>
-                      <th>Dia</th>
-                      <th>Tipo</th>
-                      <th>Com quem</th>
-                      <th>Situação</th>
-                      <th></th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {minhas.map((s) => (
-                      <tr key={s.id}>
-                        <td>{s.servicoOrigem.tipoServico.nome}</td>
-                        <td>{formatarDataBR(s.servicoOrigem.data)}</td>
-                        <td><TipoTrocaPill tipo={s.tipoTroca} /></td>
-                        <td>
-                          {s.substituto.nomeExibicao}
-                          {s.tipoTroca === "TROCA_MUTUA" && s.servicoDestino && (
-                            <span style={{ display: "block", fontSize: 11, color: "var(--grey)" }}>
-                              você assume o dia {formatarDataBR(s.servicoDestino.data)} dele
-                            </span>
-                          )}
-                        </td>
-                        <td><SituacaoPill situacao={s.situacao} /></td>
-                        <td>
-                          {(s.situacao === "AGUARDANDO_SUBSTITUTO" || s.situacao === "EM_TRIAGEM") && (
-                            <button className="btn btn-outline" onClick={() => cancelar(s.id)}>Cancelar</button>
-                          )}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+                <TabelaSolicitacoes
+                  itens={minhas}
+                  vazio={
+                    <EstadoVazio
+                      titulo="Nenhum pedido de troca"
+                      descricao="Precisa passar um serviço ou trocar de dia? Faça o pedido e acompanhe aqui."
+                      acao={!mostrarForm && <button className="btn btn-primary" onClick={() => setMostrarForm(true)}>Pedir troca</button>}
+                    />
+                  }
+                  colunas={[SERVICO, DIA, TIPO, COM_QUEM, SITUACAO]}
+                  acoes={(s) =>
+                    (s.situacao === "AGUARDANDO_SUBSTITUTO" || s.situacao === "EM_TRIAGEM") && (
+                      <button className="btn btn-outline" onClick={() => cancelar(s.id)}>Cancelar</button>
+                    )}
+                />
               )}
             </div>
           </>
         )}
 
         {aba === "confirmar" && (
-          <div className="card" style={{ padding: 0 }}>
-            {aguardandoConfirmacao.length === 0 ? (
-              <div style={{ padding: 20, color: "var(--grey)", fontSize: 13 }}>
-                Ninguém te pediu pra assumir um serviço no momento.
-              </div>
-            ) : (
-              <table>
-                <thead>
-                  <tr>
-                    <th>Quem pediu</th>
-                    <th>Serviço</th>
-                    <th>Dia</th>
-                    <th>Tipo</th>
-                    <th>Justificativa</th>
-                    <th></th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {aguardandoConfirmacao.map((s) => (
-                    <tr key={s.id}>
-                      <td>{s.solicitante.nomeExibicao}</td>
-                      <td>{s.servicoOrigem.tipoServico.nome}</td>
-                      <td>{formatarDataBR(s.servicoOrigem.data)}</td>
-                      <td>
-                        <TipoTrocaPill tipo={s.tipoTroca} />
-                        {s.tipoTroca === "TROCA_MUTUA" && s.servicoDestino && (
-                          <span style={{ display: "block", fontSize: 11, color: "var(--grey)", marginTop: 3 }}>
-                            você assumiria o dia {formatarDataBR(s.servicoOrigem.data)}, e ele assumiria seu dia {formatarDataBR(s.servicoDestino.data)}
-                          </span>
-                        )}
-                      </td>
-                      <td style={{ fontSize: 12 }}>{s.justificativa}</td>
-                      <td style={{ whiteSpace: "nowrap" }}>
-                        <button className="btn btn-primary" style={{ marginRight: 6 }} onClick={() => decidirConfirmacao(s.id, true)}>
-                          Aceitar
-                        </button>
-                        <button className="btn btn-outline" onClick={() => decidirConfirmacao(s.id, false)}>
-                          Recusar
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            )}
+          <div className="card card-tabela">
+            <TabelaSolicitacoes
+              itens={aguardandoConfirmacao}
+              vazio="Ninguém te pediu pra assumir um serviço no momento."
+              colunas={[QUEM_PEDIU, SERVICO, DIA, TIPO_PARA_QUEM_ASSUME, JUSTIFICATIVA]}
+              acoes={(s) => (
+                <>
+                  <button className="btn btn-primary mr-6" onClick={() => decidirConfirmacao(s.id, true)}>Assumir o serviço</button>
+                  <button className="btn btn-outline" onClick={() => decidirConfirmacao(s.id, false)}>Recusar</button>
+                </>
+              )}
+            />
           </div>
         )}
 
         {aba === "triagem" && podeTriagem && (
-          <div className="card" style={{ padding: 0 }}>
-            {emTriagem.length === 0 ? (
-              <div style={{ padding: 20, color: "var(--grey)", fontSize: 13 }}>Nada esperando triagem.</div>
-            ) : (
-              <table>
-                <thead>
-                  <tr>
-                    <th>Quem pediu</th>
-                    <th>Serviço</th>
-                    <th>Dia</th>
-                    <th>Tipo</th>
-                    <th>Assume</th>
-                    <th>Justificativa</th>
-                    <th></th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {emTriagem.map((s) => (
-                    <tr key={s.id}>
-                      <td>{s.solicitante.nomeExibicao}</td>
-                      <td>{s.servicoOrigem.tipoServico.nome}</td>
-                      <td>{formatarDataBR(s.servicoOrigem.data)}</td>
-                      <td><TipoTrocaPill tipo={s.tipoTroca} /></td>
-                      <td>
-                        {s.substituto.nomeExibicao}
-                        {s.tipoTroca === "TROCA_MUTUA" && s.servicoDestino && (
-                          <span style={{ display: "block", fontSize: 11, color: "var(--grey)" }}>
-                            e {s.solicitante.nomeExibicao} assume o dia {formatarDataBR(s.servicoDestino.data)} dele
-                          </span>
-                        )}
-                      </td>
-                      <td style={{ fontSize: 12 }}>{s.justificativa}</td>
-                      <td style={{ whiteSpace: "nowrap" }}>
-                        <button className="btn btn-primary" style={{ marginRight: 6 }} onClick={() => decidirTriagem(s.id, true)}>Aprovar</button>
-                        <button className="btn btn-outline" onClick={() => decidirTriagem(s.id, false)}>Negar</button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            )}
+          <div className="card card-tabela">
+            <TabelaSolicitacoes
+              itens={emTriagem}
+              vazio="Nada esperando triagem."
+              colunas={[QUEM_PEDIU, SERVICO, DIA, TIPO, ASSUME, JUSTIFICATIVA]}
+              acoes={(s) => (
+                <>
+                  <button className="btn btn-primary mr-6" onClick={() => decidirTriagem(s.id, true)}>Aprovar</button>
+                  <button className="btn btn-outline" onClick={() => decidirTriagem(s.id, false)}>Negar</button>
+                </>
+              )}
+            />
           </div>
         )}
 
         {aba === "autorizacao" && podeAutorizar && (
-          <div className="card" style={{ padding: 0 }}>
-            {aguardandoAutorizacao.length === 0 ? (
-              <div style={{ padding: 20, color: "var(--grey)", fontSize: 13 }}>Nada esperando autorização.</div>
-            ) : (
-              <table>
-                <thead>
-                  <tr>
-                    <th>Quem pediu</th>
-                    <th>Serviço</th>
-                    <th>Dia</th>
-                    <th>Tipo</th>
-                    <th>Assume</th>
-                    <th>Parecer do Cabo</th>
-                    <th></th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {aguardandoAutorizacao.map((s) => (
-                    <tr key={s.id}>
-                      <td>{s.solicitante.nomeExibicao}</td>
-                      <td>{s.servicoOrigem.tipoServico.nome}</td>
-                      <td>{formatarDataBR(s.servicoOrigem.data)}</td>
-                      <td><TipoTrocaPill tipo={s.tipoTroca} /></td>
-                      <td>
-                        {s.substituto.nomeExibicao}
-                        {s.tipoTroca === "TROCA_MUTUA" && s.servicoDestino && (
-                          <span style={{ display: "block", fontSize: 11, color: "var(--grey)" }}>
-                            e {s.solicitante.nomeExibicao} assume o dia {formatarDataBR(s.servicoDestino.data)} dele
-                          </span>
-                        )}
-                      </td>
-                      <td style={{ fontSize: 12 }}>{s.comentarioCabo || "—"}</td>
-                      <td style={{ whiteSpace: "nowrap" }}>
-                        <button className="btn btn-primary" style={{ marginRight: 6 }} onClick={() => decidirAutorizacao(s.id, true)}>Autorizar</button>
-                        <button className="btn btn-outline" onClick={() => decidirAutorizacao(s.id, false)}>Negar</button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            )}
+          <div className="card card-tabela">
+            <TabelaSolicitacoes
+              itens={aguardandoAutorizacao}
+              vazio="Nada esperando autorização."
+              colunas={[QUEM_PEDIU, SERVICO, DIA, TIPO, ASSUME, PARECER_DO_CABO]}
+              acoes={(s) => (
+                <>
+                  <button className="btn btn-primary mr-6" onClick={() => decidirAutorizacao(s.id, true)}>Autorizar</button>
+                  <button className="btn btn-outline" onClick={() => decidirAutorizacao(s.id, false)}>Negar</button>
+                </>
+              )}
+            />
           </div>
         )}
       </div>
@@ -302,6 +256,7 @@ const TIPOS_TROCA = [
 ];
 
 function PedirTrocaForm({ onCriado }: { onCriado: () => void }) {
+  const { avisar } = useFeedback();
   const { usuario } = useAuth();
   const [meusServicos, setMeusServicos] = useState<ServicoEscalado[]>([]);
   const [servicoId, setServicoId] = useState<number | "">("");
@@ -323,14 +278,11 @@ function PedirTrocaForm({ onCriado }: { onCriado: () => void }) {
       api.get<ServicoEscalado[]>(`/api/minha-escala?mes=${mesAtual}`),
       api.get<ServicoEscalado[]>(`/api/minha-escala?mes=${mesProx}`),
     ]).then(([a, b]) => {
-      const hojeStr = hoje.toISOString().slice(0, 10);
+      const hojeStr = hojeISO(hoje);
       setMeusServicos([...a, ...b].filter((s) => s.data >= hojeStr && !s.travado));
     });
   }, []);
 
-  // O tipo só pode ser escolhido depois do serviço, e os candidatos só
-  // depois do tipo — cada mudança de passo reseta o que vem depois, pra
-  // nunca mandar uma combinação de um passo anterior com outro atual.
   useEffect(() => {
     setTipoTroca("");
     setSubstitutoId("");
@@ -369,6 +321,10 @@ function PedirTrocaForm({ onCriado }: { onCriado: () => void }) {
       } else {
         await api.post("/api/solicitacoes/troca-mutua", { servicoOrigemId: servicoId, servicoDestinoId, justificativa });
       }
+      const destinatario = tipoTroca === "SUBSTITUICAO"
+        ? elegiveis.find((m) => m.id === substitutoId)?.nomeExibicao
+        : candidatosMutua.find((c) => c.servicoId === servicoDestinoId)?.militar.nomeExibicao;
+      avisar(destinatario ? `Pedido enviado para ${destinatario}.` : "Pedido enviado.", "sucesso");
       onCriado();
     } catch (e) {
       setErro(e instanceof ApiError ? e.message : "Não foi possível pedir a troca.");
@@ -380,7 +336,7 @@ function PedirTrocaForm({ onCriado }: { onCriado: () => void }) {
   return (
     <div className="card">
       <h3>Pedir troca</h3>
-      <p className="sub">RF15 — escolha um serviço seu, o tipo de troca, e quem vai participar. A outra pessoa ainda precisa aceitar.</p>
+      <p className="sub">Escolha um serviço seu, o tipo de troca, e quem vai participar. A outra pessoa ainda precisa aceitar.</p>
       {erro && <div className="error-box">{erro}</div>}
       <div className="field">
         <label>Qual serviço seu</label>
@@ -393,7 +349,7 @@ function PedirTrocaForm({ onCriado }: { onCriado: () => void }) {
           ))}
         </select>
         {meusServicos.length === 0 && (
-          <p style={{ fontSize: 11, color: "var(--grey)", marginTop: 4 }}>
+          <p className="nota-pequena mt-4">
             Você não tem serviços futuros disponíveis pra trocar (ou estão travados).
           </p>
         )}
@@ -402,22 +358,17 @@ function PedirTrocaForm({ onCriado }: { onCriado: () => void }) {
       {servicoId !== "" && (
         <div className="field">
           <label>Tipo de troca</label>
-          <div style={{ display: "flex", flexDirection: "column", gap: 8, marginTop: 4 }}>
+          <div className="pilha-compacta mt-4">
             {TIPOS_TROCA.map((t) => (
               <label
                 key={t.valor}
-                style={{
-                  display: "flex", flexDirection: "column", gap: 3, padding: "10px 12px",
-                  border: `1px solid ${tipoTroca === t.valor ? "var(--sidebar-active)" : "var(--border)"}`,
-                  borderRadius: 6, cursor: "pointer",
-                  background: tipoTroca === t.valor ? "var(--table-head-bg)" : "#fff",
-                }}
+                className={"opcao-troca" + (tipoTroca === t.valor ? " escolhida" : "")}
               >
-                <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <span className="linha">
                   <input type="radio" name="tipoTroca" checked={tipoTroca === t.valor} onChange={() => setTipoTroca(t.valor)} />
-                  <strong style={{ fontSize: 13 }}>{t.nome}</strong>
+                  <strong className="texto-13">{t.nome}</strong>
                 </span>
-                <span style={{ fontSize: 11.5, color: "var(--grey)", paddingLeft: 22 }}>{t.explicacao}</span>
+                <span className="trocas-detalhe">{t.explicacao}</span>
               </label>
             ))}
           </div>
@@ -433,13 +384,13 @@ function PedirTrocaForm({ onCriado }: { onCriado: () => void }) {
               <option key={m.id} value={m.id}>{m.nomeExibicao}</option>
             ))}
           </select>
-          <p style={{ fontSize: 11, color: "var(--grey)", marginTop: 4 }}>
+          <p className="nota-pequena mt-4">
             Só aparece quem respeita o intervalo mínimo de descanso da regra desse serviço. Se
             combinou com alguém que não está na lista (troca 1-pra-1 espontânea), fale com o Cabo
             pra registrar manualmente.
           </p>
           {elegiveis.length === 0 && (
-            <p style={{ fontSize: 11, color: "var(--grey)", marginTop: 4 }}>
+            <p className="nota-pequena mt-4">
               Ninguém mais elegível pra esse serviço no momento sem violar o intervalo de descanso.
             </p>
           )}
@@ -455,12 +406,12 @@ function PedirTrocaForm({ onCriado }: { onCriado: () => void }) {
               <option key={c.servicoId} value={c.servicoId}>{c.militar.nomeExibicao}</option>
             ))}
           </select>
-          <p style={{ fontSize: 11, color: "var(--grey)", marginTop: 4 }}>
+          <p className="nota-pequena mt-4">
             Só aparece quem tem serviço do mesmo tipo e continua com folga suficiente dos dois
             lados depois da troca (você assumindo o dia dele, e ele assumindo o seu).
           </p>
           {candidatosMutua.length === 0 && (
-            <p style={{ fontSize: 11, color: "var(--grey)", marginTop: 4 }}>
+            <p className="nota-pequena mt-4">
               Ninguém disponível pra trocar de dia com você sem violar o intervalo de descanso de algum dos dois lados.
             </p>
           )}
@@ -472,7 +423,7 @@ function PedirTrocaForm({ onCriado }: { onCriado: () => void }) {
         <input value={justificativa} onChange={(e) => setJustificativa(e.target.value)} placeholder="Por que precisa trocar" />
       </div>
       <button className="btn btn-primary" onClick={salvar} disabled={salvando}>
-        {salvando ? "Enviando…" : "Enviar pedido"}
+        {salvando ? "Enviando…" : "Pedir troca"}
       </button>
     </div>
   );
