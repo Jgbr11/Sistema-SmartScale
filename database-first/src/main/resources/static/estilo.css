@@ -1,0 +1,15 @@
+body { font-family: system-ui, sans-serif; margin: 24px; color: #1f2a18; background: #f4f5f0; }
+h1 { margin: 8px 0 4px; }
+.origem { color: #55604b; margin: 0 0 16px; }
+nav a, a { color: #3a4a27; }
+.botao { display: inline-block; background: #4a5d32; color: #fff; padding: 6px 12px; border-radius: 4px; text-decoration: none; margin-bottom: 12px; }
+.rolagem { overflow-x: auto; }
+table { border-collapse: collapse; background: #fff; font-size: 14px; }
+th, td { border: 1px solid #d8d3c0; padding: 6px 8px; text-align: left; white-space: nowrap; }
+th { background: #e6e2d4; }
+td.acoes form { display: inline; }
+form label { display: block; margin-bottom: 10px; font-weight: 600; }
+form label input, form label select { display: block; margin-top: 4px; padding: 4px 6px; min-width: 280px; font-weight: 400; }
+form label input[type=checkbox] { min-width: 0; }
+button { cursor: pointer; }
+.tabelas li { margin: 4px 0; }

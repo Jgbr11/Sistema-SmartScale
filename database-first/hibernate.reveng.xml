@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE hibernate-reverse-engineering PUBLIC "-//Hibernate/Hibernate Reverse Engineering DTD 3.0//EN"
+        "http://hibernate.org/dtd/hibernate-reverse-engineering-3.0.dtd">
+<hibernate-reverse-engineering>
+  <type-mapping>
+    <sql-type jdbc-type="DATE" hibernate-type="java.time.LocalDate"/>
+    <sql-type jdbc-type="TIMESTAMP" hibernate-type="java.time.LocalDateTime"/>
+    <sql-type jdbc-type="TIME" hibernate-type="java.time.LocalTime"/>
+  </type-mapping>
+  <table-filter match-name="flyway_schema_history" exclude="true"/>
+  <table name="afastamento"><primary-key><generator class="identity"/></primary-key></table>
+  <table name="boletim"><primary-key><generator class="identity"/></primary-key></table>
+  <table name="feriado"><primary-key><generator class="identity"/></primary-key></table>
+  <table name="notificacao"><primary-key><generator class="identity"/></primary-key></table>
+  <table name="solicitacao"><primary-key><generator class="identity"/></primary-key></table>
+</hibernate-reverse-engineering>

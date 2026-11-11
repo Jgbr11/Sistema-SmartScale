@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-parent</artifactId>
+    <version>3.3.4</version>
+    <relativePath/>
+  </parent>
+
+  <groupId>br.com.smartscale</groupId>
+  <artifactId>smartscale-database-first</artifactId>
+  <version>0.1.0</version>
+  <name>SmartScale Database First</name>
+  <description>Classes, repositórios, controllers e telas gerados a partir do banco do MilScale.</description>
+
+  <properties>
+    <java.version>21</java.version>
+    <hibernate-tools.version>6.5.3.Final</hibernate-tools.version>
+    <dbfirst.pacote>br.com.smartscale.dbfirst.entidades</dbfirst.pacote>
+    <dbfirst.codigo>${project.build.directory}/generated-sources/dbfirst</dbfirst.codigo>
+    <dbfirst.telas>${project.build.directory}/generated-resources/dbfirst</dbfirst.telas>
+  </properties>
+
+  <dependencies>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-web</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-thymeleaf</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-data-jpa</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.mysql</groupId>
+      <artifactId>mysql-connector-j</artifactId>
+      <scope>runtime</scope>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <plugins>
+      <plugin>
+        <artifactId>maven-antrun-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>gerar-a-partir-do-banco</id>
+            <phase>generate-sources</phase>
+            <goals><goal>run</goal></goals>
+            <configuration>
+              <target>
+                <taskdef name="hibernatetool" classname="org.hibernate.tool.ant.HibernateToolTask"
+                         classpathref="maven.plugin.classpath"/>
+
+                <hibernatetool destdir="${dbfirst.codigo}" templatepath="${project.basedir}/templates">
+                  <jdbcconfiguration propertyfile="${project.basedir}/banco.properties"
+                                     revengfile="${project.basedir}/hibernate.reveng.xml"
+                                     packagename="${dbfirst.pacote}" detectmanytomany="false"/>
+                  <hbm2java ejb3="true" jdk5="true"/>
+                  <hbmtemplate template="repositorio.ftl" filepattern="{package-name}/{class-name}Repository.java" foreach="entity"/>
+                  <hbmtemplate template="controlador.ftl" filepattern="{package-name}/{class-name}Controller.java" foreach="entity"/>
+                </hibernatetool>
+
+                <hibernatetool destdir="${dbfirst.telas}/templates" templatepath="${project.basedir}/templates">
+                  <jdbcconfiguration propertyfile="${project.basedir}/banco.properties"
+                                     revengfile="${project.basedir}/hibernate.reveng.xml"
+                                     packagename="${dbfirst.pacote}" detectmanytomany="false"/>
+                  <hbmtemplate template="lista.ftl" filepattern="{class-name}/lista.html" foreach="entity"/>
+                  <hbmtemplate template="formulario.ftl" filepattern="{class-name}/formulario.html" foreach="entity"/>
+                  <hbmtemplate template="inicio.ftl" filepattern="index.html" foreach="configuration"/>
+                </hibernatetool>
+              </target>
+            </configuration>
+          </execution>
+        </executions>
+        <dependencies>
+          <dependency>
+            <groupId>org.hibernate.tool</groupId>
+            <artifactId>hibernate-tools-ant</artifactId>
+            <version>${hibernate-tools.version}</version>
+          </dependency>
+          <dependency>
+            <groupId>com.mysql</groupId>
+            <artifactId>mysql-connector-j</artifactId>
+            <version>${mysql.version}</version>
+          </dependency>
+        </dependencies>
+      </plugin>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>build-helper-maven-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>usar-codigo-gerado</id>
+            <phase>generate-sources</phase>
+            <goals><goal>add-source</goal></goals>
+            <configuration>
+              <sources><source>${dbfirst.codigo}</source></sources>
+            </configuration>
+          </execution>
+          <execution>
+            <id>usar-telas-geradas</id>
+            <phase>generate-resources</phase>
+            <goals><goal>add-resource</goal></goals>
+            <configuration>
+              <resources><resource><directory>${dbfirst.telas}</directory></resource></resources>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-maven-plugin</artifactId>
+      </plugin>
+    </plugins>
+  </build>
+</project>
