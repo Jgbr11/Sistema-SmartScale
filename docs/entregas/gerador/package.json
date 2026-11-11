@@ -1,0 +1,16 @@
+{
+  "name": "smartscale-gerador-documentos",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test",
+    "gerar": "node gerar-documentos.mjs"
+  },
+  "dependencies": {
+    "docx": "9.15.3",
+    "marked": "14.1.4"
+  },
+  "devDependencies": {
+    "jszip": "3.10.2"
+  }
+}
