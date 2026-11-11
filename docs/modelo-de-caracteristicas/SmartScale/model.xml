@@ -1,0 +1,193 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<featureModel>
+	<properties/>
+	<struct>
+		<and abstract="true" mandatory="true" name="SmartScale">
+			<and abstract="true" mandatory="true" name="Nucleo">
+				<feature mandatory="true" name="MotorDeRodizio"/>
+				<feature mandatory="true" name="CatalogoDeCriterios"/>
+				<feature mandatory="true" name="ContratosDoNucleo"/>
+			</and>
+			<alt abstract="true" mandatory="true" name="CriterioDeOrdenacao">
+				<feature name="MaiorFolga"/>
+				<feature name="MenorCarga"/>
+				<feature name="MaisModerno"/>
+			</alt>
+			<and abstract="true" mandatory="true" name="Cadastros">
+				<feature mandatory="true" name="Pessoas"/>
+				<feature mandatory="true" name="Cargos"/>
+				<feature mandatory="true" name="Unidades"/>
+				<feature mandatory="true" name="TiposDeTurno"/>
+				<feature name="Qualificacoes"/>
+				<feature name="Feriados"/>
+			</and>
+			<and abstract="true" mandatory="true" name="Escala">
+				<feature mandatory="true" name="GeracaoAutomatica"/>
+				<or abstract="true" mandatory="true" name="Elegibilidade">
+					<feature name="PorCargo"/>
+					<feature name="PorUnidade"/>
+					<feature name="PorQualificacao"/>
+				</or>
+				<or abstract="true" mandatory="true" name="RegrasDaEscala">
+					<feature name="IntervaloMinimo"/>
+					<feature name="MaximoMensal"/>
+					<feature name="PesoFimDeSemana"/>
+					<feature name="PesoFeriado"/>
+				</or>
+				<feature name="Publicacao"/>
+				<feature name="TravamentoDeDias"/>
+				<feature name="ConsultaPessoal"/>
+			</and>
+			<and abstract="true" name="Trocas">
+				<or abstract="true" mandatory="true" name="TiposDeTroca">
+					<feature name="Substituicao"/>
+					<feature name="TrocaMutua"/>
+				</or>
+				<feature name="AprovacaoEmDuasEtapas"/>
+			</and>
+			<and abstract="true" name="Afastamentos">
+				<or abstract="true" mandatory="true" name="TiposDeAfastamento">
+					<feature name="Missao"/>
+					<feature name="Dispensa"/>
+					<feature name="Ferias"/>
+					<feature name="Licenca"/>
+					<feature name="Curso"/>
+					<feature name="OutroAfastamento"/>
+				</or>
+				<feature name="ReconciliacaoAutomatica"/>
+			</and>
+			<or abstract="true" name="Comunicacao">
+				<feature name="NotificacoesNoSistema"/>
+				<feature name="LembretePorEmail"/>
+				<feature name="BoletimInterno"/>
+				<feature name="Avisos"/>
+			</or>
+			<or abstract="true" name="Relatorios">
+				<feature name="CsvEscalaDoDia"/>
+				<feature name="CsvServicosDaPessoa"/>
+				<feature name="CsvAfastamentosDoMes"/>
+				<feature name="PdfEscalaDoDia"/>
+			</or>
+			<and abstract="true" mandatory="true" name="Seguranca">
+				<feature mandatory="true" name="Autenticacao"/>
+				<alt abstract="true" mandatory="true" name="ControleDeAcesso">
+					<feature name="PerfisEPermissoes"/>
+					<feature name="AcessoUnico"/>
+				</alt>
+				<feature name="Auditoria"/>
+				<feature name="ProtecaoForcaBruta"/>
+				<feature name="SenhaTemporaria"/>
+			</and>
+			<alt abstract="true" mandatory="true" name="Persistencia">
+				<feature name="H2"/>
+				<feature name="MySQL"/>
+			</alt>
+			<alt abstract="true" mandatory="true" name="Implantacao">
+				<feature name="ExecucaoLocal"/>
+				<feature name="DockerCompose"/>
+			</alt>
+			<and abstract="true" mandatory="true" name="Interface">
+				<feature mandatory="true" name="PainelWeb"/>
+				<feature mandatory="true" name="CalendarioMensal"/>
+				<feature name="FitaDoServico"/>
+				<feature name="LayoutResponsivo"/>
+			</and>
+		</and>
+	</struct>
+	<constraints>
+		<rule>
+			<description>R01 - Troca exige intervalo minimo de descanso e notificacao ao substituto</description>
+			<imp>
+				<var>Trocas</var>
+				<conj>
+					<var>IntervaloMinimo</var>
+					<var>NotificacoesNoSistema</var>
+				</conj>
+			</imp>
+		</rule>
+		<rule>
+			<description>R02 - Troca so acontece em escala publicada</description>
+			<imp>
+				<var>Trocas</var>
+				<var>Publicacao</var>
+			</imp>
+		</rule>
+		<rule>
+			<description>R03 - Aprovacao em duas etapas precisa de dois perfis distintos</description>
+			<not>
+				<conj>
+					<var>AcessoUnico</var>
+					<var>AprovacaoEmDuasEtapas</var>
+				</conj>
+			</not>
+		</rule>
+		<rule>
+			<description>R04 - Reconciliacao escolhe substituto respeitando o descanso</description>
+			<imp>
+				<var>ReconciliacaoAutomatica</var>
+				<var>IntervaloMinimo</var>
+			</imp>
+		</rule>
+		<rule>
+			<description>R05 - Avisos sao montados a partir de feriados ou afastamentos</description>
+			<imp>
+				<var>Avisos</var>
+				<disj>
+					<var>Feriados</var>
+					<var>Afastamentos</var>
+				</disj>
+			</imp>
+		</rule>
+		<rule>
+			<description>R06 - Relatorio de afastamentos precisa do modulo de afastamentos</description>
+			<imp>
+				<var>CsvAfastamentosDoMes</var>
+				<var>Afastamentos</var>
+			</imp>
+		</rule>
+		<rule>
+			<description>R07 - PDF da escala do dia mostra so escala publicada</description>
+			<imp>
+				<var>PdfEscalaDoDia</var>
+				<var>Publicacao</var>
+			</imp>
+		</rule>
+		<rule>
+			<description>R08 - Lembrete por e-mail so avisa servico de escala publicada</description>
+			<imp>
+				<var>LembretePorEmail</var>
+				<var>Publicacao</var>
+			</imp>
+		</rule>
+		<rule>
+			<description>R09 - Elegibilidade por qualificacao precisa do cadastro de qualificacoes</description>
+			<imp>
+				<var>PorQualificacao</var>
+				<var>Qualificacoes</var>
+			</imp>
+		</rule>
+		<rule>
+			<description>R10 - O Docker Compose sobe MySQL, nunca o banco embarcado</description>
+			<imp>
+				<var>DockerCompose</var>
+				<not>
+					<var>H2</var>
+				</not>
+			</imp>
+		</rule>
+		<rule>
+			<description>R11 - Peso de feriado so faz sentido com feriados cadastrados</description>
+			<imp>
+				<var>PesoFeriado</var>
+				<var>Feriados</var>
+			</imp>
+		</rule>
+		<rule>
+			<description>R12 - A consulta pessoal mostra so escala publicada</description>
+			<imp>
+				<var>ConsultaPessoal</var>
+				<var>Publicacao</var>
+			</imp>
+		</rule>
+	</constraints>
+</featureModel>
