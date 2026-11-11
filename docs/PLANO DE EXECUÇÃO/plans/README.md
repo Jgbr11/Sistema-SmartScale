@@ -3,10 +3,11 @@
 | # | Plano | Foco | Tasks | Status |
 |---|---|---|---|---|
 | 1 | [Estrutura do código](2026-09-24-plano-1-estrutura-do-codigo.md) | DTOs, enums, erros padronizados, Flyway, configuração por ambiente | 0–11 | ✅ Concluído e na `main`. Falta o fechamento: rodada final e `/code-review` |
-| 2 | [Segurança e regras de negócio](2026-09-24-plano-2-implementacoes-necessarias.md) | Rotas de auth, cookie, mass assignment, força bruta, fuso, trocas, regeneração com histórico, botão de travar só em dias futuros | 0–18 | ⬜ Pendente |
-| 3 | [Qualidade e organização](2026-09-25-plano-3-qualidade-e-organizacao.md) | Limpeza de comentários, rastreabilidade RF/RN, ArchUnit, porta de e-mail, hooks e pastas do front, feedback sem `alert`/`confirm` | 0–11 | ⬜ Pendente |
-| 4 | [Frontend diferenciado](2026-09-25-plano-4-frontend-diferenciado.md) | Identidade visual (tokens, tipografia, ícones), "Fita do serviço", calendário, login, acessibilidade, microcopy | 0–9 | ⬜ Pendente |
-| 5 | [Requisitos da disciplina](2026-09-25-plano-5-requisitos-da-disciplina.md) | Strategy ×3, Singleton ×2, Template Method ×3, 8 telas CRUD (equipe de 4), módulo `smartscale-core` 1.0.0, variabilidade, roteiro de gravação | 0–8 | ✅ Código concluído (2026-10-02). Faltam a tag `smartscale-core-v1.0.0` e a gravação, com a equipe |
+| 2 | [Segurança e regras de negócio](2026-09-24-plano-2-implementacoes-necessarias.md) | Rotas de auth, cookie, mass assignment, força bruta, fuso, trocas, regeneração com histórico, botão de travar só em dias futuros | 0–18 | ✅ Concluído e na `main` (merge `e4f0f6a`) |
+| 3 | [Qualidade e organização](2026-09-25-plano-3-qualidade-e-organizacao.md) | Limpeza de comentários, rastreabilidade RF/RN, ArchUnit, porta de e-mail, hooks e pastas do front, feedback sem `alert`/`confirm` | 0–11 | ✅ Concluído e na `main` (merge `e4f0f6a`) |
+| 4 | [Frontend diferenciado](2026-09-25-plano-4-frontend-diferenciado.md) | Identidade visual (tokens, tipografia, ícones), "Fita do serviço", calendário, login, acessibilidade, microcopy | 0–9 | ✅ Concluído e na `main` (merge `e4f0f6a`) |
+| 5 | [Requisitos da disciplina](2026-09-25-plano-5-requisitos-da-disciplina.md) | Strategy ×3, Singleton ×2, Template Method ×3, 8 telas CRUD (equipe de 4), módulo `smartscale-core` 1.0.0, variabilidade, roteiro de gravação | 0–8 | ✅ Concluído e na `main`. Falta a tag `smartscale-core-v1.0.0` |
+| 6 | [Modelo de características, MPS.BR e Database First](2026-11-10-plano-6-modelo-reuso-database-first.md) | Modelo FeatureIDE com 12 restrições, classificação GRU/DRU, documentos Word/PDF, Database First com Hibernate Tools gerando entidades, repositórios, CRUD e telas | 0–6 | 🟡 Em execução |
 
 ## Ordem recomendada
 

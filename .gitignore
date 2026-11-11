@@ -18,3 +18,9 @@ frontend/.env.local
 *.iml
 .DS_Store
 Thumbs.db
+
+# ---- Plano 6 ----
+**/.venv/
+__pycache__/
+docs/entregas/gerador/node_modules/
+database-first/banco.properties
