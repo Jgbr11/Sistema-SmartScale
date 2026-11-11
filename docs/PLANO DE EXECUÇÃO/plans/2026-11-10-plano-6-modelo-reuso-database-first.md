@@ -44,13 +44,13 @@
 
 | Ordem | Task | Status | Commit | Resumo |
 |---|---|---|---|---|
-| 1 | 0 — Preparação | 🟡 Aguardando commit | — | Branch `entrega/modelo-reuso-database-first`. Linha de base verde após `mvn clean install` (core 7, backend 160); o primeiro `mvn install` falhou por classes antigas em `target/`, não por código. Decisões: o usuário demonstra o Database First; sem Django (Task 7 cancelada); Task 5 passa a gerar repositório, controller e telas HTML (Thymeleaf) por templates |
-| 2 | 1 — Modelo no FeatureIDE e validador | 🟡 Aguardando commit | — | 73 features e 12 restrições; 13 testes verdes; validador OK; 3 configurações válidas. Falta abrir no Eclipse (Step 7, junto com a Task 2) |
-| 3 | 2 — Imagem e documento do modelo | 🟡 Documento pronto; falta a imagem do FeatureIDE (usuário) | — | `docs/MODELO_DE_CARACTERISTICAS.md`; classes citadas conferidas |
-| 4 | 3 — Classificação GRU e DRU | 🟡 Aguardando commit | — | GRU: 4 amarelo e 1 vermelho; DRU: 4 verde, 3 amarelo e 2 vermelho; evidências conferidas |
-| 5 | 4 — Gerador Word/PDF e entrega dos documentos | 🟡 Gerador pronto (5 testes); falta gerar os documentos depois da imagem | — | — |
-| 6 | 5 — Database First: gerador | 🟡 Aguardando commit | — | Versão intuitiva: 5 templates geram entidade, repositório, controller e telas; 57 Java + 35 telas; `verificar.sh` OK |
-| 7 | 6 — Database First: documentação e roteiro | 🟡 Aguardando commit | — | Falta o ensaio do usuário |
+| 1 | 0 — Preparação | ✅ Concluída | `511db04` | Branch `entrega/modelo-reuso-database-first`. Linha de base verde após `mvn clean install` (core 7, backend 160); o primeiro `mvn install` falhou por classes antigas em `target/`, não por código. Decisões: o usuário demonstra o Database First; sem Django (Task 7 cancelada); Task 5 passa a gerar repositório, controller e telas HTML (Thymeleaf) por templates |
+| 2 | 1 — Modelo no FeatureIDE e validador | ✅ Concluída | `a3fd1b4` | 73 features e 12 restrições; 13 testes verdes; validador OK; 3 configurações válidas. Falta abrir no Eclipse (Step 7, junto com a Task 2) |
+| 3 | 2 — Imagem e documento do modelo | 🟡 Aguardando commit | — | Imagem exportada pelo usuário (532×1718); dividida em duas partes no corte vazio entre as linhas 888–895, para cada parte caber numa página com texto legível; o `model.xml` abriu no FeatureIDE sem avisos |
+| 4 | 3 — Classificação GRU e DRU | ✅ Concluída | `07aea2d` | GRU: 4 amarelo e 1 vermelho; DRU: 4 verde, 3 amarelo e 2 vermelho; evidências conferidas |
+| 5 | 4 — Gerador Word/PDF e entrega dos documentos | 🟡 Aguardando commit | `8bba54d` (gerador) | Gerador com 7 testes (limite de altura da imagem e legenda presa à figura); `01-modelo-de-caracteristicas` com 9 páginas e `02-niveis-de-reuso-gru-dru` com 6, conferidas página a página |
+| 6 | 5 — Database First: gerador | ✅ Concluída | `ccec55e` | Versão intuitiva: 5 templates geram entidade, repositório, controller e telas; 57 Java + 35 telas; `verificar.sh` OK |
+| 7 | 6 — Database First: documentação e roteiro | ✅ Concluída (falta o ensaio) | `ccec55e` | Falta o ensaio do usuário |
 | 8 | 7 — (Opcional) Telas completas com Django | ❌ Cancelada | — | Decisão do usuário em 2026-11-11: telas geradas em Java (Task 5) |
 
 ## Como o plano cobre os enunciados
@@ -1326,7 +1326,9 @@ A citação de `database-first/templates/` em DRU 9 só passa a valer depois da 
 - **Texto:** negrito, itálico e código inline são preservados, e as listas viram listas numeradas ou com marcadores.
 - **Tabelas:** cada coluna ganha pelo menos a largura da maior palavra que contém, e a sobra vai para as colunas de texto longo. Sem isso, o Word espreme as colunas curtas.
 - **Situação:** uma célula com o texto `Verde`, `Amarelo` ou `Vermelho` (com ou sem emoji) é pintada de verde, amarelo ou vermelho claro, e o emoji é retirado.
-- **Imagens:** são embutidas centralizadas, com no máximo 640 px de largura.
+- **Imagens:**
+  - são embutidas centralizadas, com no máximo 640 px de largura e 900 px de altura, para nunca saírem da página;
+  - o parágrafo logo antes de uma imagem (a legenda) fica na mesma página que ela.
 - **Página:** A4, margens de 2 cm e numeração no rodapé.
 
 - [ ] **Step 1: Pacote**
@@ -1424,6 +1426,25 @@ test("coluna curta não quebra palavra e a tabela ocupa a largura útil", () => 
   assert.ok(larguras[1] >= 12 * 115, `Operadores ficou com ${larguras[1]}`);
   assert.ok(larguras[2] > larguras[1], "a coluna de texto longo recebe a sobra");
 });
+
+test("imagem alta é reduzida para caber na altura da página", async () => {
+  const alta = Buffer.from(PNG_2X1);
+  alta.writeUInt32BE(400, 16);
+  alta.writeUInt32BE(3000, 20);
+  const { documento } = await xmlDe("![alta](alta.png)\n", { "alta.png": alta });
+  const [, largura, altura] = documento.match(/<wp:extent cx="(\d+)" cy="(\d+)"/);
+  assert.ok(Number(altura) <= 900 * 9525, `altura ${altura} passa da página`);
+  assert.equal(Math.round((Number(largura) / Number(altura)) * 3000), 400, "mantém a proporção");
+});
+
+test("o parágrafo antes de uma imagem fica na mesma página que ela", async () => {
+  const { documento } = await xmlDe("Legenda da figura\n\n![figura](figura.png)\n\nTexto solto\n", { "figura.png": PNG_2X1 });
+  const paragrafos = documento.split("<w:p>").slice(1);
+  const legenda = paragrafos.find((p) => p.includes("Legenda da figura"));
+  const solto = paragrafos.find((p) => p.includes("Texto solto"));
+  assert.match(legenda, /<w:keepNext\/>/);
+  assert.doesNotMatch(solto, /<w:keepNext\/>/);
+});
 ```
 
 Run: `npm test`
@@ -1446,6 +1467,7 @@ import { marked } from "marked";
 
 const LARGURA_UTIL = 9638;
 const LARGURA_IMAGEM_MAX = 640;
+const ALTURA_IMAGEM_MAX = 900;
 const LARGURA_CARACTERE = 120;
 const PALAVRA_MAXIMA = 18;
 const FONTE = "Arial";
@@ -1485,7 +1507,7 @@ function tamanhoPng(buffer) {
 function imagem(token, pastaBase) {
   const dados = readFileSync(resolve(pastaBase, decodeURI(token.href)));
   const { largura, altura } = tamanhoPng(dados);
-  const escala = Math.min(1, LARGURA_IMAGEM_MAX / largura);
+  const escala = Math.min(1, LARGURA_IMAGEM_MAX / largura, ALTURA_IMAGEM_MAX / altura);
   return new Paragraph({
     alignment: AlignmentType.CENTER,
     spacing: { before: 120, after: 120 },
@@ -1551,15 +1573,18 @@ function tabela(token) {
 
 const NIVEL = { 1: HeadingLevel.HEADING_1, 2: HeadingLevel.HEADING_2, 3: HeadingLevel.HEADING_3 };
 
+const temImagem = (t) => t?.type === "paragraph" && t.tokens.some((x) => x.type === "image");
+
 function blocos(tokens, pastaBase, nivelLista = 0) {
   const saida = [];
-  for (const t of tokens) {
+  const conteudo = tokens.filter((t) => t.type !== "space");
+  for (const [i, t] of conteudo.entries()) {
     if (t.type === "heading") {
       saida.push(new Paragraph({ heading: NIVEL[Math.min(t.depth, 3)], children: trechos(t.tokens) }));
     } else if (t.type === "paragraph") {
       const imagens = t.tokens.filter((x) => x.type === "image");
       if (imagens.length) imagens.forEach((img) => saida.push(imagem(img, pastaBase)));
-      else saida.push(new Paragraph({ spacing: { after: 120 }, children: trechos(t.tokens) }));
+      else saida.push(new Paragraph({ spacing: { after: 120 }, keepNext: temImagem(conteudo[i + 1]), children: trechos(t.tokens) }));
     } else if (t.type === "list") {
       for (const item of t.items) {
         const [primeiro, ...resto] = item.tokens;
@@ -1657,7 +1682,7 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
 
 Run: `npm test`
 
-Expected: `ℹ pass 5`, `ℹ fail 0`.
+Expected: `ℹ pass 7`, `ℹ fail 0`.
 
 - [ ] **Step 4: Exportação para PDF pelo Word**
 

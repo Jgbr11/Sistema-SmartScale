@@ -9,6 +9,7 @@ import { marked } from "marked";
 
 const LARGURA_UTIL = 9638;
 const LARGURA_IMAGEM_MAX = 640;
+const ALTURA_IMAGEM_MAX = 900;
 const LARGURA_CARACTERE = 120;
 const PALAVRA_MAXIMA = 18;
 const FONTE = "Arial";
@@ -48,7 +49,7 @@ function tamanhoPng(buffer) {
 function imagem(token, pastaBase) {
   const dados = readFileSync(resolve(pastaBase, decodeURI(token.href)));
   const { largura, altura } = tamanhoPng(dados);
-  const escala = Math.min(1, LARGURA_IMAGEM_MAX / largura);
+  const escala = Math.min(1, LARGURA_IMAGEM_MAX / largura, ALTURA_IMAGEM_MAX / altura);
   return new Paragraph({
     alignment: AlignmentType.CENTER,
     spacing: { before: 120, after: 120 },
@@ -114,15 +115,18 @@ function tabela(token) {
 
 const NIVEL = { 1: HeadingLevel.HEADING_1, 2: HeadingLevel.HEADING_2, 3: HeadingLevel.HEADING_3 };
 
+const temImagem = (t) => t?.type === "paragraph" && t.tokens.some((x) => x.type === "image");
+
 function blocos(tokens, pastaBase, nivelLista = 0) {
   const saida = [];
-  for (const t of tokens) {
+  const conteudo = tokens.filter((t) => t.type !== "space");
+  for (const [i, t] of conteudo.entries()) {
     if (t.type === "heading") {
       saida.push(new Paragraph({ heading: NIVEL[Math.min(t.depth, 3)], children: trechos(t.tokens) }));
     } else if (t.type === "paragraph") {
       const imagens = t.tokens.filter((x) => x.type === "image");
       if (imagens.length) imagens.forEach((img) => saida.push(imagem(img, pastaBase)));
-      else saida.push(new Paragraph({ spacing: { after: 120 }, children: trechos(t.tokens) }));
+      else saida.push(new Paragraph({ spacing: { after: 120 }, keepNext: temImagem(conteudo[i + 1]), children: trechos(t.tokens) }));
     } else if (t.type === "list") {
       for (const item of t.items) {
         const [primeiro, ...resto] = item.tokens;

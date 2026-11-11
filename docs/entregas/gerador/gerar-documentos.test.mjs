@@ -61,3 +61,22 @@ test("coluna curta não quebra palavra e a tabela ocupa a largura útil", () => 
   assert.ok(larguras[1] >= 12 * 115, `Operadores ficou com ${larguras[1]}`);
   assert.ok(larguras[2] > larguras[1], "a coluna de texto longo recebe a sobra");
 });
+
+test("imagem alta é reduzida para caber na altura da página", async () => {
+  const alta = Buffer.from(PNG_2X1);
+  alta.writeUInt32BE(400, 16);
+  alta.writeUInt32BE(3000, 20);
+  const { documento } = await xmlDe("![alta](alta.png)\n", { "alta.png": alta });
+  const [, largura, altura] = documento.match(/<wp:extent cx="(\d+)" cy="(\d+)"/);
+  assert.ok(Number(altura) <= 900 * 9525, `altura ${altura} passa da página`);
+  assert.equal(Math.round((Number(largura) / Number(altura)) * 3000), 400, "mantém a proporção");
+});
+
+test("o parágrafo antes de uma imagem fica na mesma página que ela", async () => {
+  const { documento } = await xmlDe("Legenda da figura\n\n![figura](figura.png)\n\nTexto solto\n", { "figura.png": PNG_2X1 });
+  const paragrafos = documento.split("<w:p>").slice(1);
+  const legenda = paragrafos.find((p) => p.includes("Legenda da figura"));
+  const solto = paragrafos.find((p) => p.includes("Texto solto"));
+  assert.match(legenda, /<w:keepNext\/>/);
+  assert.doesNotMatch(solto, /<w:keepNext\/>/);
+});
